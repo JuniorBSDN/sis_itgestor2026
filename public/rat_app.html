@@ -103,41 +103,43 @@
 </div>
 
 <script>
-   async function atualizarLista() {
-    const btn = document.querySelector('.refresh-btn');
-    btn.innerText = "ATUALIZANDO...";
+    async function atualizarLista() {
+        const btn = document.querySelector('.refresh-btn');
+        btn.innerText = "A ATUALIZAR...";
 
-    try {
-        // Agora chamando a rota correta que você mencionou
-        const response = await fetch('/api/rat_app'); 
-        const data = await response.json();
-        const tbody = document.getElementById('corpoTabela');
-        const countBadge = document.getElementById('totalCount');
+        try {
+            const response = await fetch('/api/lista-relatos');
+            const data = await response.json();
+            const tbody = document.getElementById('corpoTabela');
+            const countBadge = document.getElementById('totalCount');
 
-        if (data.status === "sucesso") {
-            countBadge.innerText = data.relatos.length;
+            if (data.status === "sucesso") {
+                countBadge.innerText = data.relatos.length;
 
-            if (data.relatos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; opacity:0.5;">Nenhum relato encontrado.</td></tr>`;
-            } else {
-                tbody.innerHTML = data.relatos.map(r => `
-    <tr>
-        <td data-label="Data">${r.data_registro}</td>
-        <td data-label="Colaborador">${r.is_anonimo ? '<em>Anônimo</em>' : (r.autor_nome || 'Identificado')}</td>
-        <td data-label="Setor">${r.setor}</td>
-        <td data-label="Tipo"><span class="badge status-${(r.tipo_falha || '').toLowerCase()}">${r.tipo_falha}</span></td>
-        <td class="desc-cell">${r.descricao}</td>
-    </tr>
-`).join('');
+                if (data.relatos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; opacity:0.5;">Nenhum relato encontrado.</td></tr>`;
+                } else {
+                    tbody.innerHTML = data.relatos.map(r => `
+                        <tr>
+                            <td data-label="Data">${r.data_registro}</td>
+                            <td data-label="Colaborador">${r.is_anonimo ? '<em>Anónimo</em>' : r.nome}</td>
+                            <td data-label="Setor">${r.setor}</td>
+                            <td data-label="Tipo"><span class="badge status-${r.tipo.toLowerCase()}">${r.tipo}</span></td>
+                            <td class="desc-cell">${r.descricao}</td>
+                        </tr>
+                    `).join('');
+                }
             }
+        } catch (error) {
+            console.error("Erro ao procurar relatos:", error);
+            alert("Erro ao carregar dados da API.");
+        } finally {
+            btn.innerText = "ATUALIZAR";
         }
-    } catch (error) {
-        console.error("Erro ao buscar relatos:", error);
-        alert("Erro ao carregar dados. Verifique se o servidor está rodando.");
-    } finally {
-        btn.innerText = "ATUALIZAR";
     }
-}
+
+    // Carrega a lista automaticamente quando abrir a página
+    window.onload = atualizarLista;
 </script>
 
 </body>
