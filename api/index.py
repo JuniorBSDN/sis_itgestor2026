@@ -80,25 +80,11 @@ def gerenciar_atividades():
 
 # --- ROTAS PARA APP HOSPITAL SEGURO (RELATOS) ---
 
-@app.route('/api/relatos', methods=['GET', 'POST'])
-def gerenciar_relatos():
-    if request.method == 'POST':
-        try:
-            dados = request.json
-            dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            db.collection('relatos').add(dados)
-            return jsonify({"status": "sucesso"}), 201
-        except Exception as e:
-            return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
-    elif request.method == 'GET':
-        try:
-            docs = db.collection('relatos').order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
-            relatos = [doc.to_dict() for doc in docs]
-            # Formato esperado pelo seu rat_app.html
-            return jsonify({"status": "sucesso", "relatos": relatos}), 200
-        except Exception as e:
-            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+@app.route('/api/relatos', methods=['GET'])
+def listar_relatos():
+    docs = db.collection('relatos').stream()
+    # Retorna uma lista direta []
+    return jsonify([doc.to_dict() for doc in docs]), 200
 
 # Rota padrão para teste
 @app.route('/')
