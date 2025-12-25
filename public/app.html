@@ -130,40 +130,62 @@
 </div>
 
 <script>
-document.getElementById('formRelato').onsubmit = async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('btnEnviar');
-    btn.disabled = true;
-    btn.innerText = "ENVIANDO...";
-
-    const payload = {
-        is_anonimo: document.getElementById('is_anonimo').checked,
-        nome: document.getElementById('is_anonimo').checked ? "Anônimo" : document.getElementById('nome').value,
-        cargo: document.getElementById('is_anonimo').checked ? "" : document.getElementById('cargo').value,
-        setor: document.getElementById('setor').value,
-        tipo: document.getElementById('tipo').value,
-        descricao: document.getElementById('descricao').value
-    };
-
-    try {
-        const response = await fetch('/api/relatos', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-            alert("Obrigado! Seu relato foi enviado com sucesso.");
-            location.reload();
-        } else {
-            throw new Error("Erro na resposta do servidor");
-        }
-    } catch (error) {
-        alert("Erro ao conectar com a API: " + error.message);
-        btn.disabled = false;
-        btn.innerText = "ENVIAR RELATO";
+    // --- FUNÇÕES DOS MODAIS (CORREÇÃO DO ERRO) ---
+    function irParaAviso() {
+        document.getElementById('modalCarta').classList.add('hidden');
+        document.getElementById('modalAvisoLegal').classList.remove('hidden');
     }
-};
+
+    function aceitarTudo() {
+        document.getElementById('modalAvisoLegal').classList.add('hidden');
+    }
+
+    function toggleIdentidade() {
+        const camposUser = document.getElementById('camposUser');
+        const isAnonimo = document.getElementById('is_anonimo').checked;
+        if (isAnonimo) {
+            camposUser.classList.add('hidden');
+        } else {
+            camposUser.classList.remove('hidden');
+        }
+    }
+
+    // --- LÓGICA DE ENVIO DO FORMULÁRIO ---
+    document.getElementById('formRelato').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnEnviar');
+        btn.disabled = true;
+        btn.innerText = "ENVIANDO...";
+
+        const payload = {
+            is_anonimo: document.getElementById('is_anonimo').checked,
+            nome: document.getElementById('is_anonimo').checked ? "Anônimo" : document.getElementById('nome').value,
+            cargo: document.getElementById('is_anonimo').checked ? "" : document.getElementById('cargo').value,
+            setor: document.getElementById('setor').value,
+            tipo: document.getElementById('tipo').value,
+            descricao: document.getElementById('descricao').value
+        };
+
+        try {
+            // Nota: Certifique-se de que a URL /api/relatos exista no seu servidor/backend
+            const response = await fetch('/api/relatos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert("Obrigado! Seu relato foi enviado com sucesso.");
+                location.reload();
+            } else {
+                throw new Error("Erro na resposta do servidor");
+            }
+        } catch (error) {
+            alert("Erro ao conectar com a API: " + error.message);
+            btn.disabled = false;
+            btn.innerText = "ENVIAR RELATO";
+        }
+    };
 </script>
 </body>
 </html>
