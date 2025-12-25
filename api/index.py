@@ -211,5 +211,17 @@ def listar_relatos_painel():
         return jsonify({"status": "sucesso", "relatos": lista}), 200
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+@app.route("/api/lista-relatos", methods=["GET"])
+def listar_relatos():
+    try:
+        # Busca na coleção 'relatos' ordenada por data
+        relatos_ref = db.collection("relatos").order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
+        lista = [doc.to_dict() for doc in relatos_ref]
+        return jsonify({"status": "sucesso", "relatos": lista}), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
