@@ -3,139 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Gestão - Real Time</title>
+    <title>Painel Gestão - Hospital Seguro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
-            --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
-            --danger: #fb7185; --success: #4ade80; --warning: #fbbf24;
-        }
-
-        body {
-            background-color: var(--bg); color: var(--text);
-            font-family: 'Inter', sans-serif; margin: 0; padding: 15px;
-        }
-
-        .container { max-width: 1200px; margin: 0 auto; }
-
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px;
-        }
-
-        h1 { font-size: 1.2rem; margin: 0; }
-        .count-badge { background: var(--primary); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight: bold; }
-
-        .table-wrapper {
-            background: var(--card); border-radius: 16px; overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(255,255,255,0.03); padding: 15px; text-align: left; font-size: 0.85rem; color: var(--primary); }
-        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-
-        /* Badges de Cores para o Tipo de Relato */
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
-        .status-infraestrutura { background: rgba(56, 189, 248, 0.2); color: var(--primary); }
-        .status-insumos { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
-        .status-etica { background: rgba(251, 113, 133, 0.2); color: var(--danger); }
-        .status-comportamento { background: rgba(251, 113, 133, 0.2); color: var(--danger); }
-        .status-processo { background: rgba(74, 222, 128, 0.2); color: var(--success); }
-
-        .refresh-btn {
-            background: var(--primary); border: none; padding: 10px 20px; border-radius: 10px;
-            font-weight: bold; cursor: pointer; transition: 0.3s; color: #0f172a;
-        }
-
-        @media (max-width: 768px) {
-            thead { display: none; }
-            tr { display: block; border-bottom: 5px solid var(--bg); padding: 10px; }
-            td { display: block; text-align: right; padding-left: 50%; position: relative; }
-            td::before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; color: var(--primary); }
-        }
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+        .badge-infraestrutura { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+        .badge-insumos { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .badge-comportamento { background: rgba(251, 113, 133, 0.2); color: #fb7185; }
+        @media print { .no-print { display: none; } body { background: white; color: black; } }
     </style>
 </head>
-<body>
+<body class="p-4 md:p-8">
 
-<div class="container">
-    <header>
-        <div>
-            <h1>Relatos de Melhoria <span class="count-badge" id="totalCount">0</span></h1>
-            <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 5px;">Visualização de dados do Firebase em Tempo Real</p>
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-8 border-b border-slate-700 pb-6">
+            <div>
+                <h1 class="text-2xl font-bold">Relatos Recebidos <span id="totalCount" class="bg-blue-600 text-xs px-2 py-1 rounded-full">0</span></h1>
+                <p class="text-slate-400 text-sm">Monitoramento de melhorias em tempo real</p>
+            </div>
+            <button onclick="atualizarLista()" id="btnRefresh" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl font-bold transition-all no-print">
+                ATUALIZAR DADOS
+            </button>
+        </header>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-800/50 text-blue-400 text-xs uppercase">
+                        <th class="p-4">Data/Hora</th>
+                        <th class="p-4">Colaborador</th>
+                        <th class="p-4">Setor</th>
+                        <th class="p-4">Tipo</th>
+                        <th class="p-4">Descrição</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabela" class="text-sm">
+                    <tr><td colspan="5" class="p-10 text-center text-slate-500 italic">Carregando relatos...</td></tr>
+                </tbody>
+            </table>
         </div>
-        <button class="refresh-btn" id="btnRefresh" onclick="atualizarLista()">ATUALIZAR</button>
-    </header>
-
-    <div class="table-wrapper">
-        <table id="tabelaRelatos">
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Colaborador</th>
-                    <th>Setor</th>
-                    <th>Tipo</th>
-                    <th>Descrição</th>
-                </tr>
-            </thead>
-            <tbody id="corpoTabela">
-                <tr><td colspan="5" style="text-align:center; padding:30px;">Carregando...</td></tr>
-            </tbody>
-        </table>
     </div>
-</div>
 
+    <script>
+        async function atualizarLista() {
+            const btn = document.getElementById('btnRefresh');
+            btn.innerText = "BUSCANDO...";
+            btn.disabled = true;
 
+            try {
+                // 1. Chamada para a rota correta
+                const response = await fetch('/api/relatos');
+                const relatos = await response.json(); // Aqui recebemos a lista direta
+                
+                const tbody = document.getElementById('corpoTabela');
+                const countBadge = document.getElementById('totalCount');
 
-<script>
-    async function atualizarLista() {
-        const btn = document.getElementById('btnRefresh');
-        btn.innerText = "A ATUALIZAR...";
-        
-        try {
-            // CORREÇÃO: A rota deve ser a mesma onde você salva os dados
-            const response = await fetch('/api/relatos');
-            
-            // CORREÇÃO: No Python, estamos retornando a lista direta, sem o campo .relatos
-            const relatos = await response.json();
-            
-            const tbody = document.getElementById('corpoTabela');
-            const countBadge = document.getElementById('totalCount');
+                countBadge.innerText = relatos.length;
 
-            countBadge.innerText = relatos.length;
+                if (relatos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-500">Nenhum relato encontrado no banco de dados.</td></tr>`;
+                    return;
+                }
 
-            if (!relatos || relatos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; opacity:0.5;">Nenhum relato encontrado.</td></tr>`;
-                return;
+                // 2. Renderização (Mostra o mais recente primeiro com .reverse())
+                tbody.innerHTML = relatos.reverse().map(r => `
+                    <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
+                        <td class="p-4 text-slate-400">${r.data_registro || 'Recém postado'}</td>
+                        <td class="p-4">
+                            <span class="font-bold text-white">${r.is_anonimo ? '<span class="text-slate-500 italic">Anônimo</span>' : r.nome}</span>
+                            <br><small class="text-slate-500">${r.cargo || ''}</small>
+                        </td>
+                        <td class="p-4 text-blue-300 font-semibold">${r.setor}</td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase badge-${(r.tipo || 'infraestrutura').toLowerCase()}">
+                                ${r.tipo}
+                            </span>
+                        </td>
+                        <td class="p-4 text-slate-300 max-w-xs">${r.descricao}</td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error("Erro:", error);
+                document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="5" class="p-10 text-center text-red-400">Erro ao carregar dados. Verifique a conexão.</td></tr>`;
+            } finally {
+                btn.innerText = "ATUALIZAR DADOS";
+                btn.disabled = false;
             }
-
-            // Renderiza a tabela (mais recentes primeiro)
-            tbody.innerHTML = relatos.reverse().map(r => `
-                <tr>
-                    <td data-label="Data">${r.data_registro || 'N/A'}</td>
-                    <td data-label="Colaborador">
-                        <strong>${r.is_anonimo ? '<em>Anônimo</em>' : (r.nome || 'N/D')}</strong><br>
-                        <small style="opacity:0.7">${r.cargo || ''}</small>
-                    </td>
-                    <td data-label="Setor">${r.setor || '--'}</td>
-                    <td data-label="Tipo">
-                        <span class="badge status-${(r.tipo || 'processo').toLowerCase()}">${r.tipo || 'Geral'}</span>
-                    </td>
-                    <td style="font-size: 0.85rem; line-height: 1.4;">${r.descricao || '--'}</td>
-                </tr>
-            `).join('');
-
-        } catch (error) {
-            console.error("Erro ao carregar:", error);
-            document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--danger);">Erro ao carregar dados. Verifique a API.</td></tr>`;
-        } finally {
-            btn.innerText = "ATUALIZAR";
         }
-    }
 
-    // Inicializa a lista
-    document.addEventListener('DOMContentLoaded', atualizarLista);
-</script>
-
+        // Carrega ao abrir a página
+        document.addEventListener('DOMContentLoaded', atualizarLista);
+    </script>
 </body>
 </html>
