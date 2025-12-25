@@ -1,130 +1,34 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Relatório de Ativos - TI Hospitalar</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
-
-    table { border-collapse: collapse; width: 100%; table-layout: auto; }
-
-    .td-custom {
-      padding: 10px 8px;
-      border-bottom: 1px solid #334155;
-      font-size: 0.75rem;
-      vertical-align: top;
-      word-wrap: break-word;
-      white-space: normal;
-    }
-
-    th {
-      background-color: #1e293b;
-      color: #94a3b8;
-      text-transform: uppercase;
-      font-size: 0.65rem;
-      letter-spacing: 0.05em;
-      text-align: left;
-      padding: 12px 8px;
-      position: sticky;
-      top: 0;
-    }
-
-    #header-pdf, #footer-pdf { display: none; }
-
-    @media print {
-      @page { size: landscape; margin: 0.5cm; }
-      .no-print { display: none; }
-      body { background: white; color: black; padding: 0; }
-
-      #header-pdf { display: block; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-      #footer-pdf { display: block; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; }
-
-      table { border: 1px solid #000; width: 100%; }
-      th, td { border: 1px solid #000; color: black !important; font-size: 0.65rem; padding: 4px; }
-      th { background-color: #f2f2f2 !important; }
-      .text-blue-400, .text-blue-300, .text-emerald-400 { color: black !important; }
-    }
-  </style>
-</head>
-<body class="p-4 md:p-8">
-
-  <div id="header-pdf">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <h1 style="font-size: 16pt; font-weight: bold;">RELATÓRIO DE INVENTÁRIO TECNOLÓGICO</h1>
-        <p style="font-size: 9pt;">Gestão de Ativos e Identificação - TI Hospitalar</p>
-      </div>
-      <div style="text-align: right; font-size: 9pt;">
-        <strong>Emissor:</strong> JOSÉ AIRTON B. S. JUNIOR<br>
-        <strong>Data:</strong> <span id="data-atual"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="max-w-[100%] mx-auto">
-    <div class="flex flex-col md:flex-row justify-between items-center mb-8 no-print gap-4">
-      <div>
-        <h1 class="text-3xl font-bold">Relatório de Ativos</h1>
-        <p class="text-slate-400">Técnico Responsável: José Airton B. S. Junior</p>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <input type="text" id="filtro" onkeyup="filtrarTabela()" placeholder="Filtrar por Usuário, ID, IP..."
-               class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg outline-none focus:border-blue-500 text-sm w-64">
-
-        <button onclick="prepararImpressao()" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2">
-          📄 GERAR PDF
-        </button>
-      </div>
-    </div>
-
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-      <table id="tabelaAtivos">
-        <thead>
-          <tr>
-            <th style="width: 10%">Usuário / Setor</th>
-            <th style="width: 8%">ID Ativo</th>
-            <th style="width: 15%">Equipamento / Modelo</th>
-            <th style="width: 10%">N/S / Patr.</th>
-            <th style="width: 15%">Hardware / Software</th>
-            <th style="width: 12%">ID Suporte / IP</th>
-            <th style="width: 10%">Hostname</th>
-            <th style="width: 10%">Status / Itens</th>
-            <th style="width: 10%">OBS</th>
-          </tr>
-        </thead>
-        <tbody id="corpoTabela">
-          </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div id="footer-pdf">
-    <p style="font-size: 9pt; font-weight: bold;">TÉCNICO RESPONSÁVEL: JOSÉ AIRTON B. S. JUNIOR</p>
-    <p style="font-size: 8pt;">Documento gerado eletronicamente pelo Sistema de Inventário TI Hospitalar</p>
-  </div>
-
-  <script>
+<script>
     let ativosCache = [];
 
     async function buscarDados() {
       try {
-        // Ajuste esta rota para a mesma que o seu servidor usa
-        const res = await fetch('/api/lista-ativos');
+        // 1. CORREÇÃO: Rota correta definida no seu api/index.py
+        const res = await fetch('/api/ativos');
+        
+        if (!res.ok) throw new Error("Erro ao buscar dados do servidor");
+
+        // 2. CORREÇÃO: O Python retorna a lista direta [{}, {}], não {status: 'sucesso', ativos: []}
         const data = await res.json();
-        if (data.status === 'sucesso') {
-          ativosCache = data.ativos;
-          renderizar(ativosCache);
-        }
+        
+        ativosCache = data; // Atribui a lista diretamente
+        renderizar(ativosCache);
+        
       } catch (e) {
-        console.error("Erro ao carregar dados. Verifique a API.");
+        console.error("Erro ao carregar dados:", e);
+        const tbody = document.getElementById('corpoTabela');
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center p-10 text-red-400">Erro ao carregar dados da API. Verifique o console.</td></tr>`;
       }
     }
 
     function renderizar(lista) {
       const tbody = document.getElementById('corpoTabela');
+      
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center p-10 text-slate-500">Nenhum ativo cadastrado no sistema.</td></tr>`;
+        return;
+      }
+
       tbody.innerHTML = lista.map(a => `
         <tr>
           <td class="td-custom">
@@ -137,25 +41,25 @@
             <span class="text-slate-400 text-[10px]">${a.modelo || '--'}</span>
           </td>
           <td class="td-custom">
-            <span class="block">S: ${a.ns_serial || '--'}</span>
-            <span class="block">P: ${a.patrimonio || '--'}</span>
+            <span class="block text-[10px]">S: ${a.ns_serial || '--'}</span>
+            <span class="block text-[10px]">P: ${a.patrimonio || '--'}</span>
           </td>
           <td class="td-custom">
             <span class="block text-[10px]">H: ${a.hardware || '--'}</span>
             <span class="block text-[10px] text-blue-300">S: ${a.software || '--'}</span>
           </td>
           <td class="td-custom font-mono">
-            <span class="block text-yellow-500">ID: ${a.id_suporte || '--'}</span>
+            <span class="block text-yellow-500 text-[10px]">ID: ${a.id_suporte || '--'}</span>
             <span class="text-[10px]">${a.ipv4 || '--'}</span>
           </td>
-          <td class="td-custom font-mono text-blue-300">
+          <td class="td-custom font-mono text-blue-300 text-[10px]">
             ${a.hostname || a.nome_computador || '--'}
           </td>
           <td class="td-custom">
             <span class="block font-bold text-[9px] uppercase">${a.status_fisico || '--'}</span>
-            <span class="text-emerald-400 text-[9px] italic">${(a.itens_requeridos || []).join(', ')}</span>
+            <span class="text-emerald-400 text-[8px] italic">${Array.isArray(a.itens_requeridos) ? a.itens_requeridos.join(', ') : '--'}</span>
           </td>
-          <td class="td-custom text-[10px] text-slate-400">
+          <td class="td-custom text-[10px] text-slate-400 italic">
             ${a.obs || '--'}
           </td>
         </tr>
@@ -170,13 +74,12 @@
     function filtrarTabela() {
       const termo = document.getElementById('filtro').value.toLowerCase();
       const filtrados = ativosCache.filter(a =>
+        // Busca em todos os campos do objeto
         Object.values(a).some(v => String(v).toLowerCase().includes(termo))
       );
       renderizar(filtrados);
     }
 
-    // Inicializa a busca
-    buscarDados();
+    // Inicializa a busca ao carregar a página
+    document.addEventListener('DOMContentLoaded', buscarDados);
   </script>
-</body>
-</html>
