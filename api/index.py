@@ -1,24 +1,25 @@
 import os
 import json
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
-from datetime import datetime
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-CORS(app)
 
-# --- CONFIGURAÇÃO DO FIREBASE ---
-# Certifique-se de que o arquivo .json das credenciais esteja na mesma pasta
-try:
-    cred_path = "FIREBASE_CREDENTIALS.json" # Nome do seu arquivo de chaves
-    cred = credentials.Certificate(cred_path)
-    firebase_admin.initialize_app(cred)
-    db = firestore.client()
-    print("🔥 Conexão com Firestore estabelecida com sucesso!")
-except Exception as e:
-    print(f"❌ Erro ao conectar ao Firebase: {e}")
+# Tenta ler a variável de ambiente (Produção na Vercel)
+# Caso não exista, tenta ler o arquivo local (Para seus testes no PC)
+fb_creds = os.environ.get("FIREBASE_CREDENTIALS")
+
+if fb_creds:
+    # Transforma a string JSON da variável em dicionário
+    cred_dict = json.loads(fb_creds)
+    cred = credentials.Certificate(cred_dict)
+else:
+    # Caminho para teste local (não esqueça de por no .gitignore)
+    cred = credentials.Certificate("FIREBASE_CREDENTIALS.json")
+
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 # --- ROTAS DE NAVEGAÇÃO ---
 @app.route('/')
