@@ -122,11 +122,11 @@
             } else {
                 tbody.innerHTML = data.relatos.map(r => `
     <tr>
-        <td>${r.data_registro}</td>
-        <td>${r.is_anonimo ? 'Anônimo' : r.autor_nome}</td>
-        <td>${r.setor}</td>
-        <td>${r.tipo_falha}</td>
-        <td>${r.descricao}</td>
+        <td data-label="Data">${r.data_registro}</td>
+        <td data-label="Colaborador">${r.is_anonimo ? '<em>Anônimo</em>' : (r.autor_nome || 'Identificado')}</td>
+        <td data-label="Setor">${r.setor}</td>
+        <td data-label="Tipo"><span class="badge status-${(r.tipo_falha || '').toLowerCase()}">${r.tipo_falha}</span></td>
+        <td class="desc-cell">${r.descricao}</td>
     </tr>
 `).join('');
             }
