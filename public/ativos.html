@@ -1,150 +1,130 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Gestão de Ativos | TI Hospitalar</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
-    .input-dark {
-      width: 100%; padding: 0.75rem; background-color: #1e293b; border: 1px solid #334155;
-      border-radius: 0.5rem; font-size: 0.875rem; color: #f1f5f9; outline: none; transition: all 0.2s;
+let itensRequeridos = [];
+
+// Gerencia a lista visual de itens (Teclado, Mouse, etc)
+function adicionarItem() {
+    const input = document.getElementById("inputItem");
+    const valor = input.value.trim();
+    
+    if (valor && !itensRequeridos.includes(valor)) {
+        itensRequeridos.push(valor);
+        renderizarItens();
+        input.value = "";
     }
-    .input-dark:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-    .section-title { font-size: 10px; font-weight: 800; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block; }
-
-    /* Estilo para o campo ID quando está em modo edição */
-    .input-readonly { background-color: #0f172a; color: #94a3b8; cursor: not-allowed; border-style: dashed; }
-  </style>
-</head>
-
-<body class="min-h-screen flex items-center justify-center p-4">
-  <div class="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
-
-    <header class="mb-8 border-b border-slate-800 pb-4 flex justify-between items-end">
-      <div>
-        <h1 class="text-2xl font-bold text-white tracking-tight">Gestão de Ativos / Identificação</h1>
-        <p class="text-slate-400 text-sm">Responsável: JOSE AIRTON B. S. JUNIOR</p>
-      </div>
-      <button onclick="limparFormulario()" class="text-xs text-slate-500 hover:text-white underline">Limpar Tudo</button>
-    </header>
-
-    <div class="mb-8 p-4 bg-slate-800/40 border border-slate-700 rounded-xl">
-      <span class="section-title text-blue-400">Consultar ou Editar Ativo</span>
-      <div class="flex gap-2">
-        <input id="inputBusca" class="input-dark border-blue-500/30" placeholder="Digite o ID do Ativo para buscar...">
-        <button type="button" onclick="buscarAtivo()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-lg font-bold transition-all">BUSCAR</button>
-      </div>
-    </div>
-
-    <form id="formAtivo" class="space-y-6">
-
-      <div>
-        <span class="section-title">Dados do Usuário e Localização</span>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input id="usuario" class="input-dark" placeholder="Usuário">
-          <input id="setor" class="input-dark" placeholder="Setor">
-          <input id="id_ativo" class="input-dark border-blue-500/50" placeholder="ID do Ativo *" required>
-        </div>
-      </div>
-
-      <div>
-        <span class="section-title">Especificações do Equipamento</span>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <input id="equipamento" class="input-dark" placeholder="Equipamento">
-          <input id="modelo" class="input-dark" placeholder="Modelo">
-          <input id="ns_serial" class="input-dark" placeholder="N/S (Serial)">
-          <input id="patrimonio" class="input-dark" placeholder="Patrimônio">
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <input id="hardware" class="input-dark" placeholder="Hardware (CPU, RAM, SSD...)">
-          <input id="software" class="input-dark" placeholder="Software (S.O, Versão...)">
-        </div>
-      </div>
-
-      <div class="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl">
-        <span class="section-title text-blue-400">Rede e Acesso Remoto</span>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <input id="id_suporte" class="input-dark" placeholder="ID Suporte (AnyDesk)">
-          <input id="ipv4" class="input-dark" placeholder="IPv4">
-          <input id="nome_computador" class="input-dark" placeholder="Nome do Computador">
-          <input id="hostname" class="input-dark" placeholder="Hostname">
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <span class="section-title">Status Físico do PC</span>
-          <select id="status_fisico" class="input-dark">
-            <option value="" class="bg-slate-900">Selecione o estado...</option>
-            <option value="Ótimo" class="bg-slate-900">Ótimo</option>
-            <option value="Bom" class="bg-slate-900">Bom (Marcas de uso)</option>
-            <option value="Regular" class="bg-slate-900">Regular (Precisa reparo)</option>
-            <option value="Crítico" class="bg-slate-900 text-red-400">Crítico (Danificado)</option>
-          </select>
-        </div>
-        <div>
-          <span class="section-title">Itens Requeridos</span>
-          <div class="flex gap-2">
-            <input id="inputItem" class="input-dark" placeholder="Ex: Teclado, Mouse...">
-            <button type="button" onclick="adicionarItem()" class="bg-blue-600 px-4 rounded-lg font-bold">+</button>
-          </div>
-          <div id="listaItens" class="flex flex-wrap gap-2 mt-2"></div>
-        </div>
-      </div>
-
-      <div>
-        <span class="section-title">Observações (OBS)</span>
-        <textarea id="obs" rows="3" class="input-dark" placeholder="Histórico técnico..."></textarea>
-      </div>
-
-      <div class="flex flex-col md:flex-row gap-3 pt-4">
-        <button type="submit" id="btnSalvar" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/40">
-          SALVAR NO SISTEMA
-        </button>
-
-        <button type="button" id="btnExcluir" onclick="excluirAtivo()" class="hidden flex-1 bg-red-600/10 border border-red-600/40 text-red-500 hover:bg-red-600 hover:text-white py-3 rounded-xl font-bold transition-all">
-          EXCLUIR ATIVO
-        </button>
-
-        <button type="button" onclick="gerarTXTLocal()" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-xl font-bold border border-slate-600 transition-all">
-          GERAR .TXT
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <script>
-  async function salvarAtivo() {
-  const dados = {
-    id_ativo: document.getElementById("id_ativo").value,
-    usuario: document.getElementById("usuario").value,
-    setor: document.getElementById("setor").value,
-    equipamento: document.getElementById("equipamento").value,
-    modelo: document.getElementById("modelo").value,
-    ns_serial: document.getElementById("ns_serial").value,
-    patrimonio: document.getElementById("patrimonio").value,
-    status_fisico: document.getElementById("status_fisico").value,
-    itens_requeridos: itensRequeridos // Array de itens selecionados
-  };
-
-  try {
-    const res = await fetch('/api/ativos', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(dados)
-    });
-
-    if(res.ok) {
-      alert("Ativo salvo com sucesso!");
-      limparFormulario();
-    }
-  } catch (e) {
-    alert("Erro ao salvar: " + e.message);
-  }
 }
-  </script>
-</body>
-</html>
+
+function removerItem(item) {
+    itensRequeridos = itensRequeridos.filter(i => i !== item);
+    renderizarItens();
+}
+
+function renderizarItens() {
+    const container = document.getElementById("listaItens");
+    container.innerHTML = itensRequeridos.map(item => `
+        <span class="bg-blue-600 text-white text-xs px-3 py-1 rounded-full flex items-center gap-2">
+            ${item}
+            <button type="button" onclick="recolorItem('${item}')" class="font-bold hover:text-red-300">×</button>
+        </span>
+    `).join('');
+}
+
+// FUNÇÃO DE BUSCA
+async function buscarAtivo() {
+    const idBusca = document.getElementById("inputBusca").value; // Corrigido para o ID do campo de busca
+    if (!idBusca) return alert("Digite um ID para buscar");
+
+    try {
+        const res = await fetch('/api/ativos');
+        const data = await res.json();
+        // A lógica de busca depende da estrutura do seu retorno de API
+        const ativo = data.ativos.find(a => a.id_ativo == idBusca);
+
+        if (ativo) {
+            preencherFormulario(ativo);
+            document.getElementById("btnExcluir").classList.remove("hidden");
+        } else {
+            alert("Ativo não encontrado.");
+        }
+    } catch (err) {
+        console.error("Erro na busca:", err);
+    }
+}
+
+function preencherFormulario(ativo) {
+    document.getElementById("id_ativo").value = ativo.id_ativo || "";
+    document.getElementById("usuario").value = ativo.usuario || "";
+    document.getElementById("setor").value = ativo.setor || "";
+    document.getElementById("equipamento").value = ativo.equipamento || "";
+    document.getElementById("modelo").value = ativo.modelo || "";
+    document.getElementById("ns_serial").value = ativo.ns_serial || "";
+    document.getElementById("patrimonio").value = ativo.patrimonio || "";
+    document.getElementById("status_fisico").value = ativo.status_fisico || "";
+    document.getElementById("hardware").value = ativo.hardware || "";
+    document.getElementById("software").value = ativo.software || "";
+    document.getElementById("id_suporte").value = ativo.id_suporte || "";
+    document.getElementById("ipv4").value = ativo.ipv4 || "";
+    document.getElementById("nome_computador").value = ativo.nome_computador || "";
+    document.getElementById("hostname").value = ativo.hostname || "";
+    document.getElementById("obs").value = ativo.obs || "";
+    
+    itensRequeridos = ativo.itens_requeridos || [];
+    renderizarItens();
+}
+
+// INTERCEPTAR O ENVIO DO FORMULÁRIO
+document.getElementById("formAtivo").addEventListener("submit", async (e) => {
+    e.preventDefault(); // Impede o recarregamento da página
+    
+    const dados = {
+        id_ativo: document.getElementById("id_ativo").value,
+        usuario: document.getElementById("usuario").value,
+        setor: document.getElementById("setor").value,
+        equipamento: document.getElementById("equipamento").value,
+        modelo: document.getElementById("modelo").value,
+        ns_serial: document.getElementById("ns_serial").value,
+        patrimonio: document.getElementById("patrimonio").value,
+        hardware: document.getElementById("hardware").value,
+        software: document.getElementById("software").value,
+        id_suporte: document.getElementById("id_suporte").value,
+        ipv4: document.getElementById("ipv4").value,
+        nome_computador: document.getElementById("nome_computador").value,
+        hostname: document.getElementById("hostname").value,
+        status_fisico: document.getElementById("status_fisico").value,
+        obs: document.getElementById("obs").value,
+        itens_requeridos: itensRequeridos,
+        data_atualizacao: new Date().toLocaleString('pt-BR')
+    };
+
+    try {
+        const res = await fetch('/api/ativos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        
+        if (res.ok) {
+            alert("✅ Ativo salvo com sucesso!");
+            limparFormulario();
+        }
+    } catch (err) {
+        alert("❌ Erro ao salvar: " + err.message);
+    }
+});
+
+function limparFormulario() {
+    document.getElementById("formAtivo").reset();
+    itensRequeridos = [];
+    renderizarItens();
+    document.getElementById("btnExcluir").classList.add("hidden");
+}
+
+// FUNÇÃO PARA GERAR TXT (Simulação local)
+function gerarTXTLocal() {
+    const nomeArquivo = `ativo_${document.getElementById("id_ativo").value || 'sem_id'}.txt`;
+    const conteudo = `ID: ${document.getElementById("id_ativo").value}\nUsuário: ${document.getElementById("usuario").value}\nSetor: ${document.getElementById("setor").value}`;
+    
+    const blob = new Blob([conteudo], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = nomeArquivo;
+    link.click();
+}
