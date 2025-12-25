@@ -36,7 +36,9 @@
         input, select, textarea {
             width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
             background: rgba(0,0,0,0.2); color: #fff; font-size: 1rem;
+            outline: none;
         }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
         .anon-box {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 20px;
@@ -44,10 +46,11 @@
         button {
             width: 100%; padding: 15px; border-radius: 12px; border: none;
             background: var(--primary); color: #0f172a; font-weight: bold; cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
         }
-        .btn-warning {
-            background: var(--warning);
-        }
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-warning { background: var(--warning); }
         .hidden { display: none; }
     </style>
 </head>
@@ -55,10 +58,10 @@
 
 <div id="modalCarta" class="modal-overlay">
     <div class="modal-content">
-        <h2 style="color: var(--primary)">Carta ao Colaborador</h2>
-        <p style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1;">
+        <h2 style="color: var(--primary); margin-bottom: 15px;">Carta ao Colaborador</h2>
+        <p style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1; margin-bottom: 20px;">
             Este canal foi criado para ouvirmos você. Relate falhas, tipos de abusos, falta de insumos, problemas de infraestrutura.
-            Garantimos o anonimato e o foco na <strong>melhoria contínua</strong>, sem punições. Ao contrário; somos gratos por sua contribuição em uma nova gestão.
+            Garantimos o anonimato e o foco na <strong>melhoria contínua</strong>, sem punições. Somos gratos por sua contribuição.
         </p>
         <button onclick="irParaAviso()">LI E CONCORDO</button>
     </div>
@@ -66,71 +69,74 @@
 
 <div id="modalAvisoLegal" class="modal-overlay hidden">
     <div class="modal-content">
-        <h2 style="color: var(--warning)">Uso Responsável</h2>
-        <p style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1; text-align: left;">
-            Para garantir a eficácia deste canal, lembramos que:
-            <br><br>
-            1. A <strong>boa-fé</strong> é essencial. Relate apenas fatos reais.<br>
-            2. Informações falsas ou comunicações feitas de má-fé para prejudicar colegas ou a instituição podem ser objeto de <strong>medidas disciplinares</strong>, conforme o Código de Conduta e a legislação vigente.<br>
+        <h2 style="color: var(--warning); margin-bottom: 15px;">Uso Responsável</h2>
+        <p style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1; text-align: left; margin-bottom: 20px;">
+            1. A <strong>boa-fé</strong> é essencial. Relate apenas fatos reais.<br><br>
+            2. Informações falsas para prejudicar colegas podem sofrer <strong>medidas disciplinares</strong>.<br><br>
             3. Este é um espaço de construção, não de difamação.
         </p>
-        <button class="btn-warning" onclick="aceitarTudo()">COMPREENDO E DESEJO PROSSEGUIR</button>
+        <button class="btn-warning" onclick="aceitarTudo()">COMPREENDO E PROSSEGUIR</button>
     </div>
 </div>
 
 <div class="glass-container">
     <header style="text-align: center; margin-bottom: 25px;">
-        <h1 style="margin:0; font-size: 1.4rem;">Relato de Melhoria</h1>
+        <h1 style="margin:0; font-size: 1.4rem; color: var(--primary);">Relato de Melhoria</h1>
         <p style="font-size: 0.8rem; opacity: 0.6;">Sua contribuição é fundamental.</p>
     </header>
 
     <form id="formRelato">
         <div class="anon-box">
-            <span>Relatar como Anônimo</span>
-            <input type="checkbox" id="is_anonimo" checked onchange="toggleIdentidade()" style="width: 20px;">
+            <span style="font-size: 0.9rem;">Relatar como Anônimo</span>
+            <input type="checkbox" id="is_anonimo" checked onchange="toggleIdentidade()" style="width: 20px; height: 20px; cursor: pointer;">
         </div>
 
         <div id="camposUser" class="hidden">
             <div class="input-group">
-                <input type="text" id="nome" placeholder="Seu Nome">
+                <input type="text" id="nome" placeholder="Seu Nome Completo">
             </div>
             <div class="input-group">
-                <input type="text" id="cargo" placeholder="Seu Cargo">
+                <input type="text" id="cargo" placeholder="Seu Cargo/Função">
             </div>
         </div>
 
         <div class="input-group">
-            <label>Setor</label>
+            <label>Setor do Ocorrido</label>
             <select id="setor" required>
                 <option value="">Selecione o setor...</option>
                 <option value="UTI">UTI</option>
-                <option value="Emergencia">Emergência</option>
-                <option value="Copa">Copa</option>
-                <option value="Manutencao">Manutenção</option>
+                <option value="Emergência">Emergência</option>
+                <option value="Copa/Cozinha">Copa/Cozinha</option>
+                <option value="Manutenção">Manutenção</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Enfermaria">Enfermaria</option>
             </select>
         </div>
 
         <div class="input-group">
-            <label>Tipo de Falha</label>
+            <label>Tipo de Relato</label>
             <select id="tipo" required>
-                <option value="Infraestrutura">Infraestrutura</option>
-                <option value="Insumos">Falta de Insumos</option>
-                <option value="Processo">Processo / Fluxo</option>
+                <option value="Infraestrutura">Infraestrutura (Quebrado/Fisico)</option>
+                <option value="Insumos">Falta de Insumos (Material)</option>
+                <option value="Processo">Processo / Fluxo de Trabalho</option>
                 <option value="Comportamento">Comportamento / Ética</option>
+                <option value="Sugestão">Sugestão de Melhoria</option>
             </select>
         </div>
 
         <div class="input-group">
-            <label>Descrição (Seja o mais específico possível)</label>
-            <textarea id="descricao" rows="4" required placeholder="Descreva o ocorrido com fatos e dados..."></textarea>
+            <label>Descrição Detalhada</label>
+            <textarea id="descricao" rows="4" required placeholder="Descreva o ocorrido com fatos..."></textarea>
         </div>
 
         <button type="submit" id="btnEnviar">ENVIAR RELATO</button>
     </form>
 </div>
 
+
+
 <script>
-    // --- FUNÇÕES DOS MODAIS (CORREÇÃO DO ERRO) ---
+    // Controle de Navegação dos Modais
     function irParaAviso() {
         document.getElementById('modalCarta').classList.add('hidden');
         document.getElementById('modalAvisoLegal').classList.remove('hidden');
@@ -145,29 +151,38 @@
         const isAnonimo = document.getElementById('is_anonimo').checked;
         if (isAnonimo) {
             camposUser.classList.add('hidden');
+            document.getElementById('nome').required = false;
+            document.getElementById('cargo').required = false;
         } else {
             camposUser.classList.remove('hidden');
+            document.getElementById('nome').required = true;
+            document.getElementById('cargo').required = true;
         }
     }
 
-    // --- LÓGICA DE ENVIO DO FORMULÁRIO ---
+    // Lógica de Envio para a API Python/Firebase
     document.getElementById('formRelato').onsubmit = async (e) => {
         e.preventDefault();
+        
         const btn = document.getElementById('btnEnviar');
+        const isAnonimo = document.getElementById('is_anonimo').checked;
+
+        // Feedback visual
         btn.disabled = true;
-        btn.innerText = "ENVIANDO...";
+        btn.innerText = "ENVIANDO AGUARDE...";
 
         const payload = {
-            is_anonimo: document.getElementById('is_anonimo').checked,
-            nome: document.getElementById('is_anonimo').checked ? "Anônimo" : document.getElementById('nome').value,
-            cargo: document.getElementById('is_anonimo').checked ? "" : document.getElementById('cargo').value,
+            is_anonimo: isAnonimo,
+            nome: isAnonimo ? "Anônimo" : document.getElementById('nome').value,
+            cargo: isAnonimo ? "Não Informado" : document.getElementById('cargo').value,
             setor: document.getElementById('setor').value,
             tipo: document.getElementById('tipo').value,
-            descricao: document.getElementById('descricao').value
+            descricao: document.getElementById('descricao').value,
+            data_registro: new Date().toLocaleString('pt-BR') // Adiciona data/hora
         };
 
         try {
-            // Nota: Certifique-se de que a URL /api/relatos exista no seu servidor/backend
+            // Chamada para a rota que criamos no seu api/index.py
             const response = await fetch('/api/relatos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -175,15 +190,16 @@
             });
 
             if (response.ok) {
-                alert("Obrigado! Seu relato foi enviado com sucesso.");
-                location.reload();
+                alert("Obrigado pela sua contribuição! O relato foi enviado com sucesso e será analisado pela gestão.");
+                location.reload(); // Reseta o formulário e volta aos modais
             } else {
-                throw new Error("Erro na resposta do servidor");
+                const errorData = await response.json();
+                throw new Error(errorData.mensagem || "Erro ao salvar no servidor");
             }
         } catch (error) {
-            alert("Erro ao conectar com a API: " + error.message);
+            alert("Falha ao enviar: " + error.message);
             btn.disabled = false;
-            btn.innerText = "ENVIAR RELATO";
+            btn.innerText = "TENTAR ENVIAR NOVAMENTE";
         }
     };
 </script>
