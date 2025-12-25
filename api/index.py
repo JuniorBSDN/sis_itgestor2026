@@ -199,6 +199,17 @@ def cadastrar_atividade():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
+@app.route("/api/rat_app", methods=["GET"])
+def listar_relatos_painel():
+    try:
+        # Busca os relatos na coleção "relatos" do Firestore
+        relatos_ref = db.collection("relatos").order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
+        lista = []
+        for doc in relatos_ref:
+            lista.append(doc.to_dict())
+        
+        return jsonify({"status": "sucesso", "relatos": lista}), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 if __name__ == "__main__":
     app.run(debug=True)
