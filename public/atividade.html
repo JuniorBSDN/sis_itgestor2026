@@ -105,17 +105,37 @@
     </div>
   </div>
 
-  <script>
-    document.getElementById('formAtividade').onsubmit = async (e) => {
+<script>
+  // Função para controlar a exibição da justificativa (Retorno ou Improdutivo)
+  function verificarStatus() {
+    const status = document.getElementById('status_atendimento').value;
+    const campoJustificativa = document.getElementById('campo_justificativa');
+    const label = document.getElementById('label_justificativa');
+
+    if (status === "Concluído") {
+      campoJustificativa.classList.add('hidden');
+    } else {
+      campoJustificativa.classList.remove('hidden');
+      label.innerText = status === "Retorno" ? "Motivo do Retorno *" : "Justificativa da Improdutividade *";
+      label.className = status === "Retorno" ? "text-orange-400" : "text-red-400";
+    }
+  }
+
+  // FUNÇÃO SALVAR
+  document.getElementById('formAtividade').onsubmit = async (e) => {
     e.preventDefault();
+
+    // CORREÇÃO: Mapeando os IDs que realmente existem no seu HTML
     const dados = {
-        tecnico: document.getElementById('tecnico').value,
+        solicitante: document.getElementById('solicitante').value,
+        telefone: document.getElementById('telefone').value,
         setor: document.getElementById('setor').value,
         status: document.getElementById('status_atendimento').value,
         id_ativo: document.getElementById('ativo_id').value,
         descricao: document.getElementById('descricao').value,
         solucao: document.getElementById('solucao').value,
-        justificativa: document.getElementById('motivo_detalhado').value
+        justificativa: document.getElementById('motivo_detalhado').value,
+        data_registro: new Date().toLocaleString('pt-BR')
     };
 
     try {
@@ -128,11 +148,25 @@
         if(res.ok) {
             alert("Atividade registrada com sucesso!");
             location.reload();
+        } else {
+            const erro = await res.json();
+            alert("Erro ao salvar: " + (erro.mensagem || "Erro desconhecido"));
         }
     } catch (error) {
-        alert("Erro: " + error.message);
+        console.error("Erro na requisição:", error);
+        alert("Erro de conexão com o servidor.");
     }
-};
-  </script>
+  };
+
+  // Funções de Modal (Apenas para evitar erros caso clique no botão de busca)
+  function abrirModal() {
+    document.getElementById('modalBusca').classList.remove('opacity-0', 'pointer-events-none');
+    document.body.classList.add('modal-active');
+  }
+  function fecharModal() {
+    document.getElementById('modalBusca').classList.add('opacity-0', 'pointer-events-none');
+    document.body.classList.remove('modal-active');
+  }
+</script>
 </body>
 </html>
