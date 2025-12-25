@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório de Atividades TI | Hospital</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+    table { border-collapse: collapse; width: 100%; }
+    .td-custom { 
+      padding: 10px; 
+      border-bottom: 1px solid #334155; 
+      font-size: 0.75rem; 
+      vertical-align: top;
+      white-space: normal;
+      word-break: break-word;
+    }
+    th { 
+      background-color: #1e293b; 
+      color: #94a3b8; 
+      text-transform: uppercase; 
+      font-size: 0.65rem; 
+      text-align: left; 
+      padding: 12px;
+      position: sticky;
+      top: 0;
+    }
+    #header-pdf, #footer-pdf { display: none; }
+
+    @media print {
+      @page { size: landscape; margin: 1cm; }
+      .no-print { display: none; }
+      body { background: white; color: black; padding: 0; }
+      #header-pdf { display: block; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+      #footer-pdf { display: block; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; }
+      table { border: 1px solid #000; }
+      th, td { border: 1px solid #000; color: black !important; font-size: 0.7rem; }
+      th { background-color: #f2f2f2 !important; }
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+
+  <div id="header-pdf">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h1 style="font-size: 16pt; font-weight: bold;">RELATÓRIO DE ATIVIDADES E ORDENS DE SERVIÇO - TI</h1>
+        <p style="font-size: 10pt;">Registro detalhado de atendimentos técnicos hospitalares</p>
+      </div>
+      <div style="text-align: right; font-size: 9pt;">
+        <strong>Técnico Responsável:</strong> JOSÉ AIRTO B. S. JUNIOR<br>
+        <strong>Gerado em:</strong> <span id="data-pdf"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-[100%] mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 no-print gap-4">
+      <div>
+        <h1 class="text-3xl font-bold">Histórico de Atividades</h1>
+        <p class="text-slate-400">Técnico: José Airto B. S. Junior | (91) 98325-2639</p>
+      </div>
+      <div class="flex gap-3">
+        <input type="text" id="filtro" onkeyup="filtrar()" placeholder="Filtrar por setor ou solicitante..." class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg text-sm w-64 outline-none focus:border-blue-500">
+        <button onclick="gerarPDF()" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2 text-sm">
+          📄 GERAR RELATÓRIO PDF
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 10%">Data / Hora</th>
+            <th style="width: 15%">Solicitante / Setor</th>
+            <th style="width: 8%">Ativo</th>
+            <th style="width: 10%">Status</th>
+            <th style="width: 20%">Problema Relatado</th>
+            <th style="width: 20%">Solução Aplicada</th>
+            <th style="width: 17%">Justificativa / Retorno</th>
+          </tr>
+        </thead>
+        <tbody id="corpoAtividades">
+          </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="footer-pdf">
+    <p style="font-size: 10pt; font-weight: bold; text-transform: uppercase;">JOSÉ AIRTO B. S. JUNIOR - TÉCNICO DE TI HOSPITALAR</p>
+    <p style="font-size: 8pt;">Contato: (91) 98325-2639 | Relatório extraído do Sistema de Gestão de Ativos</p>
+  </div>
+
+  <script>
+    let atividadesCache = [];
+
+    async function carregarAtividades() {
+      try {
+        const res = await fetch('/api/lista-atividades');
+        const data = await res.json();
+        if (data.status === 'sucesso') {
+          atividadesCache = data.atividades;
+          renderizar(atividadesCache);
+        }
+      } catch (e) { console.error("Erro ao carregar"); }
+    }
+
+    function renderizar(lista) {
+      const tbody = document.getElementById('corpoAtividades');
+      tbody.innerHTML = lista.map(a => `
+        <tr>
+          <td class="td-custom">
+            <span class="font-bold">${a.data_registro || '--'}</span><br>
+            <span class="text-slate-400 text-[10px]">${a.hora_registro || '--'}</span>
+          </td>
+          <td class="td-custom">
+            <strong>${a.solicitante || '--'}</strong><br>
+            <span class="text-[11px] text-blue-400 uppercase">${a.setor || '--'}</span><br>
+            <span class="text-[10px] text-slate-500">${a.telefone || ''}</span>
+          </td>
+          <td class="td-custom font-bold text-slate-300">${a.id_ativo || 'N/V'}</td>
+          <td class="td-custom">
+            <span class="px-2 py-1 rounded text-[9px] font-bold uppercase ${getStatusClass(a.status)}">
+              ${a.status || 'Concluído'}
+            </span>
+          </td>
+          <td class="td-custom text-[11px] leading-relaxed">${a.descricao || '--'}</td>
+          <td class="td-custom text-[11px] text-emerald-400 leading-relaxed">${a.solucao || '--'}</td>
+          <td class="td-custom text-[11px] ${a.status !== 'Concluído' ? 'text-orange-400 italic' : 'text-slate-500'}">
+            ${a.justificativa || '---'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function getStatusClass(status) {
+      if (status === 'Improdutivo') return 'bg-red-900/30 text-red-400 border border-red-500/30';
+      if (status === 'Retorno') return 'bg-orange-900/30 text-orange-400 border border-orange-500/30';
+      return 'bg-green-900/30 text-green-400 border border-green-500/30';
+    }
+
+    function gerarPDF() {
+      document.getElementById('data-pdf').innerText = new Date().toLocaleString('pt-BR');
+      window.print();
+    }
+
+    function filtrar() {
+      const termo = document.getElementById('filtro').value.toLowerCase();
+      const filtrados = atividadesCache.filter(a => 
+        (a.solicitante && a.solicitante.toLowerCase().includes(termo)) ||
+        (a.setor && a.setor.toLowerCase().includes(termo)) ||
+        (a.status && a.status.toLowerCase().includes(termo))
+      );
+      renderizar(filtrados);
+    }
+
+    carregarAtividades();
+  </script>
+</body>
+</html>

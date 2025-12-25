@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canal de Melhoria Hospitalar</title>
+    <style>
+        :root {
+            --primary: #38bdf8; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1); --text: #f1f5f9;
+            --warning: #fbbf24;
+        }
+        body {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text); font-family: 'Inter', sans-serif;
+            margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        }
+        .glass-container {
+            width: 100%; max-width: 450px; background: var(--card);
+            backdrop-filter: blur(15px); border: 1px solid var(--border);
+            border-radius: 24px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        /* Modal Style */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #1e293b; padding: 30px; border-radius: 20px;
+            max-width: 400px; text-align: center; border: 1px solid var(--border);
+        }
+        /* Form Style */
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.8rem; opacity: 0.8; }
+        input, select, textarea {
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+            background: rgba(0,0,0,0.2); color: #fff; font-size: 1rem;
+        }
+        .anon-box {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 20px;
+        }
+        button {
+            width: 100%; padding: 15px; border-radius: 12px; border: none;
+            background: var(--primary); color: #0f172a; font-weight: bold; cursor: pointer;
+        }
+        .btn-warning {
+            background: var(--warning);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="modalCarta" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="color: var(--primary)">Carta ao Colaborador</h2>
+        <p style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1;">
+            Este canal foi criado para ouvirmos você. Relate falhas, tipos de abusos, falta de insumos, problemas de infraestrutura.
+            Garantimos o anonimato e o foco na <strong>melhoria contínua</strong>, sem punições. Ao contrário; somos gratos por sua contribuição em uma nova gestão.
+        </p>
+        <button onclick="irParaAviso()">LI E CONCORDO</button>
+    </div>
+</div>
+
+<div id="modalAvisoLegal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h2 style="color: var(--warning)">Uso Responsável</h2>
+        <p style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1; text-align: left;">
+            Para garantir a eficácia deste canal, lembramos que:
+            <br><br>
+            1. A <strong>boa-fé</strong> é essencial. Relate apenas fatos reais.<br>
+            2. Informações falsas ou comunicações feitas de má-fé para prejudicar colegas ou a instituição podem ser objeto de <strong>medidas disciplinares</strong>, conforme o Código de Conduta e a legislação vigente.<br>
+            3. Este é um espaço de construção, não de difamação.
+        </p>
+        <button class="btn-warning" onclick="aceitarTudo()">COMPREENDO E DESEJO PROSSEGUIR</button>
+    </div>
+</div>
+
+<div class="glass-container">
+    <header style="text-align: center; margin-bottom: 25px;">
+        <h1 style="margin:0; font-size: 1.4rem;">Relato de Melhoria</h1>
+        <p style="font-size: 0.8rem; opacity: 0.6;">Sua contribuição é fundamental.</p>
+    </header>
+
+    <form id="formRelato">
+        <div class="anon-box">
+            <span>Relatar como Anônimo</span>
+            <input type="checkbox" id="is_anonimo" checked onchange="toggleIdentidade()" style="width: 20px;">
+        </div>
+
+        <div id="camposUser" class="hidden">
+            <div class="input-group">
+                <input type="text" id="nome" placeholder="Seu Nome">
+            </div>
+            <div class="input-group">
+                <input type="text" id="cargo" placeholder="Seu Cargo">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Setor</label>
+            <select id="setor" required>
+                <option value="">Selecione o setor...</option>
+                <option value="UTI">UTI</option>
+                <option value="Emergencia">Emergência</option>
+                <option value="Copa">Copa</option>
+                <option value="Manutencao">Manutenção</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Tipo de Falha</label>
+            <select id="tipo" required>
+                <option value="Infraestrutura">Infraestrutura</option>
+                <option value="Insumos">Falta de Insumos</option>
+                <option value="Processo">Processo / Fluxo</option>
+                <option value="Comportamento">Comportamento / Ética</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Descrição (Seja o mais específico possível)</label>
+            <textarea id="descricao" rows="4" required placeholder="Descreva o ocorrido com fatos e dados..."></textarea>
+        </div>
+
+        <button type="submit" id="btnEnviar">ENVIAR RELATO</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('formRelato').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = true;
+    btn.innerText = "ENVIANDO...";
+
+    const payload = {
+        is_anonimo: document.getElementById('is_anonimo').checked,
+        nome: document.getElementById('is_anonimo').checked ? "Anônimo" : document.getElementById('nome').value,
+        cargo: document.getElementById('is_anonimo').checked ? "" : document.getElementById('cargo').value,
+        setor: document.getElementById('setor').value,
+        tipo: document.getElementById('tipo').value,
+        descricao: document.getElementById('descricao').value
+    };
+
+    try {
+        const response = await fetch('/api/relatos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert("Obrigado! Seu relato foi enviado com sucesso.");
+            location.reload();
+        } else {
+            throw new Error("Erro na resposta do servidor");
+        }
+    } catch (error) {
+        alert("Erro ao conectar com a API: " + error.message);
+        btn.disabled = false;
+        btn.innerText = "ENVIAR RELATO";
+    }
+};
+</script>
+</body>
+</html>
