@@ -1,92 +1,109 @@
-import os
-import json
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
-from flask import Flask, request, jsonify
+import json
+import os
+from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 
-# Tenta ler a variável de ambiente (Produção na Vercel)
-# Caso não exista, tenta ler o arquivo local (Para seus testes no PC)
-fb_creds = os.environ.get("FIREBASE_CREDENTIALS")
+# Inicialização do Firebase
+if not firebase_admin._apps:
+    # Tenta carregar das variáveis de ambiente do Vercel
+    cred_json = os.environ.get("FIREBASE_CREDENTIALS")
+    if cred_json:
+        cred_dict = json.loads(cred_json)
+        cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred)
+    else:
+        print("Erro: Variável FIREBASE_CREDENTIALS não encontrada.")
 
-if fb_creds:
-    # Transforma a string JSON da variável em dicionário
-    cred_dict = json.loads(fb_creds)
-    cred = credentials.Certificate(cred_dict)
-else:
-    # Caminho para teste local (não esqueça de por no .gitignore)
-    cred = credentials.Certificate("FIREBASE_CREDENTIALS.json")
-
-firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# --- ROTAS DE NAVEGAÇÃO ---
-@app.route('/')
-def home():
-    return send_from_directory('.', 'index.html')
+# --- ROTAS PARA ATIVOS ---
 
-@app.route('/<path:path>')
-def servir_arquivos(path):
-    return send_from_directory('.', path)
-
-# --- API: ATIVOS (ativos.html / rat_ativos.html) ---
 @app.route('/api/ativos', methods=['GET', 'POST'])
 def gerenciar_ativos():
-    col_ativos = db.collection('ativos')
-    
     if request.method == 'POST':
-        dados = request.json
-        id_ativo = dados.get('id_ativo')
-        if not id_ativo:
-            return jsonify({"status": "erro", "mensagem": "ID do Ativo é obrigatório"}), 400
-        
-        # Salva ou Atualiza no Firestore usando o ID do ativo como nome do documento
-        col_ativos.document(id_ativo).set(dados)
-        return jsonify({"status": "sucesso", "mensagem": "Ativo salvo no Firestore"}), 201
+        try:
+            dados = request.json
+            id_ativo = dados.get('id_ativo')
+            if not id_ativo:
+                return jsonify({"status": "erro", "mensagem": "ID do ativo é obrigatório"}), 400
+            
+            # Salva ou atualiza usando o ID fornecido como nome do documento
+            db.collection('ativos').document(id_ativo).set(dados)
+            return jsonify({"status": "sucesso", "mensagem": "Ativo salvo com sucesso"}), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-    # GET: Retorna todos os ativos
-    docs = col_ativos.stream()
-    lista_ativos = [doc.to_dict() for doc in docs]
-    return jsonify({"status": "sucesso", "ativos": lista_ativos})
+    elif request.method == 'GET':
+        try:
+            docs = db.collection('ativos').stream()
+            ativos = [doc.to_dict() for doc in docs]
+            return jsonify(ativos), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 @app.route('/api/ativos/<id_ativo>', methods=['DELETE'])
 def excluir_ativo(id_ativo):
-    db.collection('ativos').document(id_ativo).delete()
-    return jsonify({"status": "sucesso", "mensagem": "Ativo removido"}), 200
+    try:
+        db.collection('ativos').document(id_ativo).delete()
+        return jsonify({"status": "sucesso"}), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-# --- API: ATIVIDADES (atividade.html / ret_atividades.html) ---
+
+# --- ROTAS PARA ATIVIDADES (CHAMADOS) ---
+
 @app.route('/api/atividades', methods=['GET', 'POST'])
 def gerenciar_atividades():
-    col_atividades = db.collection('atividades')
-    
     if request.method == 'POST':
-        dados = request.json
-        dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        # Gera um ID automático para a atividade
-        col_atividades.add(dados)
-        return jsonify({"status": "sucesso"}), 201
+        try:
+            dados = request.json
+            dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            db.collection('atividades').add(dados)
+            return jsonify({"status": "sucesso"}), 201
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-    # GET: Busca atividades ordenadas por data
-    docs = col_atividades.order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
-    lista = [doc.to_dict() for doc in docs]
-    return jsonify({"status": "sucesso", "atividades": lista})
+    elif request.method == 'GET':
+        try:
+            docs = db.collection('atividades').order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
+            atividades = [doc.to_dict() for doc in docs]
+            return jsonify(atividades), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-# --- API: RELATOS APP SEGURO (app.html / rat_app.html) ---
+
+# --- ROTAS PARA APP HOSPITAL SEGURO (RELATOS) ---
+
 @app.route('/api/relatos', methods=['GET', 'POST'])
 def gerenciar_relatos():
-    col_relatos = db.collection('relatos')
-    
     if request.method == 'POST':
-        dados = request.json
-        dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        col_relatos.add(dados)
-        return jsonify({"status": "sucesso"}), 201
+        try:
+            dados = request.json
+            dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            db.collection('relatos').add(dados)
+            return jsonify({"status": "sucesso"}), 201
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-    docs = col_relatos.order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
-    lista = [doc.to_dict() for doc in docs]
-    return jsonify({"status": "sucesso", "relatos": lista})
+    elif request.method == 'GET':
+        try:
+            docs = db.collection('relatos').order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
+            relatos = [doc.to_dict() for doc in docs]
+            # Formato esperado pelo seu rat_app.html
+            return jsonify({"status": "sucesso", "relatos": relatos}), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+# Rota padrão para teste
+@app.route('/')
+def home():
+    return "API Central de TI rodando!"
 
 if __name__ == '__main__':
-    # Em produção (como Vercel/PythonAnywhere), o app costuma rodar via WSGI
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
