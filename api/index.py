@@ -80,11 +80,28 @@ def gerenciar_atividades():
 
 # --- ROTAS PARA APP HOSPITAL SEGURO (RELATOS) ---
 
-@app.route('/api/relatos', methods=['GET'])
-def listar_relatos():
-    docs = db.collection('relatos').stream()
-    # Retorna uma lista direta []
-    return jsonify([doc.to_dict() for doc in docs]), 200
+@app.route('/api/relatos', methods=['GET', 'POST']) # Adicionado POST aqui
+def gerenciar_relatos():
+    if request.method == 'POST':
+        try:
+            dados = request.json
+            # Adiciona data de registro se não vier do front
+            if 'data_registro' not in dados:
+                dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            
+            # Salva na coleção 'relatos'
+            db.collection('relatos').add(dados)
+            return jsonify({"status": "sucesso", "mensagem": "Relato enviado com sucesso"}), 201
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+    elif request.method == 'GET':
+        try:
+            docs = db.collection('relatos').stream()
+            relatos = [doc.to_dict() for doc in docs]
+            return jsonify(relatos), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 # Rota padrão para teste
 @app.route('/')
