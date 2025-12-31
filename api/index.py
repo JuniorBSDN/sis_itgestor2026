@@ -105,17 +105,13 @@ def gerenciar_relatos():
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-# No seu index.py, substitua a rota GET de atividades por esta:
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
 def gerenciar_helpdesk():
     if request.method == 'POST':
         try:
             dados = request.json
-            # Garante o status inicial e data
             dados['status'] = 'Pendente'
             dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            
-            # Salva na coleção 'atividades' (ou 'helpdesk', como preferir no Firestore)
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
         except Exception as e:
@@ -123,25 +119,22 @@ def gerenciar_helpdesk():
 
     elif request.method == 'GET':
         try:
-            # Busca os documentos e inclui o ID para a RAT funcionar
+            # Pega os documentos e injeta o ID de cada um no dicionário
             docs = db.collection('atividades').order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
             atividades = []
             for doc in docs:
                 item = doc.to_dict()
-                item['id'] = doc.id  # Essencial para o erro que você teve
+                item['id'] = doc.id  # <--- Isso resolve o erro de ID não encontrado
                 atividades.append(item)
             return jsonify(atividades), 200
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
-# --- ROTA PARA STATUS DA RAT (ATUALIZAÇÃO) ---
 
 @app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
 def atualizar_status_rat(id_doc):
     try:
         dados = request.json
         novo_status = dados.get('status')
-        # Atualiza o documento específico usando o ID enviado pelo front-end
         db.collection('atividades').document(id_doc).update({'status': novo_status})
         return jsonify({"status": "sucesso"}), 200
     except Exception as e:
