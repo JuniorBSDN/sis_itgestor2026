@@ -22,6 +22,7 @@ if not firebase_admin._apps:
 
 db = firestore.client()
 
+
 # --- ROTAS PARA ATIVOS ---
 
 @app.route('/api/ativos', methods=['GET', 'POST'])
@@ -32,7 +33,7 @@ def gerenciar_ativos():
             id_ativo = dados.get('id_ativo')
             if not id_ativo:
                 return jsonify({"status": "erro", "mensagem": "ID do ativo é obrigatório"}), 400
-            
+
             # Salva ou atualiza usando o ID fornecido como nome do documento
             db.collection('ativos').document(id_ativo).set(dados)
             return jsonify({"status": "sucesso", "mensagem": "Ativo salvo com sucesso"}), 200
@@ -46,6 +47,7 @@ def gerenciar_ativos():
             return jsonify(ativos), 200
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
 
 @app.route('/api/ativos/<id_ativo>', methods=['DELETE'])
 def excluir_ativo(id_ativo):
@@ -80,7 +82,7 @@ def gerenciar_atividades():
 
 # --- ROTAS PARA APP HOSPITAL SEGURO (RELATOS) ---
 
-@app.route('/api/relatos', methods=['GET', 'POST']) # Adicionado POST aqui
+@app.route('/api/relatos', methods=['GET', 'POST'])  # Adicionado POST aqui
 def gerenciar_relatos():
     if request.method == 'POST':
         try:
@@ -88,7 +90,7 @@ def gerenciar_relatos():
             # Adiciona data de registro se não vier do front
             if 'data_registro' not in dados:
                 dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            
+
             # Salva na coleção 'relatos'
             db.collection('relatos').add(dados)
             return jsonify({"status": "sucesso", "mensagem": "Relato enviado com sucesso"}), 201
@@ -103,10 +105,49 @@ def gerenciar_relatos():
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+# No seu index.py, substitua a rota GET de atividades por esta:
+@app.route('/api/helpdesk', methods=['GET', 'POST'])
+def gerenciar_rat():
+    if request.method == 'POST':
+        try:
+            dados = request.json
+            # Garante que todo chamado novo comece como 'Pendente'
+            dados['status'] = 'Pendente'
+            dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            db.collection('atividades').add(dados)
+            return jsonify({"status": "sucesso"}), 201
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+    elif request.method == 'GET':
+        try:
+            # Recupera o ID do documento junto com os dados
+            docs = db.collection('atividades').order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
+            atividades = []
+            for doc in docs:
+                item = doc.to_dict()
+                item['id'] = doc.id  # <-- IMPORTANTE: Adiciona o ID para podermos atualizar depois
+                atividades.append(item)
+            return jsonify(atividades), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+# ADICIONE ESTA NOVA ROTA PARA ATUALIZAR O STATUS
+@app.route('/api/helpdesk/<id_doc>', methods=['PATCH'])
+def atualizar_status(id_doc):
+    try:
+        dados = request.json
+        novo_status = dados.get('status')
+        db.collection('atividades').document(id_doc).update({'status': novo_status})
+        return jsonify({"status": "sucesso"}), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
 # Rota padrão para teste
 @app.route('/')
 def home():
     return "API Central de TI rodando!"
+
 
 if __name__ == '__main__':
     app.run(debug=True)
