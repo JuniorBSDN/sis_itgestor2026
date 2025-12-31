@@ -107,15 +107,15 @@ def gerenciar_relatos():
 
 # No seu index.py, substitua a rota GET de atividades por esta:
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
-def gerenciar_rat():
-   if request.method == 'POST':
+def gerenciar_helpdesk():
+    if request.method == 'POST':
         try:
             dados = request.json
-            # Garante que novos chamados sempre comecem como Pendente
-            if 'status' not in dados:
-                dados['status'] = 'Pendente'
-            
+            # Garante o status inicial e data
+            dados['status'] = 'Pendente'
             dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            
+            # Salva na coleção 'atividades' (ou 'helpdesk', como preferir no Firestore)
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
         except Exception as e:
@@ -123,30 +123,29 @@ def gerenciar_rat():
 
     elif request.method == 'GET':
         try:
-            # Ordena por data para os mais recentes aparecerem primeiro
+            # Busca os documentos e inclui o ID para a RAT funcionar
             docs = db.collection('atividades').order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
             atividades = []
-            
             for doc in docs:
                 item = doc.to_dict()
-                item['id'] = doc.id  # ESTA LINHA É A SOLUÇÃO: ela envia o ID para o front-end
+                item['id'] = doc.id  # Essencial para o erro que você teve
                 atividades.append(item)
-                
             return jsonify(atividades), 200
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
-# ADICIONE ESTA NOVA ROTA PARA ATUALIZAR O STATUS
-@app.route('/api/helpdesk/<id_doc>', methods=['PATCH'])
-def atualizar_status(id_doc):
-   try:
+
+# --- ROTA PARA STATUS DA RAT (ATUALIZAÇÃO) ---
+
+@app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
+def atualizar_status_rat(id_doc):
+    try:
         dados = request.json
         novo_status = dados.get('status')
-        # Atualiza apenas o campo status no documento específico
+        # Atualiza o documento específico usando o ID enviado pelo front-end
         db.collection('atividades').document(id_doc).update({'status': novo_status})
         return jsonify({"status": "sucesso"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
 # Rota padrão para teste
 @app.route('/')
 def home():
