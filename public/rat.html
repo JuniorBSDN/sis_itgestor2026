@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel RAT - HVN</title>
+    <style>
+        :root {
+            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
+            --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
+            --success: #22c55e; --pending: #fbbf24;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px;
+        }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 20px;
+        }
+
+        .stats-bar { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat-card {
+            background: var(--card); padding: 15px; border-radius: 12px;
+            border: 1px solid var(--border); flex: 1; text-align: center;
+        }
+
+        .table-container {
+            background: var(--card); border-radius: 16px; border: 1px solid var(--border);
+            overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: rgba(255,255,255,0.03); color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        .status-badge {
+            padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;
+        }
+        .status-Pendente { background: rgba(251, 191, 36, 0.15); color: var(--pending); border: 1px solid var(--pending); }
+        .status-Concluido { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid var(--success); }
+
+        select {
+            background: #0f172a; color: white; border: 1px solid var(--border);
+            padding: 6px; border-radius: 6px; outline: none; cursor: pointer;
+        }
+
+        .btn-print {
+            background: var(--primary); color: #0f172a; border: none;
+            padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+
+        .descricao-cell { max-width: 300px; font-size: 0.85rem; opacity: 0.8; white-space: normal; }
+
+        @media print {
+            body { background: white !important; color: black !important; }
+            .btn-print, header, .stats-bar, .actions-col, select { display: none !important; }
+            .table-container { border: none; box-shadow: none; }
+            table { border: 1px solid #000; color: black; }
+            th { border-bottom: 2px solid #000; color: black; }
+            .status-badge { border: 1px solid #000; color: black !important; background: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1 style="margin:0; color: var(--primary);">RAT - Controle de Chamados</h1>
+            <p style="margin:5px 0 0; opacity: 0.6;">Visualização de solicitações em tempo real</p>
+        </div>
+        <button class="btn-print" onclick="window.print()">🖨️ GERAR RELATÓRIO PDF</button>
+    </header>
+
+    <div class="stats-bar">
+        <div class="stat-card">Total: <span id="count-total">0</span></div>
+        <div class="stat-card" style="color: var(--pending)">Pendentes: <span id="count-pendente">0</span></div>
+        <div class="stat-card" style="color: var(--success)">Concluídos: <span id="count-concluido">0</span></div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Solicitante</th>
+                    <th>Setor/Sala</th>
+                    <th>Tipo</th>
+                    <th>Descrição</th>
+                    <th>Status</th>
+                    <th class="actions-col">Ação</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabela">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API_URL = '/api/atividades';
+
+    async function buscarDados() {
+        try {
+            const response = await fetch(API_URL);
+            const dados = await response.json();
+            renderizar(dados);
+        } catch (e) { console.error("Erro:", e); }
+    }
+
+    function renderizar(lista) {
+        const tbody = document.getElementById('corpoTabela');
+        tbody.innerHTML = '';
+        let p = 0, c = 0;
+
+        lista.forEach(item => {
+            const status = item.status || 'Pendente';
+            status === 'Pendente' ? p++ : c++;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-size: 0.75rem;">${item.data_registro}</td>
+                <td><strong>${item.nome}</strong></td>
+                <td>${item.setor_sala}</td>
+                <td style="color: var(--primary); font-size: 0.85rem;">${item.tipo_servico}</td>
+                <td class="descricao-cell">${item.descricao}</td>
+                <td><span class="status-badge status-${status.normalize("NFD").replace(/[\u0300-\u036f]/g, "")}">${status}</span></td>
+                <td class="actions-col">
+                    <select onchange="atualizarStatusServidor('${item.id}', this.value)">
+                        <option value="Pendente" ${status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                        <option value="Concluido" ${status === 'Concluido' ? 'selected' : ''}>Concluído</option>
+                    </select>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('count-total').innerText = lista.length;
+        document.getElementById('count-pendente').innerText = p;
+        document.getElementById('count-concluido').innerText = c;
+    }
+
+    async function atualizarStatusServidor(id, novoStatus) {
+        if(!id || id === 'undefined') {
+            alert("Erro: ID do documento não encontrado. Atualize a página.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: novoStatus })
+            });
+
+            if(response.ok) {
+                buscarDados(); // Recarrega a lista para atualizar contadores e badges
+            } else {
+                alert("Erro ao atualizar status no banco.");
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // Atualiza a cada 30 segundos
+    setInterval(buscarDados, 30000);
+    buscarDados();
+</script>
+
+</body>
+</html>
