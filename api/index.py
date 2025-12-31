@@ -108,11 +108,13 @@ def gerenciar_relatos():
 # No seu index.py, substitua a rota GET de atividades por esta:
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
 def gerenciar_rat():
-    if request.method == 'POST':
+   if request.method == 'POST':
         try:
             dados = request.json
-            # Garante que todo chamado novo comece como 'Pendente'
-            dados['status'] = 'Pendente'
+            # Garante que novos chamados sempre comecem como Pendente
+            if 'status' not in dados:
+                dados['status'] = 'Pendente'
+            
             dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
@@ -121,23 +123,25 @@ def gerenciar_rat():
 
     elif request.method == 'GET':
         try:
-            # Recupera o ID do documento junto com os dados
+            # Ordena por data para os mais recentes aparecerem primeiro
             docs = db.collection('atividades').order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
             atividades = []
+            
             for doc in docs:
                 item = doc.to_dict()
-                item['id'] = doc.id  # <-- IMPORTANTE: Adiciona o ID para podermos atualizar depois
+                item['id'] = doc.id  # ESTA LINHA É A SOLUÇÃO: ela envia o ID para o front-end
                 atividades.append(item)
+                
             return jsonify(atividades), 200
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
 # ADICIONE ESTA NOVA ROTA PARA ATUALIZAR O STATUS
 @app.route('/api/helpdesk/<id_doc>', methods=['PATCH'])
 def atualizar_status(id_doc):
-    try:
+   try:
         dados = request.json
         novo_status = dados.get('status')
+        # Atualiza apenas o campo status no documento específico
         db.collection('atividades').document(id_doc).update({'status': novo_status})
         return jsonify({"status": "sucesso"}), 200
     except Exception as e:
