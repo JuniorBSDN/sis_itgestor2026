@@ -1,40 +1,41 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel RAT - HVN</title>
     <style>
-        :root {
-            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
-            --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
-            --success: #22c55e; --pending: #fbbf24;
-        }
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1); --success: #22c55e; --pending: #fbbf24; }
         body { background: radial-gradient(circle at top right, #1e293b, #0f172a); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
-
+        .container { max-width: 100%; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        
         /* Tabela Horizontal Fixa */
         .table-container { background: var(--card); border-radius: 16px; border: 1px solid var(--border); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
         .descricao-cell { white-space: normal; min-width: 300px; }
+        th { background: rgba(255,255,255,0.03); color: var(--primary); font-size: 0.8rem; text-transform: uppercase; }
 
-        /* Modal */
+        .btn-ui { background: var(--primary); color: #0f172a; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        /* Modal Style */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
         .modal-content { background: var(--card); margin: 15% auto; padding: 25px; border: 1px solid var(--primary); border-radius: 15px; width: 300px; text-align: center; }
-
-        .btn-ui { background: var(--primary); color: #0f172a; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        @media print { .btn-ui, .actions-col, select { display: none !important; } }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+    <header>
         <div>
             <h1>RAT - Painel de Atendimento</h1>
-            <p>Relatório de: <strong id="data-titulo">...</strong></p>
+            <p>Relatório de: <strong id="data-exibida">...</strong></p>
         </div>
         <div style="display: flex; gap: 10px;">
-            <button class="btn-ui" onclick="abrirModal()">📅 OUTROS DIAS</button>
-            <button class="btn-ui" style="background: #64748b; color: white;" onclick="window.print()">🖨️ PDF</button>
+            <button class="btn-ui" onclick="abrirModal()">📅 SELECIONAR DIA</button>
+            <button class="btn-ui" style="background: #94a3b8;" onclick="window.print()">🖨️ PDF</button>
         </div>
     </header>
 
@@ -48,7 +49,7 @@
                     <th>Tipo</th>
                     <th>Descrição</th>
                     <th>Status</th>
-                    <th>Ação</th>
+                    <th class="actions-col">Ações</th>
                 </tr>
             </thead>
             <tbody id="corpoTabela"></tbody>
@@ -67,14 +68,13 @@
 </div>
 
 <script>
-    // URL base unificada conforme seu exemplo
     const HELPDESK_URL = '/api/helpdesk';
-    let dataSelecionada = new Date().toISOString().split('T')[0];
+    let dataAtual = new Date().toISOString().split('T')[0];
 
-    async function buscarDados() {
+    async function buscarDados(data = dataAtual) {
         try {
-            document.getElementById('data-titulo').innerText = dataSelecionada.split('-').reverse().join('/');
-            const response = await fetch(`${HELPDESK_URL}?data=${dataSelecionada}`);
+            document.getElementById('data-exibida').innerText = data.split('-').reverse().join('/');
+            const response = await fetch(`${HELPDESK_URL}?data=${data}`);
             const dados = await response.json();
             renderizar(dados);
         } catch (e) { console.error("Erro:", e); }
@@ -92,37 +92,35 @@
                 <td>${item.tipo_servico || ''}</td>
                 <td class="descricao-cell">${item.descricao || ''}</td>
                 <td><span class="status-badge status-${item.status}">${item.status}</span></td>
-                <td>
+                <td class="actions-col">
                     <select onchange="atualizarStatusServidor('${item.id}', this.value)">
                         <option value="Pendente" ${item.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
                         <option value="Concluido" ${item.status === 'Concluido' ? 'selected' : ''}>Concluído</option>
                     </select>
-                </td>
-            `;
+                </td>`;
             tbody.appendChild(tr);
         });
     }
 
     async function atualizarStatusServidor(id, novoStatus) {
         if(!id || id === 'undefined') return;
-        // Chamada para /api/helpdesk/<id_doc> conforme o seu exemplo
         await fetch(`${HELPDESK_URL}/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: novoStatus })
         });
-        buscarDados();
+        buscarDados(dataAtual);
     }
 
-    function abrirModal() { document.getElementById('modalData').style.display = 'block'; }
-    function fecharModal() { document.getElementById('modalData').style.display = 'none'; }
+    function abrirModal() { document.getElementById('modalData').style.display='block'; }
+    function fecharModal() { document.getElementById('modalData').style.display='none'; }
     function aplicarFiltro() {
         const d = document.getElementById('inputData').value;
-        if(d) { dataSelecionada = d; buscarDados(); fecharModal(); }
+        if(d) { dataAtual = d; buscarDados(d); fecharModal(); }
     }
 
     buscarDados();
-    setInterval(buscarDados, 30000);
+    setInterval(() => buscarDados(dataAtual), 30000);
 </script>
 </body>
 </html>
