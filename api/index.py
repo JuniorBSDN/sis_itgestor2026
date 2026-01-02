@@ -106,12 +106,17 @@ def gerenciar_relatos():
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
-def gerenciar_helpdesk():
+def gerenciar_rat():
     if request.method == 'POST':
         try:
             dados = request.json
+            agora = datetime.now()
             dados['status'] = 'Pendente'
-            dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            # Data completa para exibição
+            dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
+            # Campo extra apenas com a data (AAAA-MM-DD) para o filtro diário
+            dados['data_busca'] = agora.strftime("%Y-%m-%d")
+            
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
         except Exception as e:
@@ -119,19 +124,31 @@ def gerenciar_helpdesk():
 
     elif request.method == 'GET':
         try:
-            # Pega os documentos e injeta o ID de cada um no dicionário
-            docs = db.collection('atividades').order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
+            # Captura a data enviada pelo front (ex: ?data=2024-05-20)
+            data_filtro = request.args.get('data')
+            
+            # Se não houver data na URL, assume o dia de hoje
+            if not data_filtro:
+                data_filtro = datetime.now().strftime("%Y-%m-%d")
+
+            # Filtra pela data de busca para o relatório diário
+            docs = db.collection('atividades')\
+                     .where('data_busca', '==', data_filtro)\
+                     .order_by('data_registro', direction=firestore.Query.DESCENDING)\
+                     .stream()
+            
             atividades = []
             for doc in docs:
                 item = doc.to_dict()
-                item['id'] = doc.id  # <--- Isso resolve o erro de ID não encontrado
+                item['id'] = doc.id # ID essencial para a atualização funcionar
                 atividades.append(item)
             return jsonify(atividades), 200
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-@app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
-def atualizar_status_rat(id_doc):
+# ROTA DE ATUALIZAÇÃO CONFORME O SEU EXEMPLO
+@app.route('/api/helpdesk/<id_doc>', methods=['PATCH'])
+def atualizar_status(id_doc):
     try:
         dados = request.json
         novo_status = dados.get('status')
