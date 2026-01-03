@@ -41,7 +41,7 @@
             border-bottom: 1px solid var(--border); white-space: nowrap;
         }
 
-        .descricao-cell { white-space: normal; min-width: 300px; color: #cbd5e1; }
+        .descricao-cell { white-space: normal; min-width: 300px; color: #cbd5e1; font-size: 0.9rem; }
 
         th { background: rgba(255,255,255,0.03); color: var(--primary); font-size: 0.8rem; text-transform: uppercase; }
 
@@ -77,7 +77,7 @@
     <header>
         <div>
             <h1>RAT - Painel de Atendimento</h1>
-            <p>Relatório de: <strong id="data-titulo">...</strong></p>
+            <p>Relatório de: <strong id="data-titulo">Carregando...</strong></p>
         </div>
         <div style="display: flex; gap: 10px;">
             <button class="btn-ui" onclick="abrirModal()">📅 SELECIONAR DATA</button>
@@ -104,7 +104,9 @@
                     <th class="actions-col">Ações</th>
                 </tr>
             </thead>
-            <tbody id="corpoTabela"></tbody>
+            <tbody id="corpoTabela">
+                <tr><td colspan="7" style="text-align:center; padding:50px;">Buscando dados no Firebase...</td></tr>
+            </tbody>
         </table>
     </div>
 </div>
@@ -112,7 +114,7 @@
 <div id="modalData" class="modal">
     <div class="modal-content">
         <h3 style="margin-top:0">Filtrar Atendimentos</h3>
-        <input type="date" id="inputData" style="width: 90%; padding: 10px; margin: 20px 0; border-radius: 5px; border: none;">
+        <input type="date" id="inputData" style="width: 90%; padding: 10px; margin: 20px 0; border-radius: 5px; border: 1px solid #38bdf8;">
         <div style="display: flex; gap: 10px; justify-content: center;">
             <button class="btn-ui" onclick="aplicarFiltro()">FILTRAR</button>
             <button class="btn-ui" style="background:#ef4444; color:white;" onclick="fecharModal()">FECHAR</button>
@@ -122,23 +124,36 @@
 
 <script>
     const HELPDESK_URL = '/api/helpdesk';
-    // Inicializa com a data de hoje para o filtro
+    // Começa com a data de hoje
     let dataSelecionada = new Date().toISOString().split('T')[0];
 
-    async function buscarDados() {
+    async function buscarDados(tentarTudoSeVazio = false) {
         try {
             document.getElementById('data-titulo').innerText = dataSelecionada.split('-').reverse().join('/');
             
-            // Envia a data selecionada como parâmetro para o backend
-            const url = `${HELPDESK_URL}?data=${dataSelecionada}`;
-            const response = await fetch(url);
+            // Adicionamos um timestamp (_t) para evitar cache do navegador
+            let url = `${HELPDESK_URL}?data=${dataSelecionada}&_t=${Date.now()}`;
             
-            if (!response.ok) throw new Error('Erro na rede');
+            // Se a primeira tentativa falhar em achar dados de hoje, podemos forçar a busca de "tudo"
+            if (tentarTudoSeVazio) url = `${HELPDESK_URL}?_t=${Date.now()}`;
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Erro na resposta do servidor');
             
             const dados = await response.json();
+            
+            // Se buscou por data e veio vazio, mas temos registros antigos no banco, 
+            // tenta carregar tudo uma única vez para não deixar a tela branca.
+            if (dados.length === 0 && !tentarTudoSeVazio && dataSelecionada === new Date().toISOString().split('T')[0]) {
+                console.log("Nenhum dado hoje, tentando buscar histórico geral...");
+                buscarDados(true); 
+                return;
+            }
+
             renderizar(dados);
         } catch (e) { 
             console.error("Erro ao carregar dados:", e);
+            document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" style="text-align:center; color:red; padding:30px;">Erro ao conectar com o servidor. Verifique o Console (F12).</td></tr>`;
         }
     }
 
@@ -147,12 +162,14 @@
         tbody.innerHTML = '';
         let p = 0, c = 0;
 
-        if (lista.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px;">Nenhum registro encontrado para esta data.</td></tr>';
+        if (!lista || lista.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px;">Nenhum registro encontrado.</td></tr>';
+            atualizarContadores(0, 0, 0);
+            return;
         }
 
         lista.forEach(item => {
-            const status = item.status || 'Pendente'; // Evita null no status
+            const status = item.status || 'Pendente';
             status === 'Pendente' ? p++ : c++;
 
             const tr = document.createElement('tr');
@@ -173,22 +190,24 @@
             tbody.appendChild(tr);
         });
 
-        // Atualiza os contadores na interface
-        document.getElementById('count-total').innerText = lista.length;
-        document.getElementById('count-pendente').innerText = p;
-        document.getElementById('count-concluido').innerText = c;
+        atualizarContadores(lista.length, p, c);
+    }
+
+    function atualizarContadores(total, pendentes, concluidos) {
+        document.getElementById('count-total').innerText = total;
+        document.getElementById('count-pendente').innerText = pendentes;
+        document.getElementById('count-concluido').innerText = concluidos;
     }
 
     async function atualizarStatusServidor(id, novoStatus) {
         if(!id || id === 'undefined') return;
         try {
-            // Rota PATCH conforme definida no index.py
-            await fetch(`${HELPDESK_URL}/${id}`, {
+            const response = await fetch(`${HELPDESK_URL}/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: novoStatus })
             });
-            buscarDados();
+            if(response.ok) buscarDados();
         } catch (e) { console.error("Erro ao atualizar status:", e); }
     }
 
@@ -204,9 +223,10 @@
         }
     }
 
-    // Inicialização automática
+    // Inicialização
     buscarDados();
-    setInterval(buscarDados, 30000); 
+    // Atualiza automaticamente a cada 30 segundos
+    setInterval(() => buscarDados(false), 30000); 
 </script>
 </body>
 </html>
