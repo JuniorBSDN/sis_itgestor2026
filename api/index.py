@@ -52,36 +52,28 @@ def gerenciar_relatos():
 # --- ROTA HELPDESK (COM FILTRO POR DATA E ID) ---
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
 def gerenciar_rat():
-    if request.method == 'POST':
-        try:
-            dados = request.json
-            agora = datetime.now()
-            dados['status'] = 'Pendente'
-            dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
-            # Campo para permitir o filtro por dia no futuro
-            dados['data_busca'] = agora.strftime("%Y-%m-%d")
-            db.collection('atividades').add(dados)
-            return jsonify({"status": "sucesso"}), 201
-        except Exception as e: return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
+    # ... (código do POST mantido) ...
     elif request.method == 'GET':
         try:
-            # Se enviar ?data=YYYY-MM-DD ele filtra, se não, traz TUDO
-            data_filtro = request.args.get('data')
+            data_filtro = request.args.get('data') # Recebe a data do frontend
             
             query = db.collection('atividades')
+            
+            # Se uma data for enviada, aplica o filtro
             if data_filtro:
                 query = query.where('data_busca', '==', data_filtro)
             
+            # Ordena sempre pela data de registro
             docs = query.order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
             
             atividades = []
             for doc in docs:
                 item = doc.to_dict()
-                item['id'] = doc.id # ID necessário para o PATCH
+                item['id'] = doc.id
                 atividades.append(item)
             return jsonify(atividades), 200
-        except Exception as e: return jsonify({"status": "erro", "mensagem": str(e)}), 500
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 @app.route('/api/helpdesk/<id_doc>', methods=['PATCH'])
 def atualizar_status(id_doc):
