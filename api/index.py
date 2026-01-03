@@ -58,19 +58,22 @@ def gerenciar_rat():
             agora = datetime.now()
             dados['status'] = 'Pendente'
             dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
-            # CRÍTICO: Campo para o filtro diário funcionar
+            # CRÍTICO: Cria o campo necessário para a busca diária
             dados['data_busca'] = agora.strftime("%Y-%m-%d")
+            
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
-        except Exception as e: return jsonify({"status": "erro", "mensagem": str(e)}), 500
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
     elif request.method == 'GET':
         try:
+            # Pega a data da URL. Se não existir, usa a data de hoje
             data_filtro = request.args.get('data')
             if not data_filtro:
                 data_filtro = datetime.now().strftime("%Y-%m-%d")
 
-            # Busca apenas registros do dia selecionado
+            # Busca apenas documentos do dia selecionado
             docs = db.collection('atividades') \
                 .where('data_busca', '==', data_filtro) \
                 .order_by('data_registro', direction=firestore.Query.DESCENDING) \
@@ -79,11 +82,13 @@ def gerenciar_rat():
             atividades = []
             for doc in docs:
                 item = doc.to_dict()
-                item['id'] = doc.id # Adiciona o ID para o frontend usar no PATCH
+                item['id'] = doc.id # Garante o ID para a atualização de status
                 atividades.append(item)
             return jsonify(atividades), 200
-        except Exception as e: return jsonify({"status": "erro", "mensagem": str(e)}), 500
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+# ROTA PARA ATUALIZAR STATUS
 @app.route('/api/helpdesk/<id_doc>', methods=['PATCH'])
 def atualizar_status(id_doc):
     try:
@@ -91,7 +96,8 @@ def atualizar_status(id_doc):
         novo_status = dados.get('status')
         db.collection('atividades').document(id_doc).update({'status': novo_status})
         return jsonify({"status": "sucesso"}), 200
-    except Exception as e: return jsonify({"status": "erro", "mensagem": str(e)}), 500
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
