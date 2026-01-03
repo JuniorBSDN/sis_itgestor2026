@@ -54,33 +54,35 @@ def gerenciar_relatos():
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
 def gerenciar_rat():
     if request.method == 'POST':
+        # Aqui fica o código que você já tem para SALVAR os dados
         try:
             dados = request.json
             agora = datetime.now()
             dados['status'] = 'Pendente'
             dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
-            # Salva no formato YYYY-MM-DD para o filtro do HTML
             dados['data_busca'] = agora.strftime("%Y-%m-%d")
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
-        except Exception as e: return jsonify({"status": "erro", "mensagem": str(e)}), 500
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+    # === O BLOCO QUE VOCÊ PERGUNTOU ENTRA EXATAMENTE AQUI ===
     elif request.method == 'GET':
         try:
             data_filtro = request.args.get('data')
             query = db.collection('atividades')
-
+            
             if data_filtro:
                 try:
-                    # Tenta filtrar E ordenar (Exige índice Composto ATIVO)
+                    # Tenta busca completa (exige índice ativo no Firestore)
                     docs = query.where('data_busca', '==', data_filtro)\
                                 .order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
                 except:
-                    # Se o índice ainda estiver "Criando", filtra SEM ordenar para não dar erro
+                    # FALLBACK: Filtra sem ordenar caso o índice ainda esteja "Criando..."
                     docs = query.where('data_busca', '==', data_filtro).stream()
             else:
-                # Se não houver data, traz os últimos 50 registros gerais
-                docs = query.order_by('data_registro', direction=firestore.Query.DESCENDING).limit(50).stream()
+                # Se o usuário não selecionou data, mostra os últimos 50 registros
+                docs = query.limit(50).stream()
 
             atividades = [dict(doc.to_dict(), id=doc.id) for doc in docs]
             return jsonify(atividades), 200
