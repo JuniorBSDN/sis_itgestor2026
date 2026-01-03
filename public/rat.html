@@ -118,14 +118,17 @@
         document.getElementById('concluidos').innerText = c;
     }
 
-    async function atualizarStatusServidor(id, novoStatus) {
-        await fetch(`${API_URL}/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: novoStatus })
-        });
-        buscarDados();
-    }
+async function buscarDados() {
+    try {
+        // Se dataSelecionada estiver vazia, a API traz tudo. 
+        // Se tiver valor (ex: 2026-01-02), a API filtra.
+        const url = dataSelecionada ? `${HELPDESK_URL}?data=${dataSelecionada}` : HELPDESK_URL;
+        
+        const response = await fetch(url);
+        const dados = await response.json();
+        renderizar(dados);
+    } catch (e) { console.error("Erro:", e); }
+}
 
     function abrirModal() { document.getElementById('modalData').style.display = 'block'; }
     function fecharModal() { 
