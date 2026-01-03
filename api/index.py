@@ -51,7 +51,6 @@ def gerenciar_relatos():
         docs = db.collection('relatos').stream()
         return jsonify([doc.to_dict() for doc in docs]), 200
 
-# --- MÓDULO HELPDESK (RAT) ---
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
 def gerenciar_rat():
     if request.method == 'POST':
@@ -60,7 +59,7 @@ def gerenciar_rat():
             agora = datetime.now()
             dados['status'] = 'Pendente'
             dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
-            # Campo para o filtro por data
+            # Salva no formato YYYY-MM-DD para o filtro do HTML
             dados['data_busca'] = agora.strftime("%Y-%m-%d")
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
@@ -69,21 +68,21 @@ def gerenciar_rat():
     elif request.method == 'GET':
         try:
             data_filtro = request.args.get('data')
-            if not data_filtro:
-                data_filtro = datetime.now().strftime("%Y-%m-%d")
+            query = db.collection('atividades')
 
-            # Tenta a busca filtrada e ordenada (Exige Índice Ativo)
-            try:
-                docs = db.collection('atividades') \
-                    .where('data_busca', '==', data_filtro) \
-                    .order_by('data_registro', direction=firestore.Query.DESCENDING) \
-                    .stream()
-                atividades = [dict(doc.to_dict(), id=doc.id) for doc in docs]
-            except Exception:
-                # Fallback: Se o índice falhar, traz os últimos 20 sem filtro para não travar a lista
-                docs = db.collection('atividades').limit(20).stream()
-                atividades = [dict(doc.to_dict(), id=doc.id) for doc in docs]
+            if data_filtro:
+                try:
+                    # Tenta filtrar E ordenar (Exige índice Composto ATIVO)
+                    docs = query.where('data_busca', '==', data_filtro)\
+                                .order_by('data_registro', direction=firestore.Query.DESCENDING).stream()
+                except:
+                    # Se o índice ainda estiver "Criando", filtra SEM ordenar para não dar erro
+                    docs = query.where('data_busca', '==', data_filtro).stream()
+            else:
+                # Se não houver data, traz os últimos 50 registros gerais
+                docs = query.order_by('data_registro', direction=firestore.Query.DESCENDING).limit(50).stream()
 
+            atividades = [dict(doc.to_dict(), id=doc.id) for doc in docs]
             return jsonify(atividades), 200
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
