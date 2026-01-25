@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal TI - Hospital de Vigia</title>
+    <title>Portal de Treinamento - Hospital de Vigia - Setor de TI</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <style>
         :root {
             --primary-hospital: #0056b3;
+            --primary-hover: #003d7a;
             --accent-green: #25d366;
             --bg-color: #f0f2f5;
             --card-bg: #ffffff;
@@ -17,192 +19,241 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        body { background-color: var(--bg-color); color: var(--text-dark); line-height: 1.6; }
+        body { background-color: var(--bg-color); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; }
 
         /* Cabeçalho */
         header {
             background: linear-gradient(135deg, var(--primary-hospital) 0%, #003d7a 100%);
             color: white;
-            padding: 40px 20px;
+            padding: 60px 20px 100px;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        header h1 { font-size: 1.8rem; margin-bottom: 8px; letter-spacing: 1px; }
-        header p { font-size: 0.9rem; opacity: 0.9; }
+        header h1 { font-size: 1.8rem; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
+        header p { font-size: 1rem; opacity: 0.9; }
 
         /* Barra de Suporte */
         .support-bar {
             background: white;
-            padding: 25px;
+            padding: 30px;
             max-width: 1100px;
-            margin: -20px auto 20px;
+            margin: -50px auto 30px;
             border-radius: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
         }
 
         .support-text { text-align: center; }
-        .support-text h3 { color: var(--primary-hospital); margin-bottom: 5px; }
+        .support-text h3 { color: var(--primary-hospital); margin-bottom: 8px; font-size: 1.4rem; }
+        .support-text p { color: var(--text-secondary); font-size: 0.95rem; max-width: 600px; }
 
         .contatos-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 12px;
+            gap: 15px;
             width: 100%;
         }
 
-        /* Botões Modernos */
-        .btn-suporte {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: white;
-            transition: transform 0.2s, filter 0.2s;
-            min-width: 200px;
-            flex: 1; /* Faz os botões crescerem igualmente */
-        }
+        /* Botões Modernos com Efeito de Hover e Ícones */
+       /* Estilo Base dos Botões */
+.btn-suporte {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 30px;
+    border-radius: 50px; /* Mais arredondado e moderno */
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: white;
+    transition: all 0.3s ease;
+    min-width: 280px;
+    border: none;
+    text-align: center;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
 
-        .btn-suporte:active { transform: scale(0.95); }
+/* Cores específicas */
+.btn-cadastro { background: #007bff; } /* Azul Vibrante */
+.btn-acesso { background: #28a745; }   /* Verde Sucesso */
 
-        .btn-gestor { background: #0056b3; }
-        .btn-whatsapp { background: var(--accent-green); }
+/* Animação Pulsante */
+@keyframes pulse-blue {
+    0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); transform: scale(1); }
+    70% { box-shadow: 0 0 0 15px rgba(0, 123, 255, 0); transform: scale(1.03); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); transform: scale(1); }
+}
 
-        /* Grid de Vídeos */
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); transform: scale(1); }
+    70% { box-shadow: 0 0 0 15px rgba(40, 167, 69, 0); transform: scale(1.03); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); transform: scale(1); }
+}
+
+.pulse-azul {
+    animation: pulse-blue 2s infinite;
+}
+
+.pulse-verde {
+    animation: pulse-green 2s infinite;
+    animation-delay: 0.5s; /* Delay para não pulsarem exatamente iguais */
+}
+
+/* Efeito ao passar o mouse (Hover) */
+.btn-suporte:hover {
+    filter: brightness(1.2);
+    transform: translateY(-3px);
+    animation: none; /* Para a pulsação quando o usuário foca o mouse */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+        /* Grid de Vídeos e Ajuste de Tela */
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
 
         .section-title {
-            margin: 30px 0 20px;
+            margin: 40px 0 20px;
             padding-left: 15px;
-            border-left: 4px solid var(--primary-hospital);
-            font-size: 1.3rem;
+            border-left: 5px solid var(--primary-hospital);
+            font-size: 1.5rem;
+            color: var(--text-dark);
         }
 
         .video-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
         }
 
         .video-card {
             background: var(--card-bg);
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: translateY 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
         }
 
-        .video-container { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
-        iframe { position: absolute; width: 100%; height: 100%; border: none; }
-
-        .video-info { padding: 18px; }
-        .video-info h3 { font-size: 1.05rem; margin-bottom: 10px; color: var(--primary-hospital); }
-        .video-info p { font-size: 0.9rem; color: var(--text-secondary); }
-
-        .badge-user {
-            display: inline-block;
-            background: #eef2f7;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            color: #333;
-            font-weight: bold;
+        .video-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
-        /* Rodapé Legal */
+        /* Ajuste do Vídeo para preencher a tela corretamente */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-info { padding: 20px; }
+        .video-info h3 { font-size: 1.1rem; margin-bottom: 10px; color: var(--primary-hospital); }
+        .video-info p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4; }
+
+        /* Rodapé de Avisos */
         .legal-footer {
             background: #fff;
-            padding: 25px;
+            padding: 30px;
             border-radius: 12px;
-            margin: 40px 0;
-            font-size: 0.85rem;
-            border-top: 4px solid var(--warning-red);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin: 50px 0 20px;
+            border-top: 5px solid var(--warning-red);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        .legal-footer h3 { margin-bottom: 15px; color: var(--warning-red); }
-        .legal-footer ul { margin-left: 20px; margin-top: 10px; }
-        .legal-footer li { margin-bottom: 8px; }
+        .legal-footer h3 { margin-bottom: 15px; color: var(--warning-red); display: flex; align-items: center; gap: 10px; }
+        .legal-footer ul { margin-left: 20px; margin-top: 10px; list-style: none; }
+        .legal-footer li { margin-bottom: 10px; position: relative; padding-left: 25px; }
+        .legal-footer li::before { content: '•'; color: var(--warning-red); font-weight: bold; position: absolute; left: 0; font-size: 1.5rem; line-height: 1; }
 
-        /* Ajustes para Celular */
+        /* Rodapé do Desenvolvedor */
+        .dev-credit {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid #ddd;
+            margin-top: 20px;
+        }
+
+        /* Ajustes Mobile */
         @media (max-width: 600px) {
-            header { padding: 30px 15px; }
-            header h1 { font-size: 1.5rem; }
-            .support-bar { margin-top: -15px; padding: 15px; }
+            header { padding: 40px 15px 80px; }
+            header h1 { font-size: 1.4rem; }
+            .support-bar { margin-top: -40px; padding: 20px; width: 92%; }
             .contatos-container { flex-direction: column; }
             .btn-suporte { width: 100%; }
-            .video-grid { grid-template-columns: 1fr; } /* Um card por linha no celular */
+            .video-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>SETOR DE TECNOLOGIA DA INFORMAÇÃO - TI - Hospital de Vigia</h1>
-        <p></p>
+        <div data-aos="fade-down">
+            <h1>SETOR DE TECNOLOGIA DA INFORMAÇÃO - TI</h1>
+            <p>Hospital de Vigia</p>
+        </div>
     </header>
 
-    <section class="support-bar">
+    <section class="support-bar" data-aos="zoom-in" data-aos-delay="200">
         <div class="support-text">
             <h3>Central de Ajuda</h3>
             <p>Prestadores de Serviços precisam se cadastrar no Sistema SALUTEM, para ter acesso aos recursos</p>
         </div>
 
-        <div class="contatos-container">
-            <a href="https://sisitgestor2026.vercel.app/helpdesk.html" target="_blank" class="btn-suporte btn-gestor">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>
-                ABRIR CHAMADO
-            </a>
-
-            <a href="https://wa.me/5591983252639" target="_blank" class="btn-suporte btn-whatsapp">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.319 1.592 5.448 0 9.886-4.438 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.735-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.668.149-.198.297-.767.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.148-.174.198-.298.297-.497.099-.198.05-.372-.025-.521-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                JUNIOR (TI)
-            </a>
-
-            <a href="https://wa.me/5591981244409" target="_blank" class="btn-suporte btn-whatsapp">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.319 1.592 5.448 0 9.886-4.438 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.735-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.668.149-.198.297-.767.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.148-.174.198-.298.297-.497.099-.198.05-.372-.025-.521-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                SARUBBY (TI)
-            </a>
-        </div>
+       <div class="contatos-container">
+    <a href="https://wa.me/5591983252639" target="_blank" class="btn-suporte btn-cadastro pulse-azul">
+        CADASTRAR PRESTADOR OU USUARIO
+    </a>
+    <a href="https://hvn.sistemasalutem.com.br:9004/hospitalar/#/login" target="_blank" class="btn-suporte btn-acesso pulse-verde">
+        ACESSAR O SISTEMA SALUTEM
+    </a>
+</div>
     </section>
 
     <main class="container">
-        <h2 class="section-title">Treinamento Sistema SALUTEM </h2>
+        <h2 class="section-title" data-aos="fade-right">Treinamento Sistema SALUTEM</h2>
 
         <div class="video-grid">
+            <div class="video-card" data-aos="fade-up">
+                <div class="video-wrapper">
+                    <iframe src="https://drive.google.com/file/d/1Yx2HMEOcT2GGYwNLVDqX-535Q7eUHtjv/preview" allow="autoplay"></iframe>
+                </div>
+                <div class="video-info">
+                    <h3>Enfermeiros e Técnicos - Parte 2</h3>
+                    <p>Segunda Chamada para enfermeiros e técnicos</p>
+                </div>
+            </div>
 
-    <div class="video-card">
-        <div class="video-container">
-            <iframe src="https://drive.google.com/file/d/1Yx2HMEOcT2GGYwNLVDqX-535Q7eUHtjv/preview" allow="autoplay"></iframe>
+            <div class="video-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="video-wrapper">
+                    <iframe src="https://drive.google.com/file/d/1t1ps0zAIVEsEl23jW1-y5nSj-7b0FLrE/preview" allow="autoplay"></iframe>
+                </div>
+                <div class="video-info">
+                    <h3>Médicos - Parte 3</h3>
+                    <p>Instruções detalhadas sobre a operação do sistema.</p>
+                </div>
+            </div>
         </div>
-        <div class="video-info">
-            <h3>Enfermeiros e Técnicos - Parte 2</h3>
-            <p>Segunda Chamada para enfermeiros e técnicos</p>
-        </div>
-    </div>
 
-    <div class="video-card">
-        <div class="video-container">
-            <iframe src="https://drive.google.com/file/d/1t1ps0zAIVEsEl23jW1-y5nSj-7b0FLrE/preview" allow="autoplay"></iframe>
-        </div>
-        <div class="video-info">
-            <h3>Médicos - Parte 3</h3>
-            <p>Instruções detalhadas sobre a operação do sistema.</p>
-        </div>
-    </div>
-</div>
 
-        <div class="legal-footer">
+        <div class="legal-footer" data-aos="fade-up">
             <h3>⚠️ Avisos e Responsabilidades</h3>
             <p>Este portal destina-se exclusivamente aos <strong>funcionários do Hospital de Vigia</strong>.</p>
             <ul>
@@ -212,7 +263,19 @@
             </ul>
         </div>
     </main>
-    <p>Desenvolvido por JOSE AIRTON B. S. JUNIOR - T.I  </p>
+
+    <footer class="dev-credit">
+        <p>Desenvolvido por <strong>JOSE AIRTON B. S. JUNIOR - T.I</strong></p>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+    </script>
 
 </body>
 </html>
