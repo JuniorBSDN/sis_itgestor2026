@@ -21,14 +21,22 @@
 
         body { background-color: var(--bg-color); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; }
 
-        /* Cabeçalho */
-        header {
-            background: linear-gradient(135deg, var(--primary-hospital) 0%, #003d7a 100%);
-            color: white;
-            padding: 60px 20px 100px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+       header {
+    /* Alterado de 20.0 para 0.5 para uma sombra visível, ou 0.0 para total transparência */
+    background-image: linear-gradient(135deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 100%),
+                      url('https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvcm0zNzNiYXRjaDE1LWJnLTExLmpwZw.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    color: white;
+    padding: 80px 20px 120px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+
+    /* Adicionei isso para garantir que o texto apareça bem sobre a imagem clara */
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+}
 
         header h1 { font-size: 1.8rem; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
         header p { font-size: 1rem; opacity: 0.9; }
@@ -200,6 +208,58 @@
             .btn-suporte { width: 100%; }
             .video-grid { grid-template-columns: 1fr; }
         }
+        /* Seção de Canais do YouTube */
+/* Seção de Canais com Imagem Redonda */
+.youtube-section {
+    margin-top: 60px;
+    padding-bottom: 40px;
+}
+
+.channel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.channel-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+.channel-card:hover {
+    transform: translateY(-5px);
+    border-color: #ff0000;
+    box-shadow: 0 10px 20px rgba(255, 0, 0, 0.1);
+}
+
+/* Estilo da Imagem do Canal */
+.channel-img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%; /* Deixa a imagem redonda */
+    object-fit: cover;  /* Garante que a foto não distorça */
+    border: 2px solid #eee;
+}
+
+.channel-info h4 {
+    color: var(--text-dark);
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.channel-info p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
     </style>
 </head>
 <body>
@@ -207,25 +267,19 @@
     <header>
         <div data-aos="fade-down">
             <h1>SETOR DE TECNOLOGIA DA INFORMAÇÃO - TI</h1>
-            <p>Hospital de Vigia</p>
+            <h4>Hospital de Vigia e Instituto IMPAR</h4>
+            <br>
         </div>
-    </header>
-
-    <section class="support-bar" data-aos="zoom-in" data-aos-delay="200">
-        <div class="support-text">
-            <h3>Central de Ajuda</h3>
-            <p>Prestadores de Serviços precisam se cadastrar no Sistema SALUTEM, para ter acesso aos recursos</p>
-        </div>
-
-       <div class="contatos-container">
-    <a href="https://wa.me/5591983252639" target="_blank" class="btn-suporte btn-cadastro pulse-azul">
-        CADASTRAR PRESTADOR OU USUARIO
+   <a href="https://wa.me/5591983252639" target="_blank" class="btn-suporte btn-cadastro pulse-azul">
+        CADASTRAR PRESTADOR/SOLICITAR ATENDIMENTO
     </a>
+
     <a href="https://hvn.sistemasalutem.com.br:9004/hospitalar/#/login" target="_blank" class="btn-suporte btn-acesso pulse-verde">
         ACESSAR O SISTEMA SALUTEM
     </a>
-</div>
-    </section>
+    </header>
+
+
 
     <main class="container">
         <h2 class="section-title" data-aos="fade-right">Treinamento Sistema SALUTEM</h2>
@@ -236,7 +290,7 @@
                     <iframe src="https://drive.google.com/file/d/1Yx2HMEOcT2GGYwNLVDqX-535Q7eUHtjv/preview" allow="autoplay"></iframe>
                 </div>
                 <div class="video-info">
-                    <h3>Enfermeiros e Técnicos - Parte 2</h3>
+                    <h3>Enfermeiros e Técnicos - Parte 1</h3>
                     <p>Segunda Chamada para enfermeiros e técnicos</p>
                 </div>
             </div>
@@ -246,12 +300,40 @@
                     <iframe src="https://drive.google.com/file/d/1t1ps0zAIVEsEl23jW1-y5nSj-7b0FLrE/preview" allow="autoplay"></iframe>
                 </div>
                 <div class="video-info">
-                    <h3>Médicos - Parte 3</h3>
+                    <h3>Médicos - Parte 2</h3>
                     <p>Instruções detalhadas sobre a operação do sistema.</p>
                 </div>
             </div>
         </div>
+       <section class="container youtube-section" data-aos="fade-up">
+    <h2 class="section-title">Aprenda MAIS!  </h2>
 
+    <div class="channel-grid">
+        <a href="https://www.youtube.com/@CursoR%C3%A1pido" target="_blank" class="channel-card">
+            <img src="https://yt3.googleusercontent.com/ytc/AIdro_kbnt3PeyvewciwuO6GomaqOQWqho_VyiHoRgBKArUSQ44=s160-c-k-c0x00ffffff-no-rj" alt="Logo Canal" class="channel-img">
+            <div class="channel-info">
+                <h4>CURSOS DE INFORMÁTICA</h4>
+                <p>Aulas, Cursos e Tutorias para almentar o nosso nível de habilidades digitais e técnologicas. </p>
+            </div>
+        </a>
+
+        <a href="https://www.youtube.com/watch?v=jnJYRJD22BA" target="_blank" class="channel-card">
+            <img src="https://s3.amazonaws.com//beta-img.b2bstack.net/uploads/production/product/product_image/16462/anydesk.jpg" alt="Logo Canal" class="channel-img">
+            <div class="channel-info">
+                <h4>COMO USAR O ANYDESK</h4>
+                <p>Programa MUITO ultilizado em nossa rotina de trabalho, para acesso remoto de computadores e resolução de problemas a distância. </p>
+            </div>
+        </a>
+
+        <a href="https://www.youtube.com/watch?v=So9Lhgbq2sk" target="_blank" class="channel-card">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARUAAAC2CAMAAADAz+kkAAABUFBMVEUOQKX///8KmSXyx0AGPqYANKrJrVr2yzknSp8AL6AAO6MAOaMAMqEALJ8ALqAANqIAJp4tUqzZ3exQabStttgOO6kANKHj6PMOOKsKmiM1W7Bhe70Kmx76yUEAI50KnRmzvt319fXK0OV4jMW/yOMYSKnT2OmSos8AHpzGz+bw8/mDlcmcqtMNXIgLfVsLgVUMcmsKkDgAL6ttg8GksdZbdLoiS6mOns0AAJYAEZkKnw0KlSsMdWcNVY8NTJgMbXPfwz0Li0GOhnvOvjsNZXwMcG3WuUpDYrIMangMemENYn8NVI8NSpgLjkALiEllpy17rC/TwDw/oSaSsDOmtTW9ujmvmmx4eYOEgH/VtFOvtzdDWJifkHTAp2DmwEZNoivk1KnmynyvrE1lbYtRZo6OjXFLXJdlcoe1pGHp5dvGsVGdlmpSYpJVqBx6oUILhE+whSFZAAAPqElEQVR4nO2ca4PTNhaG7RmHjC35Eie2c5skk9hOYgco4zjpDDCFljalC7RluZSlpbvb3bZLu8v//7aSbCdyrgMkGcjo/QDEPrGlJzrS0ZEExzExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExfXQSLroAH5gEwTCKRce46HJ8UDKc21/ff7R3eothmQjcO63Xq6W90l7ah8CldinjfnWPqH5VIhcEgsP45rZ0oeW6KEXVF/5Sj6hUrxEXEg4eFA2p+NnpqXP5WotRFA4GAP+reLNEqEQuJDj105v3r35T36t/duk6GuPWw5v1+m1Ub+H4RilxoaJhHFyr7pWqddR+SjeKF13KLUt4cFpCHWzpgVE8exT3KwjDZ9dv1pNPiNJfLpsLGaTypZtX759OMJSq1dLeRNVrl62xFO+S+peopjGr0tXi5RqHjFvLcGB9e+fOd/WHl4uL8ckKKk8P9/cPv3+MuYCLLuzWZFxbSuWviAnW4ZNS/eE3xmXhUnyzhMq3d2IoCMv+d6X6jW8uSXsp3igthPJ0zIRw+eIx4oJDGTyzLu70YF1c7Dz7KSjEjdBY9fDWrWvX39y9e7bLAS+oz2fy851pJhjLnW9xLIOE/ry6q0GMgCLauVRKf5vDhHB5mjhcqf71LmIRDOHs3v2b87qV7yjnyRJRXP6aWNXv717nIhw8rJIs06zzfH84QfLVsx+eP//h2YsJGOxGMZZHwq5hMe4v6FEo58k+e5mJxpzM2Y/7Ey5PY9PqjYNicad63eLe3CGZcp7siweZcVsQis5PEyz7sRuVSncfXtuhqYB0dV5Tefw93VAyKf8Qjj+fdC+Hd35OuJye7Y4bjbO0tJ5QI0/2x+Pp72R+oHvdxI2SNO8uSJgdkumRZz97paMCaaoVHD+jscRuVP96h3oWY8qFHn+RDlGGvh/kcxwUTdIUJDIByrxKBS/Ejao7tX5k3KOxPEkzyf6dJzqyuu1QUgAIWxiL8TybMjv8G6JyfZeocMUvT5Os5Lcz8f3RWAhNt2UGQxV/x3iVNkNT6fq1naLCGWdClF35IvvqSroR/MOzLEKEj8gcNUYybizFZ2k71Kr+uVtQUJcLbp9WS0+yXz0vdq7QrSX7eUeWNYUbBb2uF5Hh3YosceCXKSrZ19Nd8i7o/qPXP/0rY3CZ3+nqZn8BZMuGBEwRjtouAcM3y6LwMk0l+2Inl6FxAon0o/9OUflV4HKjuL6SqeR6R4RLTxtcBigTZX57NZkBZl8KUmU4yUYKUPE9xIXXcykoX+38HiAD/Pb7fgwm+yfgRJNzcKgS19s0e6TjTUG5DOvyICP88ntU3+cGh3qRbhlBKScBPSzr/NF/snRLWX+sL4y12lZSoSiLoiyLcJ4jC7Na+sLFRuD4X7jaaGYIWo4A8RUrMJObWoH/+8TLXpvrbym5iQbLLSUojvxC10LSu/1WWYZTpRFysxoAGU6tUswaOVAW1am3maTKrwwOCDlyAcoVMSpHTtD8fyRQDn/aQCZO0fmxCnCJoSSPCh5Py+rn5FSBNH6OjqxGSxWp5+TnGHmW3XLkFL1oiMZDs6k3cMEG7aO2g/4WRh6QzqgOeQNLQ/I5qYhld05tbIf+ylwqRI2J3VwqRHpAcwG/kYq/yCAMZQH3sg2+p3KqIKkCdzzJPO1vIpd9PiqC2F9QFV8+DxWeHyZ2i6mg1lehngZev8ri6DZDdoblmuaw4gO1P8q3gEFFtq8zF0VFEvSFNWlMKrKMCm9rq6kgK6qvyhz/gbH8Gc1vWgCJA/6onFfPqFH5j4tqK4JgnaO6K6gkdsup8JYwGWXjyc6vpN6xc6Ghr3hATZjJnOBCqMBlUHi+nfSly6nwvnkOKrw3GajBn9koaMlQNRcyv0yYHN7570YmheegIjeW14NP4qsVVHjuPFR4feySQjzSZK/8mjEILMHIvPydTvGXbmwkf7CaCghThW5UyrmR36QvNeVZKpaONNXG2up5qPC9cTHUGMBh9sXnvwrHx+DlD1eoZbKnpWRP7vapaHTddEcEAhoctRSquLHQVAaygiSHdDdtydNUoCKKCpfvpQOhQeIUx1T/kZ1aUo2WDuv3LoYKCGgoyngyQmPpwxkqMSig0WEOmKYSPUuCco+mYic+VPzfzC6NseLE/oONzAtXUqEN+NxkgJC7VCNQFlHhwIi6OJLmUsFP82ksubiqxTfV+ZsSDr94HEH5cjNpyVVUhBxV2oYyuSGFbjORDRZSSV0MwCIqXI2CHHVAXLSENmcDy+F+vO5evbuhXO0qKuqQKm2enrFLylhwFsCECtVntBZTkcrU5WQYMj7BmxWmNzsdPkmWSeoHG8qrrKKiUL+hZ87epzWXCqAuhouppD01viYcXH9zo5reGJc4z+a6Wm41FUj91K48e5/WPCoi3WHgwWURFUjPtJJGKRjFDN7vM14nOtz/brygVn2zsU1OK3tbfvY+nJY5SyWn4nnL1Ag+MzJT70mNdf4k2xJvT47caOI8+KDM5pK1K6gItLvHnaBjTclzZ0fmIMQapqI9W1xCRaIHq97EV8fL808PD79/TEE5vbq5ZbEVVFJ1iH9Bh5+WJc5QmadwQbwSvYnmT5fEeBhv+/mZjDz4rFC9fnpavbXBTYIrqKTadQDei0o0siyiIgwWUfmMXp2v3vzy3tXbZ45hbHIBdYtUog54IZVFbUU4oPb9VB8iHtK5Mu/vo7eh8n4eVIm+/bb9CopwH413ztXfGFtZ+XmbfiUu67tRCeGcJ1JvSk3Nh3TG3/g6caHqtnbWrhqDUgF/dP9dqNhcUs9FVFJBdEgn2MajUOnGJnK087RyHkSVNQ7E35qKVyhP4r9FVESbup5amSomm6G2t5tpFRWRyq4cpVKk1Jgxh4oby+77ZQip+dNCKt7M84iE4q2xA33ywVCh05MVer1mNFOL2ayToohQTS8CL6CS6tapggDn7nhgrt/b1lmpVVRAiyptk5oIqdSNOVTKixbEF1BJZfwmc3Pj9t5kXD7d2nnmlfOgVC8ymvxYdJLt/anU6CZpjeGj4Weyn32L2wFTVGQwJVQ1he4FPSnBItIt/t2pkI0pQAT0S5JoERvTUK5v7xwQTcUOK1NCTTkVXfHeSAaSJKkaDeXdqQywypUCn3raeNmNM27VLwJKOtkzIxyhyKl5L99t5ct5P70U/85U5or+6ngAQlC2uJ9pOZWWOjVtm6+1UvFTvVuMZastZRUVMhhAf5nJuqn0pxJ+GYxly1BWUImWIOTCMpv1Uulp018ofnK6bSjLqRzFMeaqleb1UQnmpIaL977c9r7rpVTGC+HacN5tKxmI1kVlModMCWx9h/5SKvZ4PiKOZu1sOZlQr4WK1yivWEPYnuRle1P6k+SPpITpEbqZlzl4FFfofalYbj8E4gd0Qk6Qlog2BIoQ9Ju653l6sx9wCklNRxJmnrWsH5h9I4DK9PbTj0io9LKsyfLHXAcmJiamC5GR2RmtL9Yz/riyM/pxbVgyV7I7oytrWy0SDnZI64Iy9/jXx6r1QWFiemdNDlkCdfFkh579SeeY6r7ltOl85htNRTn0B1ApR+8SnVY7EBYcjZEqo3GJpHyYxjIYDNTp5JE/r57mAE6f54yUC1LmDnoiEGcs6UKsXbBLl0HxCiSnIhb4bsPl+/N/NdhojW+o7T7NQO3xnuf5UztzvTn5JNjgdbs/ZwuvFLoibWfzR0eem5suCrRbm5u5QzuiAmB0eJb88IqtSwqUHR2/WBXxngLBxCdNgSgCSR1TUUVRHPbUxAZf6Q072sDLAVWF5D7eeCxaJ/g8ZWyDnhEdiTkZDQHkEqtI6CYMu+hNUIwbErTzNZnzSR5LgqIpmOQrUGmgggvxQ1VxvYRiKmKl67ZN9MvnyQkEj7RYAaL3qm3dDqEw6g3dgdJqNlv5oRZTgb7bDP2eKkl93R6ZEZU2lDrNfDjsNVU4dLsVUcrrvF4GTl9vlBEOsdV026j7UssNt+A0oqcEcetQgqbbGnVFMChE1riAeCuE0tIVDoa223MaCEzbtcuISmJmtvX1NpyIitn2WhXbMkXyCRbI2RYJn38UvEal5fliyNsVrasHQdMr1CIqENUmcPUedLx+xfcClVDpl8u+Z7b4Qiha3aDl9ZVc4FWcAd+rDL0QQNcNgobnqBV+WGl7HifqzaBlNQgWsWC1AtvtymVinQdjKpxoORAXsmBZMuc1gpZuBSox40Po65Vmbv1UHO/kpPNpv61FVGy8MVDKVyoVqd/7tHPyqQdCvgMDvQNAzY6pqH6zhj66vZrtIxvNwoVX20eW1yjDllUTe40aUDVvBIBVU5oVZMNZ2tBGX5IrA9PLQSCOeNXvYisrbqOaCmr9bscNkfWAZMljKrKVczzVBJpvdQp98uBAw0egYdnr+PbJejPhhEqyVc/tRC2nUMCe3dBd3olz2GGoK2YBwwJBI6ISFVf1e504/4+P/+B+RYYCaNmi2MS/NewNVc6S5XgrE+iSPW9AGpFlFdlSyVPMNumd2vh0nTRqniTWNBUnsPFJHME6sfDqHSwENQ+vqWmWY9peZe6iyXtRQQX5VNNqJ3LUcqQRj2MGqAn8SXfU0bTOiRq6itouoJoo7ZiK2e+hj3K/13EdYkO6vR7Z1w58G8IGXjKuNdETLVmxNGIjNoaoagBIjicLyEc9tdBGFzQyoICgW0OvDbonVo1Yc2MqYsWSRxa6q46sk2YQPbjmDZCLyzwEctnLr3OJANphR5NFdwhrOTuU47637+VkUXasIcxb5RqsdCEeLiW+JcsBH3uQMEAfxRbfFkMrV4NBQ6WpNKBU9kINDvEeHUsGLX1QU/0CLPOBrOW9nNJoOp2Bywu5o4om+h4JjVSvDeX8ka35rlMDPhnzSQG5Fp+XRLcAaiNL1/J8XjPbfCD66MVOs6CEuY4erLO7hXhDjQeFLvqzB8Q4elHaKJhw8VFls2LxvJ5XQx1RySFfcVFbsUlYBsr4Y6+vwgC1eH1E2kq/l7QVTs2jrzbx41C8giqOjMsCwOttVqgi8ke851uOii+40f8rI3DIYS3fReM9sm6SZW5SQFwC9FT0T6tlyWqIHmyj5oXNvL6oomfba/UgFEagEAHHB6KCHmzG7VAVQ79CYlSAz5FKnIQHXgHZiuhqPBmQyEcQ2cSLXCC6BUhIgi8T9PiJ+AM+INRpD2vYyFTQG2FslYSpIi6GOrHmoqBIiY6BkkLC+H14GyIyU0zyedn/B7JGSWBDoSMaqJ3VVpdN5UK4Id4ftcwPaEGZiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJaaz/A9xe0i66PigwAAAAAElFTkSuQmCC" alt="Logo Canal" class="channel-img">
+            <div class="channel-info">
+                <h4>LGPD - Lei n. 13.709 de 2018</h4>
+                <p>LEI GERAL DE PROTEÇÃO DE DADOS - Criada para proteger o titular de dados em ambiente virtual.</p>
+            </div>
+        </a>
+    </div>
+</section>
 
         <div class="legal-footer" data-aos="fade-up">
             <h3>⚠️ Avisos e Responsabilidades</h3>
@@ -267,6 +349,7 @@
     <footer class="dev-credit">
         <p>Desenvolvido por <strong>JOSE AIRTON B. S. JUNIOR - T.I</strong></p>
     </footer>
+
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
