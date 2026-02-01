@@ -198,6 +198,52 @@ border-top:5px solid var(--warning-red)
 .video-grid{grid-template-columns:1fr}
 .btn-suporte{width:100%}
 }
+    /* ================= SEÇÃO ANYDESK ================= */
+.anydesk-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 40px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border-left: 8px solid #ef4437; /* Vermelho AnyDesk */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.anydesk-content { flex: 1; }
+
+.anydesk-content h2 { color: #ef4437; margin-bottom: 10px; }
+
+.btn-anydesk {
+    background: #ef4437;
+    color: #fff;
+    text-decoration: none;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
+}
+
+.btn-anydesk:hover {
+    background: #c13329;
+    transform: translateY(-2px);
+}
+
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 55, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(239, 68, 55, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 55, 0); }
+}
+.pulse-red { animation: pulse-red 2s infinite; }
+
+@media (max-width: 768px) {
+    .anydesk-section { flex-direction: column; text-align: center; }
+}
 </style>
 </head>
 <body>
@@ -269,6 +315,22 @@ border-top:5px solid var(--warning-red)
             </a>
         </div>
     </section>
+
+    <section class="anydesk-section" data-aos="fade-up">
+    <div class="anydesk-content">
+        <h2>Acesso Remoto (Suporte TI)</h2>
+        <p>Para suporte à distância, baixe o AnyDesk. Após abrir, informe o <strong>ID de 9 dígitos</strong> ao técnico responsável.</p>
+    </div>
+
+    <div class="anydesk-action">
+        <a href="https://download.anydesk.com/AnyDesk.exe" class="btn-anydesk pulse-red">
+            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+            </svg>
+            BAIXAR ANYDESK AGORA
+        </a>
+    </div>
+</section>
 
     <div class="legal-footer" data-aos="fade-up">
         <h3>⚠️ Avisos e Responsabilidades</h3>
