@@ -244,6 +244,22 @@ border-top:5px solid var(--warning-red)
 @media (max-width: 768px) {
     .anydesk-section { flex-direction: column; text-align: center; }
 }
+
+    .video-card img {
+    width: 100%;          /* Faz a imagem ocupar toda a largura do card */
+    height: auto;         /* Mantém a proporção original da imagem */
+    display: block;       /* Remove espaços vazios abaixo da imagem */
+    object-fit: cover;    /* Garante que a imagem preencha o espaço sem achatar */
+    border-radius: 8px 8px 0 0; /* Mantém as pontas arredondadas apenas em cima */
+}
+
+    /* Ajuste opcional para o container principal */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
 </style>
 </head>
 <body>
@@ -258,12 +274,57 @@ border-top:5px solid var(--warning-red)
            data-aos="fade-up" data-aos-delay="800">
            CADASTRAR PRESTADOR/SOLICITAR ATENDIMENTO TÉCNICO
         </a>
+        <a href="https://hvn.sistemasalutem.com.br:9004/hospitalar/#/login" target="_blank"
+           class="btn-suporte btn-cadastro pulse-azul"
+           data-aos="fade-up" data-aos-delay="800">
+           ENTRAR NO SISTEMA SALUTEM
+        </a>
+        <a href="https://play.sistemasalutem.com.br/" target="_blank"
+           class="btn-suporte btn-cadastro pulse-azul"
+           data-aos="fade-up" data-aos-delay="800">
+           SALUTEM PLAY
+        </a>
     </div>
 </header>
 
 <main class="container">
 
 
+    <h2 class="section-title" data-aos="fade-right">Treinamento Sistema SALUTEM - PARTE 3 </h2>
+
+    <div class="video-grid">
+        <a href="https://sistemasalutemcombr-my.sharepoint.com/personal/lferreira_sistemasalutem_com_br/_layouts/15/stream.aspx?id=%2Fpersonal%2Flferreira%5Fsistemasalutem%5Fcom%5Fbr%2FDocuments%2FRecordings%2FTreinamento%20Faturamento%20%2D%20%28149%29%20Hospital%20Vigia%20de%20Nazar%C3%A9%2D20260204%5F093747%2DGrava%C3%A7%C3%A3o%20de%20Reuni%C3%A3o%2Emp4&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0&ga=1&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Ec00792e2%2Dd269%2D48b2%2D8149%2Da850fdfc14a1" class="video-card" data-aos="zoom-in" data-aos-delay="200" style="text-decoration: none; color: inherit; display: block; overflow: hidden;">
+        <img src="https://i.imgur.com/riByGlp.jpeg" alt="Logo Canal" style="width: 100%; height: auto; display: block;">
+        <div class="video-info" style="padding: 15px;">
+            <h3>FATURAMENTO</h3>
+            <p>Gravação ao vivo do treinamento do Sistema SALUTEM.</p>
+        </div>
+    </a>
+</div>
+
+
+    <h2 class="section-title" data-aos="fade-right">Treinamento Sistema SALUTEM - PARTE 2 </h2>
+
+    <div class="video-grid">
+        <div class="video-card" data-aos="zoom-in" data-aos-delay="200">
+            <div class="video-wrapper">
+                <iframe src="https://drive.google.com/file/d/1Yx2HMEOcT2GGYwNLVDqX-535Q7eUHtjv/preview"></iframe>
+            </div>
+            <div class="video-info">
+                <h3>ENFERMEIROS E TÉCNICOS</h3>
+                <p>Gravação ao vivo do treinamento do Sistema integrado SALUTEM com o consultor</p>
+            </div>
+        </div>
+        <div class="video-card" data-aos="zoom-in" data-aos-delay="400">
+            <div class="video-wrapper">
+                <iframe src="https://drive.google.com/file/d/1t1ps0zAIVEsEl23jW1-y5nSj-7b0FLrE/preview"></iframe>
+            </div>
+            <div class="video-info">
+                <h3>MÉDICOS</h3>
+                <p>Gravação ao vivo do treinamento do Sistema integrado SALUTEM com o consultor</p>
+            </div>
+        </div>
+    </div>
 
     <h2 class="section-title" data-aos="fade-right">Treinamento Sistema SALUTEM - PARTE 1</h2>
 
@@ -285,29 +346,6 @@ border-top:5px solid var(--warning-red)
             <div class="video-info">
                 <h3>INTERNAÇÃO</h3>
                 <p>Modulo para enfermeiros</p>
-            </div>
-        </div>
-    </div>
-
-    <h2 class="section-title" data-aos="fade-right">Treinamento Sistema SALUTEM - PARTE 2 </h2>
-
-    <div class="video-grid">
-        <div class="video-card" data-aos="zoom-in" data-aos-delay="200">
-            <div class="video-wrapper">
-                <iframe src="https://drive.google.com/file/d/1Yx2HMEOcT2GGYwNLVDqX-535Q7eUHtjv/preview"></iframe>
-            </div>
-            <div class="video-info">
-                <h3>ENFERMEIROS E TÉCNICOS</h3>
-                <p>Gravação ao vivo do treinamento do Sistema integrado SALUTEM com o consultor</p>
-            </div>
-        </div>
-        <div class="video-card" data-aos="zoom-in" data-aos-delay="400">
-            <div class="video-wrapper">
-                <iframe src="https://drive.google.com/file/d/1t1ps0zAIVEsEl23jW1-y5nSj-7b0FLrE/preview"></iframe>
-            </div>
-            <div class="video-info">
-                <h3>MÉDICOS</h3>
-                <p>Gravação ao vivo do treinamento do Sistema integrado SALUTEM com o consultor</p>
             </div>
         </div>
     </div>
