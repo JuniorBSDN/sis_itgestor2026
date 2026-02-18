@@ -260,15 +260,52 @@ border-top:5px solid var(--warning-red)
     gap: 20px;
     padding: 20px;
 }
+
+.modal{
+    display:none;
+    position:fixed;
+    z-index:999;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+}
+
+.modal-content{
+    background:#fff;
+    padding:50px;
+    width:500px;
+    margin:10% auto;
+    border-radius:12px;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+.close{
+    float:right;
+    font-size:22px;
+    cursor:pointer;
+}
+
+.btn-download{
+    display:block;
+    margin:10px 0;
+    padding:10px;
+    background:#0d6efd;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+}
 </style>
 </head>
 <body>
 
 <header id="mainHeader">
-    <h1 class="header-typing">SETOR DE TECNOLOGIA DA INFORMAÇÃO - TI</h1>
-    <h4 data-aos="fade-down" data-aos-delay="500">Hospital de Vigia e Instituto IMPAR</h4>
+    <h1 class="header-typing">INSTITUTO IMPAR - TREINAMENTOS E TUTORIAIS</h1>
+    <h4 data-aos="fade-down" data-aos-delay="500">Hospital de Vigia de Nazaré - HVN & Sistema SALUTEM</h4>
 
-    <div style="margin-top: 30px;">
+    <div style="margin-top: 10px;">
         <a href="https://wa.me/5591983252639" target="_blank"
            class="btn-suporte btn-cadastro pulse-azul"
            data-aos="fade-up" data-aos-delay="800">
@@ -284,10 +321,49 @@ border-top:5px solid var(--warning-red)
            data-aos="fade-up" data-aos-delay="800">
            SALUTEM PLAY
         </a>
+        <a href="#"
+            class="btn-suporte btn-cadastro pulse-azul"
+            onclick="abrirDownloads()">
+            DOWNLOADS
+        </a>
+<script>
+function abrirDownloads(){
+    document.getElementById("modalDownloads").style.display="block";
+}
+
+function fecharDownloads(){
+    document.getElementById("modalDownloads").style.display="none";
+}
+</script>
+
+
+
     </div>
 </header>
 
 <main class="container">
+
+<h2 class="section-title" data-aos="fade-right">FLIT – TUTORIAL </h2>
+
+    <div class="video-grid">
+        <div class="video-card" data-aos="zoom-in" data-aos-delay="200">
+            <div class="video-wrapper">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/lJladOYHRnk?si=J6F5e1GHnv-KwDgx" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>            </div>
+            <div class="video-info">
+                <h3>FLIT – Novo Sistema de Registro de Ponto</h3>
+                <p>Nos próximos dias, o hospital implantará o FLIT, um sistema moderno e seguro para registro de ponto com reconhecimento facial, foto, QR Code e matrícula.
+
+A nova solução trará mais rapidez, transparência e organização para todos.
+Assista ao treinamento disponível na plataforma e fique por dentro das novidades.
+
+Contamos com sua participação!.</p>
+                <button class="btn-suporte backg btn-cadastro"
+        onclick="window.open('https://play.google.com/store/apps/details?id=br.com.directon.flit&pcampaignid=web_share','_blank')">
+    Clique aqui para baixar o FLIT
+</button>
+            </div>
+        </div>
+    </div>
 
 
     <h2 class="section-title" data-aos="fade-right">Treinamento Sistema SALUTEM - PARTE 3 </h2>
@@ -297,7 +373,7 @@ border-top:5px solid var(--warning-red)
         <img src="https://i.imgur.com/riByGlp.jpeg" alt="Logo Canal" style="width: 100%; height: auto; display: block;">
         <div class="video-info" style="padding: 15px;">
             <h3>FATURAMENTO</h3>
-            <p>Gravação ao vivo do treinamento do Sistema SALUTEM.</p>
+            <p>ATENÇÃO! E preciso ter conta da microsoft para assistir esse treinamento, pois o video foi compartilhado na plataforma TEAMS e o Video, não está disponivel para download</p>
         </div>
     </a>
 </div>
@@ -425,6 +501,17 @@ border-top:5px solid var(--warning-red)
         easing: 'ease-out-back' // Um efeito de "mola" suave ao aparecer
     });
 </script>
+
+<div id="modalDownloads" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="fecharDownloads()">&times;</span>
+        <h2>Baixe aqui a sua ferramenta, bem rapido!</h2>
+
+        <a href="https://drive.google.com/file/d/164o1WfxI5NuO1gxRLWGKMUWZBBCNlv-A/view?usp=drive_link" class="btn-download">app impar-treinamentos V1</a>
+        <a href="https://download.anydesk.com/AnyDesk.exe" class="btn-download">software Remoto (ANYDESK)</a>
+        <a href="https://play.google.com/store/apps/details?id=br.com.directon.flit&pcampaignid=web_share" class="btn-download">app FLIT</a>
+    </div>
+</div>
 
 </body>
 </html>
