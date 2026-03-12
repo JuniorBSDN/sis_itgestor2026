@@ -110,6 +110,11 @@
   </div>
 
   <script>
+  // Validar acesso logo ao carregar a página
+if (sessionStorage.getItem('auth_ti') !== 'acesso_permitido_hmv') {
+    window.location.href = 'login.html';
+}
+
     let itensRequeridos = [];
 
     function adicionarItem() {
@@ -162,7 +167,7 @@
                 document.getElementById("nome_computador").value = ativo.nome_computador || "";
                 document.getElementById("hostname").value = ativo.hostname || "";
                 document.getElementById("obs").value = ativo.obs || "";
-                
+
                 itensRequeridos = ativo.itens_requeridos || [];
                 renderizarItens();
 
