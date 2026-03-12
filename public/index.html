@@ -78,7 +78,9 @@
   </div>
 
 <script>
-  if (sessionStorage.getItem('auth_ti') !== 'acesso_permitido_hmv') {
+// Verificação de autenticação no topo do script
+const auth = sessionStorage.getItem('auth_ti');
+if (!auth) {
     window.location.href = 'login.html';
 }
 </script>
