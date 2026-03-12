@@ -1,195 +1,233 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Relatório de Ativos - TI Hospitalar</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel RAT - Tempo Real</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #38bdf8;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #22c55e;
+            --pending: #fbbf24;
+            --danger: #ef4444;
+        }
 
-    table { border-collapse: collapse; width: 100%; table-layout: auto; }
+        * { box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0; padding: 20px; min-height: 100vh;
+        }
 
-    .td-custom {
-      padding: 10px 8px;
-      border-bottom: 1px solid #334155;
-      font-size: 0.75rem;
-      vertical-align: top;
-      word-wrap: break-word;
-      white-space: normal;
-    }
+        .container { max-width: 1200px; margin: 0 auto; }
 
-    th {
-      background-color: #1e293b;
-      color: #94a3b8;
-      text-transform: uppercase;
-      font-size: 0.65rem;
-      letter-spacing: 0.05em;
-      text-align: left;
-      padding: 12px 8px;
-      position: sticky;
-      top: 0;
-    }
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+        }
 
-    #header-pdf, #footer-pdf { display: none; }
+        h1 { font-size: 1.5rem; margin: 0; color: var(--primary); }
 
-    @media print {
-      @page { size: landscape; margin: 0.5cm; }
-      .no-print { display: none; }
-      body { background: white; color: black; padding: 0; }
+        .stats-bar { display: flex; gap: 15px; margin-bottom: 25px; }
+        .stat-card {
+            background: var(--card); padding: 20px; border-radius: 12px;
+            border: 1px solid var(--border); flex: 1; text-align: center;
+        }
+        .stat-value { display: block; font-size: 1.8rem; font-weight: 700; margin-top: 5px; }
 
-      #header-pdf { display: block; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-      #footer-pdf { display: block; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; }
+        .table-container {
+            background: var(--card); border-radius: 16px; border: 1px solid var(--border);
+            overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
 
-      table { border: 1px solid #000; width: 100%; }
-      th, td { border: 1px solid #000; color: black !important; font-size: 0.65rem; padding: 4px; }
-      th { background-color: #f2f2f2 !important; }
-      .text-blue-400, .text-blue-300, .text-emerald-400 { color: black !important; }
-    }
-  </style>
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: rgba(255, 255, 255, 0.03); padding: 15px; text-align: left;
+            font-size: 0.75rem; text-transform: uppercase; color: var(--primary);
+        }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .status-Pendente { background: rgba(251, 191, 36, 0.1); color: var(--pending); border: 1px solid var(--pending); }
+        .status-Concluido { background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid var(--success); }
+
+        select {
+            background: #0f172a; color: white; border: 1px solid var(--border);
+            padding: 5px; border-radius: 6px; cursor: pointer;
+        }
+
+        .btn-ui {
+            background: var(--primary); color: #0f172a; border: none;
+            padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;
+        }
+
+        .modal {
+            display: none; position: fixed; z-index: 100; inset: 0;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: var(--card); width: 90%; max-width: 400px;
+            margin: 15vh auto; padding: 30px; border-radius: 20px; border: 1px solid var(--primary); text-align: center;
+        }
+
+        input[type="date"] {
+            width: 100%; padding: 12px; margin: 20px 0; background: #0f172a;
+            border: 1px solid var(--border); color: white; border-radius: 8px;
+        }
+    </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-  <div id="header-pdf">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <h1 style="font-size: 16pt; font-weight: bold;">RELATÓRIO DE INVENTÁRIO TECNOLÓGICO</h1>
-        <p style="font-size: 9pt;">Gestão de Ativos e Identificação - TI Hospitalar</p>
-      </div>
-      <div style="text-align: right; font-size: 9pt;">
-        <strong>Emissor:</strong> JOSÉ AIRTON B. S. JUNIOR<br>
-        <strong>Data:</strong> <span id="data-atual"></span>
-      </div>
-    </div>
-  </div>
+<div class="container">
+    <header>
+        <div>
+            <h1>RAT - Painel de Atendimentos <span id="sync-indicator" style="font-size: 0.7rem; color: var(--success); margin-left: 10px;">● Live</span></h1>
+            <p style="margin: 5px 0 0; opacity: 0.7;">Relatório de: <strong id="data-titulo">--/--/----</strong></p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-ui" onclick="abrirModal()">📅 ALTERAR DATA</button>
+            <button class="btn-ui" style="background: #64748b; color: white;" onclick="window.print()">🖨️ PDF</button>
+        </div>
+    </header>
 
-  <div class="max-w-[100%] mx-auto">
-    <div class="flex flex-col md:flex-row justify-between items-center mb-8 no-print gap-4">
-      <div>
-        <h1 class="text-3xl font-bold">Relatório de Ativos</h1>
-        <p class="text-slate-400">Técnico Responsável: José Airton B. S. Junior</p>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <input type="text" id="filtro" onkeyup="filtrarTabela()" placeholder="Filtrar por Usuário, ID, IP..."
-               class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg outline-none focus:border-blue-500 text-sm w-64">
-
-        <button onclick="prepararImpressao()" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2">
-          📄 GERAR PDF
-        </button>
-      </div>
+    <div class="stats-bar">
+        <div class="stat-card">Total <span class="stat-value" id="count-total">0</span></div>
+        <div class="stat-card" style="color:var(--pending)">Pendentes <span class="stat-value" id="count-pendente">0</span></div>
+        <div class="stat-card" style="color:var(--success)">Concluídos <span class="stat-value" id="count-concluido">0</span></div>
     </div>
 
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-      <table id="tabelaAtivos">
-        <thead>
-          <tr>
-            <th style="width: 10%">Usuário / Setor</th>
-            <th style="width: 8%">ID Ativo</th>
-            <th style="width: 15%">Equipamento / Modelo</th>
-            <th style="width: 10%">N/S / Patr.</th>
-            <th style="width: 15%">Hardware / Software</th>
-            <th style="width: 12%">ID Suporte / IP</th>
-            <th style="width: 10%">Hostname</th>
-            <th style="width: 10%">Status / Itens</th>
-            <th style="width: 10%">OBS</th>
-          </tr>
-        </thead>
-        <tbody id="corpoTabela">
-          </tbody>
-      </table>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Solicitante</th>
+                    <th>Setor</th>
+                    <th>Tipo</th>
+                    <th>Descrição</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabela">
+                <tr><td colspan="7" style="text-align: center; padding: 40px; opacity: 0.5;">Iniciando sincronização...</td></tr>
+            </tbody>
+        </table>
     </div>
-  </div>
+</div>
 
-  <div id="footer-pdf">
-    <p style="font-size: 9pt; font-weight: bold;">TÉCNICO RESPONSÁVEL: JOSÉ AIRTON B. S. JUNIOR</p>
-    <p style="font-size: 8pt;">Documento gerado eletronicamente pelo Sistema de Inventário TI Hospitalar</p>
-  </div>
+<div id="modalData" class="modal">
+    <div class="modal-content">
+        <h2 style="margin: 0; font-size: 1.2rem;">Filtrar Atendimentos</h2>
+        <input type="date" id="inputData">
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-ui" style="flex: 1;" onclick="aplicarFiltro()">FILTRAR</button>
+            <button class="btn-ui" style="flex: 1; background: var(--danger); color: white;" onclick="fecharModal()">FECHAR</button>
+        </div>
+    </div>
+</div>
 
 <script>
-    let ativosCache = [];
+    const API_URL = '/api/helpdesk';
+    const STATUS_URL = '/api/status_rat';
+    
+    let dataAtual = new Date().toISOString().split('T')[0];
+    let ultimoDadosJSON = ""; // Para evitar re-renderização desnecessária a cada 1 segundo
 
-    async function buscarDados() {
-      try {
-        // 1. CORREÇÃO: Rota correta definida no seu api/index.py
-        const res = await fetch('/api/ativos');
+    async function buscarDados(silencioso = false) {
+        try {
+            const syncIcon = document.getElementById('sync-indicator');
+            syncIcon.style.opacity = "1";
 
-        if (!res.ok) throw new Error("Erro ao buscar dados do servidor");
+            const response = await fetch(`${API_URL}?data=${dataAtual}&_t=${Date.now()}`);
+            if (!response.ok) throw new Error();
+            
+            const dados = await response.json();
+            const stringDados = JSON.stringify(dados);
 
-        // 2. CORREÇÃO: O Python retorna a lista direta [{}, {}], não {status: 'sucesso', ativos: []}
-        const data = await res.json();
+            // Só atualiza o HTML se os dados mudarem de verdade
+            if (stringDados !== ultimoDadosJSON) {
+                renderizarTabela(dados);
+                ultimoDadosJSON = stringDados;
+            }
 
-        ativosCache = data; // Atribui a lista diretamente
-        renderizar(ativosCache);
+            setTimeout(() => { syncIcon.style.opacity = "0.3"; }, 500);
+            document.getElementById('data-titulo').innerText = dataAtual.split('-').reverse().join('/');
 
-      } catch (e) {
-        console.error("Erro ao carregar dados:", e);
+        } catch (error) {
+            console.error("Falha na sincronização");
+        }
+    }
+
+    function renderizarTabela(atividades) {
         const tbody = document.getElementById('corpoTabela');
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center p-10 text-red-400">Erro ao carregar dados da API. Verifique o console.</td></tr>`;
-      }
+        let p = 0, c = 0;
+
+        if (atividades.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; opacity:0.5;">Nenhum chamado para este dia.</td></tr>`;
+        } else {
+            tbody.innerHTML = '';
+            atividades.forEach(item => {
+                const status = item.status || 'Pendente';
+                status === 'Pendente' ? p++ : c++;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.data_registro || '---'}</td>
+                    <td><strong>${item.nome || '---'}</strong></td>
+                    <td>${item.setor_sala || '---'}</td>
+                    <td>${item.tipo_servico || '---'}</td>
+                    <td style="white-space:normal; min-width:250px;">${item.descricao || ''}</td>
+                    <td><span class="status-badge status-${status}">${status}</span></td>
+                    <td>
+                        <select onchange="alterarStatus('${item.id}', this.value)">
+                            <option value="Pendente" ${status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                            <option value="Concluido" ${status === 'Concluido' ? 'selected' : ''}>Concluído</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('count-total').innerText = atividades.length;
+        document.getElementById('count-pendente').innerText = p;
+        document.getElementById('count-concluido').innerText = c;
     }
 
-    function renderizar(lista) {
-      const tbody = document.getElementById('corpoTabela');
-
-      if (!lista || lista.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center p-10 text-slate-500">Nenhum ativo cadastrado no sistema.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = lista.map(a => `
-        <tr>
-          <td class="td-custom">
-            <span class="font-bold text-white block">${a.usuario || '--'}</span>
-            <span class="text-slate-400 text-[10px]">${a.setor || '--'}</span>
-          </td>
-          <td class="td-custom font-bold text-blue-400">${a.id_ativo || '--'}</td>
-          <td class="td-custom">
-            <span class="block">${a.equipamento || '--'}</span>
-            <span class="text-slate-400 text-[10px]">${a.modelo || '--'}</span>
-          </td>
-          <td class="td-custom">
-            <span class="block text-[10px]">S: ${a.ns_serial || '--'}</span>
-            <span class="block text-[10px]">P: ${a.patrimonio || '--'}</span>
-          </td>
-          <td class="td-custom">
-            <span class="block text-[10px]">H: ${a.hardware || '--'}</span>
-            <span class="block text-[10px] text-blue-300">S: ${a.software || '--'}</span>
-          </td>
-          <td class="td-custom font-mono">
-            <span class="block text-yellow-500 text-[10px]">ID: ${a.id_suporte || '--'}</span>
-            <span class="text-[10px]">${a.ipv4 || '--'}</span>
-          </td>
-          <td class="td-custom font-mono text-blue-300 text-[10px]">
-            ${a.hostname || a.nome_computador || '--'}
-          </td>
-          <td class="td-custom">
-            <span class="block font-bold text-[9px] uppercase">${a.status_fisico || '--'}</span>
-            <span class="text-emerald-400 text-[8px] italic">${Array.isArray(a.itens_requeridos) ? a.itens_requeridos.join(', ') : '--'}</span>
-          </td>
-          <td class="td-custom text-[10px] text-slate-400 italic">
-            ${a.obs || '--'}
-          </td>
-        </tr>
-      `).join('');
+    async function alterarStatus(id, novoStatus) {
+        try {
+            await fetch(`${STATUS_URL}/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: novoStatus })
+            });
+            buscarDados(true);
+        } catch (e) { alert("Erro ao salvar status"); }
     }
 
-    function prepararImpressao() {
-      document.getElementById('data-atual').innerText = new Date().toLocaleString('pt-BR');
-      window.print();
+    function abrirModal() { document.getElementById('modalData').style.display = 'block'; }
+    function fecharModal() { document.getElementById('modalData').style.display = 'none'; }
+    
+    function aplicarFiltro() {
+        const novaData = document.getElementById('inputData').value;
+        if (novaData) {
+            dataAtual = novaData;
+            ultimoDadosJSON = ""; // Força atualização
+            buscarDados();
+            fecharModal();
+        }
     }
 
-    function filtrarTabela() {
-      const termo = document.getElementById('filtro').value.toLowerCase();
-      const filtrados = ativosCache.filter(a =>
-        // Busca em todos os campos do objeto
-        Object.values(a).some(v => String(v).toLowerCase().includes(termo))
-      );
-      renderizar(filtrados);
-    }
-
-    // Inicializa a busca ao carregar a página
-    document.addEventListener('DOMContentLoaded', buscarDados);
-  </script>
+    // Configuração do Tempo Real (1 segundo)
+    buscarDados();
+    setInterval(() => buscarDados(true), 1000); 
+</script>
 </body>
 </html>
