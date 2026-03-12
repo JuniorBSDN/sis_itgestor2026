@@ -1,192 +1,245 @@
+
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Gestão TI - Instituto Impar</title><!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Gestão TI - Instituto Impar</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #0f172a; }
-    .card-menu {
-      transition: all 0.3s ease;
-      border: 1px solid #1e293b;
-    }
-    .card-menu:hover {
-      transform: translateY(-5px);
-      border-color: #3b82f6;
-      box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpDesk - HVN</title>
+    <style>
+        :root {
+            --primary: #38bdf8;
+            --bg: #0f172a;
+            --card: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #f1f5f9;
+            --warning: #fbbf24;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .glass-container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        /* Modal Style */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Form Style */
+        .input-group { margin-bottom: 15px; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            background: var(--primary);
+            color: #0f172a;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.3);
+        }
+
+        button:active { transform: scale(0.98); }
+
+        button:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hidden { display: none; }
+    </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-6">
+<body>
 
-  <div class="max-w-4xl w-full">
-    <div class="text-center mb-12">
-      <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tight">CENTRAL DE TI</h1>
-      <p class="text-slate-400 text-lg">Gestor de T.I: <span class="text-blue-400 font-semibold">DANILO REIS</span></p>
+<div id="modalCarta" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="color: var(--primary); margin-bottom: 15px;">Portal de Chamados T.I.</h2>
+        <p style="font-size: 0.9rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 25px;">
+            Bem-vindo ao canal oficial de suporte técnico do HVN.<br>
+            A formalização ajuda nossa equipe a atender com agilidade e organizar o histórico de manutenção.
+        </p>
+        <button onclick="fecharModal()"> ACESSAR SISTEMA </button>
     </div>
+</div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="glass-container">
+    <header style="text-align: center; margin-bottom: 25px;">
+        <h1 style="margin:0; font-size: 1.6rem; color: var(--primary);">HelpDesk-HVN</h1>
+        <p style="font-size: 0.85rem; opacity: 0.7; margin-top: 5px;">Formalize aqui sua solicitação de atendimento tecnológico.</p>
+    </header>
 
-        <!--ativos-->
-      <div class="card-menu bg-slate-800 p-6 rounded-3xl relative overflow-hidden group">
-        <div class="relative z-10">
-          <h2 class="text-xl font-bold text-white mb-2">Monitoramento de Ativos</h2>
-          <p class="text-slate-400 text-sm mb-6">Cadastre PCs, impressoras e monitore a saúde do hardware.</p>
-          <div class="flex gap-3">
-            <a href="ativos.html" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">NOVO ATIVO</a>
-            <a href="rat_ativos.html" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">VER LISTA</a>
-          </div>
-        </div>
-        <div class="absolute -right-4 -bottom-4 text-slate-700 group-hover:text-blue-500/20 transition-all opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-        </div>
-      </div>
-
-        <!--abertura de serviços-->
-      <div class="card-menu bg-slate-800 p-6 rounded-3xl relative overflow-hidden group border-emerald-500/10">
-        <div class="relative z-10">
-          <h2 class="text-xl font-bold text-white mb-2">Solicitação de atendimento</h2>
-          <p class="text-slate-400 text-sm mb-6">Registre chamados, soluções e justificativas de falta de recurso.</p>
-          <div class="flex gap-3">
-            <a href="helpdesk.html" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">NOVO CHAMADO</a>
-            <a href="rat.html" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">RELATÓRIOS</a>
-          </div>
-        </div>
-        <div class="absolute -right-4 -bottom-4 text-slate-700 group-hover:text-emerald-500/20 transition-all opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-        </div>
-      </div>
-
-
-        <div class="absolute -right-4 -bottom-4 text-slate-700 group-hover:text-emerald-500/20 transition-all opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+    <form id="formRelato">
+        <div class="input-group">
+            <label for="nome">Nome Completo</label>
+            <input type="text" id="nome" placeholder="Seu nome" required>
         </div>
 
-    </div>
+        <div class="input-group">
+            <label for="setor_sala">Setor / Sala</label>
+            <input type="text" id="setor_sala" placeholder="Ex: Farmácia - Térreo" required>
+        </div>
 
-    <footer class="mt-16 text-center">
-      <p class="text-slate-600 text-xs">Desenvolvido por JOSE AIRTON B. S. JUNIOR - T.I - INSTITUTO IMPAR  - fone: 983252639</p>
+        <div class="input-group">
+            <label for="tipo_servico">Tipo de Problema</label>
+            <select id="tipo_servico" required>
+                <option value="">Selecione uma opção...</option>
+                <option value="Hardware">Problemas com Computador</option>
+                <option value="Impressora">Problemas com Impressora</option>
+                <option value="Internet">Problemas com Internet</option>
+                <option value="Cadastro Salutem">Cadastrar Usuário (Salutem)</option>
+                <option value="Senha Salutem">Reset de Senha (Salutem)</option>
+                <option value="Softwares">Ajuda com Sistemas/Programas</option>
+                <option value="Wifi">Solicitação de Senha Wi-Fi</option>
+                <option value="Outros">Outros...</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="descricao">Descrição Detalhada</label>
+            <textarea id="descricao" rows="4" required placeholder="Descreva brevemente o problema..."></textarea>
+        </div>
+
+        <button type="submit" id="btnEnviar">ENVIAR SOLICITAÇÃO</button>
+    </form>
+
+    <footer style="text-align: center; margin-top: 30px; font-size: 0.75rem; opacity: 0.5;">
+        Desenvolvido por: <span style="color: var(--primary); font-weight: bold;">José Airton B. S. Junior - T.I</span>
     </footer>
-  </div>
-
+</div>
 <script>
-  if (sessionStorage.getItem('auth_ti') !== 'acesso_permitido_hmv') {
+  // Validar acesso logo ao carregar a página
+if (sessionStorage.getItem('auth_ti') !== 'acesso_permitido_hmv') {
     window.location.href = 'login.html';
 }
+    // Função para fechar o modal
+    function fecharModal() {
+        const modal = document.getElementById('modalCarta');
+        modal.style.opacity = '0';
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    // Fecha modal com a tecla ESC
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') fecharModal();
+    });
+
+    document.getElementById('formRelato').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const btnEnviar = document.getElementById('btnEnviar');
+
+        // Coleta e limpa os dados (trim remove espaços vazios no início/fim)
+        const dados = {
+            nome: document.getElementById('nome').value.trim(),
+            setor_sala: document.getElementById('setor_sala').value.trim(),
+            tipo_servico: document.getElementById('tipo_servico').value,
+            descricao: document.getElementById('descricao').value.trim(),
+            data_solicitacao: new Date().toLocaleString('pt-BR')
+        };
+
+        // Feedback visual
+        btnEnviar.disabled = true;
+        btnEnviar.innerText = "ENVIANDO AGUARDE...";
+
+        try {
+            // Rota da sua API Python (Flask/FastAPI)
+            const response = await fetch('/api/helpdesk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            });
+
+            if (response.ok) {
+                alert('✅ Solicitação enviada com sucesso!');
+                document.getElementById('formRelato').reset();
+            } else {
+                throw new Error('Erro na resposta do servidor');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('❌ Erro ao conectar com o servidor. Verifique sua conexão ou tente mais tarde.');
+        } finally {
+            btnEnviar.disabled = false;
+            btnEnviar.innerText = "ENVIAR SOLICITAÇÃO";
+        }
+    });
 </script>
-
-</body>
-</html>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #0f172a; }
-    .card-menu {
-      transition: all 0.3s ease;
-      border: 1px solid #1e293b;
-    }
-    .card-menu:hover {
-      transform: translateY(-5px);
-      border-color: #3b82f6;
-      box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
-    }
-  </style>
-</head>
-<body class="flex items-center justify-center min-h-screen p-6">
-
-  <div class="max-w-4xl w-full">
-    <div class="text-center mb-12">
-      <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tight">CENTRAL DE TI</h1>
-      <p class="text-slate-400 text-lg">Gestor de T.I: <span class="text-blue-400 font-semibold">DANILO REIS</span></p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!--ativos-->
-      <div class="card-menu bg-slate-800 p-6 rounded-3xl relative overflow-hidden group">
-        <div class="relative z-10">
-          <h2 class="text-xl font-bold text-white mb-2">Monitoramento de Ativos</h2>
-          <p class="text-slate-400 text-sm mb-6">Cadastre PCs, impressoras e monitore a saúde do hardware.</p>
-          <div class="flex gap-3">
-            <a href="ativos.html" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">NOVO ATIVO</a>
-            <a href="rat_ativos.html" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">VER LISTA</a>
-          </div>
-        </div>
-        <div class="absolute -right-4 -bottom-4 text-slate-700 group-hover:text-blue-500/20 transition-all opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-        </div>
-      </div>
-
-        <!--abertura de serviços-->
-      <div class="card-menu bg-slate-800 p-6 rounded-3xl relative overflow-hidden group border-emerald-500/10">
-        <div class="relative z-10">
-          <h2 class="text-xl font-bold text-white mb-2">Solicitação de atendimento</h2>
-          <p class="text-slate-400 text-sm mb-6">Registre chamados, soluções e justificativas de falta de recurso.</p>
-          <div class="flex gap-3">
-            <a href="helpdesk.html" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">NOVO CHAMADO</a>
-            <a href="rat.html" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">RELATÓRIOS</a>
-          </div>
-        </div>
-        <div class="absolute -right-4 -bottom-4 text-slate-700 group-hover:text-emerald-500/20 transition-all opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-        </div>
-      </div>
-
-      <!--SALUTEN-->
-       <div class="card-menu bg-slate-800 p-6 rounded-3xl relative overflow-hidden group border-emerald-500/10">
-        <div class="relative z-10">
-          <h2 class="text-xl font-bold text-white mb-2">Sistema Integrado - SALUTEM</h2>
-          <p class="text-slate-400 text-sm mb-6">Cadastro de Prestadores e Usuarios </p>
-          <div class="flex gap-3">
-            <a href="https://hvn.sistemasalutem.com.br:9004/hospitalar/#/login" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">Entra.</a>
-          </div>
-        </div>
-
-        <!-- Hospital Seguro -->
-        <div class="absolute -right-4 -bottom-4 text-slate-700 group-hover:text-emerald-500/20 transition-all opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-        </div>
-      </div> <div class="card-menu bg-slate-800 p-6 rounded-3xl relative overflow-hidden group border-emerald-500/10">
-        <div class="relative z-10">
-          <h2 class="text-xl font-bold text-white mb-2">App Hospital Seguro</h2>
-          <p class="text-slate-400 text-sm mb-6">Registro de gargalos e Colaborações</p>
-          <div class="flex gap-3">
-            <a href="app.html" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">COLABORAÇÃO</a>
-            <a href="rat_app.html" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all">VER COLABORAÇÕES</a>
-          </div>
-        </div>
-        <div class="absolute -right-4 -bottom-4 text-slate-700 group-hover:text-emerald-500/20 transition-all opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-        </div>
-      </div>
-
-    </div>
-
-    <footer class="mt-16 text-center">
-      <p class="text-slate-600 text-xs">Desenvolvido por JOSE AIRTON B. S. JUNIOR - T.I - INSTITUTO IMPAR  - fone: 983252639</p>
-    </footer>
-  </div>
 
 </body>
 </html>
