@@ -107,21 +107,26 @@
   </div>
 
 <script>
+  // Validar acesso logo ao carregar a página
+if (sessionStorage.getItem('auth_ti') !== 'true') {
+    window.location.href = 'login.html';
+}
+
     let ativosCache = [];
 
     async function buscarDados() {
       try {
         // 1. CORREÇÃO: Rota correta definida no seu api/index.py
         const res = await fetch('/api/ativos');
-        
+
         if (!res.ok) throw new Error("Erro ao buscar dados do servidor");
 
         // 2. CORREÇÃO: O Python retorna a lista direta [{}, {}], não {status: 'sucesso', ativos: []}
         const data = await res.json();
-        
+
         ativosCache = data; // Atribui a lista diretamente
         renderizar(ativosCache);
-        
+
       } catch (e) {
         console.error("Erro ao carregar dados:", e);
         const tbody = document.getElementById('corpoTabela');
@@ -131,7 +136,7 @@
 
     function renderizar(lista) {
       const tbody = document.getElementById('corpoTabela');
-      
+
       if (!lista || lista.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" class="text-center p-10 text-slate-500">Nenhum ativo cadastrado no sistema.</td></tr>`;
         return;
