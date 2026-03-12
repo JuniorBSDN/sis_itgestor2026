@@ -107,8 +107,9 @@
   </div>
 
 <script>
-  // Validar acesso logo ao carregar a página
-if (sessionStorage.getItem('auth_ti') !== 'true') {
+// Verificação de autenticação no topo do script
+const auth = sessionStorage.getItem('auth_ti');
+if (!auth) {
     window.location.href = 'login.html';
 }
 
