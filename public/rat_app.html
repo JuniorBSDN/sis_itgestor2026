@@ -46,6 +46,11 @@
     </div>
 
     <script>
+        // Verificação de autenticação no topo do script
+const auth = sessionStorage.getItem('auth_ti');
+if (!auth) {
+    window.location.href = 'login.html';
+}
         async function atualizarLista() {
             const btn = document.getElementById('btnRefresh');
             btn.innerText = "BUSCANDO...";
