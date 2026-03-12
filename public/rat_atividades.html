@@ -98,6 +98,12 @@
   </div>
 
   <script>
+
+    // Verificação de autenticação no topo do script
+const auth = sessionStorage.getItem('auth_ti');
+if (!auth) {
+    window.location.href = 'login.html';
+}
     let atividadesCache = [];
 
     // Busca os dados da API
