@@ -181,8 +181,9 @@
     </footer>
 </div>
 <script>
-  // Validar acesso logo ao carregar a página
-if (sessionStorage.getItem('auth_ti') !== 'acesso_permitido_hmv') {
+
+const auth = sessionStorage.getItem('auth_ti');
+if (!auth) {
     window.location.href = 'login.html';
 }
     // Função para fechar o modal
