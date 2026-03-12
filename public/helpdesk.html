@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -180,7 +181,13 @@
     </footer>
 </div>
 
+
 <script>
+  // Validar acesso logo ao carregar a página
+if (sessionStorage.getItem('auth_ti') !== 'true') {
+    window.location.href = 'login.html';
+}
+
     // Função para fechar o modal
     function fecharModal() {
         const modal = document.getElementById('modalCarta');
