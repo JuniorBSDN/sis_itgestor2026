@@ -3,239 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HelpDesk - HVN</title>
+    <title>Painel RAT - Tempo Real</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #38bdf8;
             --bg: #0f172a;
-            --card: rgba(30, 41, 59, 0.7);
-            --border: rgba(255, 255, 255, 0.1);
+            --card: #1e293b;
             --text: #f1f5f9;
-            --warning: #fbbf24;
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #22c55e;
+            --pending: #fbbf24;
+            --danger: #ef4444;
         }
 
+        * { box-sizing: border-box; }
         body {
             background: radial-gradient(circle at top right, #1e293b, #0f172a);
             color: var(--text);
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            margin: 0; padding: 20px; min-height: 100vh;
         }
 
-        .glass-container {
-            width: 100%;
-            max-width: 450px;
-            background: var(--card);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
         }
 
-        /* Modal Style */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.3s ease;
+        h1 { font-size: 1.5rem; margin: 0; color: var(--primary); }
+
+        .stats-bar { display: flex; gap: 15px; margin-bottom: 25px; }
+        .stat-card {
+            background: var(--card); padding: 20px; border-radius: 12px;
+            border: 1px solid var(--border); flex: 1; text-align: center;
+        }
+        .stat-value { display: block; font-size: 1.8rem; font-weight: 700; margin-top: 5px; }
+
+        .table-container {
+            background: var(--card); border-radius: 16px; border: 1px solid var(--border);
+            overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: rgba(255, 255, 255, 0.03); padding: 15px; text-align: left;
+            font-size: 0.75rem; text-transform: uppercase; color: var(--primary);
+        }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .status-Pendente { background: rgba(251, 191, 36, 0.1); color: var(--pending); border: 1px solid var(--pending); }
+        .status-Concluido { background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid var(--success); }
+
+        select {
+            background: #0f172a; color: white; border: 1px solid var(--border);
+            padding: 5px; border-radius: 6px; cursor: pointer;
+        }
+
+        .btn-ui {
+            background: var(--primary); color: #0f172a; border: none;
+            padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;
+        }
+
+        .modal {
+            display: none; position: fixed; z-index: 100; inset: 0;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+        }
         .modal-content {
-            background: #1e293b;
-            padding: 40px;
-            border-radius: 20px;
-            max-width: 400px;
-            text-align: center;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: var(--card); width: 90%; max-width: 400px;
+            margin: 15vh auto; padding: 30px; border-radius: 20px; border: 1px solid var(--primary); text-align: center;
         }
 
-        /* Form Style */
-        .input-group { margin-bottom: 15px; }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--primary);
+        input[type="date"] {
+            width: 100%; padding: 12px; margin: 20px 0; background: #0f172a;
+            border: 1px solid var(--border); color: white; border-radius: 8px;
         }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: rgba(0,0,0,0.3);
-            color: #fff;
-            font-size: 1rem;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--primary);
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            border: none;
-            background: var(--primary);
-            color: #0f172a;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        button:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.3);
-        }
-
-        button:active { transform: scale(0.98); }
-
-        button:disabled {
-            background: #64748b;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div id="modalCarta" class="modal-overlay">
-    <div class="modal-content">
-        <h2 style="color: var(--primary); margin-bottom: 15px;">Portal de Chamados T.I.</h2>
-        <p style="font-size: 0.9rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 25px;">
-            Bem-vindo ao canal oficial de suporte técnico do HVN.<br>
-            A formalização ajuda nossa equipe a atender com agilidade e organizar o histórico de manutenção.
-        </p>
-        <button onclick="fecharModal()"> ACESSAR SISTEMA </button>
+<div class="container">
+    <header>
+        <div>
+            <h1>RAT - Painel de Atendimentos <span id="sync-indicator" style="font-size: 0.7rem; color: var(--success); margin-left: 10px;">● Live</span></h1>
+            <p style="margin: 5px 0 0; opacity: 0.7;">Relatório de: <strong id="data-titulo">--/--/----</strong></p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-ui" onclick="abrirModal()">📅 ALTERAR DATA</button>
+            <button class="btn-ui" style="background: #64748b; color: white;" onclick="window.print()">🖨️ PDF</button>
+        </div>
+    </header>
+
+    <div class="stats-bar">
+        <div class="stat-card">Total <span class="stat-value" id="count-total">0</span></div>
+        <div class="stat-card" style="color:var(--pending)">Pendentes <span class="stat-value" id="count-pendente">0</span></div>
+        <div class="stat-card" style="color:var(--success)">Concluídos <span class="stat-value" id="count-concluido">0</span></div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Solicitante</th>
+                    <th>Setor</th>
+                    <th>Tipo</th>
+                    <th>Descrição</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabela">
+                <tr><td colspan="7" style="text-align: center; padding: 40px; opacity: 0.5;">Iniciando sincronização...</td></tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
-<div class="glass-container">
-    <header style="text-align: center; margin-bottom: 25px;">
-        <h1 style="margin:0; font-size: 1.6rem; color: var(--primary);">HelpDesk-HVN</h1>
-        <p style="font-size: 0.85rem; opacity: 0.7; margin-top: 5px;">Formalize aqui sua solicitação de atendimento tecnológico.</p>
-    </header>
-
-    <form id="formRelato">
-        <div class="input-group">
-            <label for="nome">Nome Completo</label>
-            <input type="text" id="nome" placeholder="Seu nome" required>
+<div id="modalData" class="modal">
+    <div class="modal-content">
+        <h2 style="margin: 0; font-size: 1.2rem;">Filtrar Atendimentos</h2>
+        <input type="date" id="inputData">
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-ui" style="flex: 1;" onclick="aplicarFiltro()">FILTRAR</button>
+            <button class="btn-ui" style="flex: 1; background: var(--danger); color: white;" onclick="fecharModal()">FECHAR</button>
         </div>
-
-        <div class="input-group">
-            <label for="setor_sala">Setor / Sala</label>
-            <input type="text" id="setor_sala" placeholder="Ex: Farmácia - Térreo" required>
-        </div>
-
-        <div class="input-group">
-            <label for="tipo_servico">Tipo de Problema</label>
-            <select id="tipo_servico" required>
-                <option value="">Selecione uma opção...</option>
-                <option value="Hardware">Problemas com Computador</option>
-                <option value="Impressora">Problemas com Impressora</option>
-                <option value="Internet">Problemas com Internet</option>
-                <option value="Cadastro Salutem">Cadastrar Usuário (Salutem)</option>
-                <option value="Senha Salutem">Reset de Senha (Salutem)</option>
-                <option value="Softwares">Ajuda com Sistemas/Programas</option>
-                <option value="Wifi">Solicitação de Senha Wi-Fi</option>
-                <option value="Outros">Outros...</option>
-            </select>
-        </div>
-
-        <div class="input-group">
-            <label for="descricao">Descrição Detalhada</label>
-            <textarea id="descricao" rows="4" required placeholder="Descreva brevemente o problema..."></textarea>
-        </div>
-
-        <button type="submit" id="btnEnviar">ENVIAR SOLICITAÇÃO</button>
-    </form>
-
-    <footer style="text-align: center; margin-top: 30px; font-size: 0.75rem; opacity: 0.5;">
-        Desenvolvido por: <span style="color: var(--primary); font-weight: bold;">José Airton B. S. Junior - T.I</span>
-    </footer>
+    </div>
 </div>
 
 <script>
-    // Função para fechar o modal
-    function fecharModal() {
-        const modal = document.getElementById('modalCarta');
-        modal.style.opacity = '0';
-        setTimeout(() => modal.classList.add('hidden'), 300);
+    const API_URL = '/api/helpdesk';
+    const STATUS_URL = '/api/status_rat';
+    
+    let dataAtual = new Date().toISOString().split('T')[0];
+    let ultimoDadosJSON = ""; // Para evitar re-renderização desnecessária a cada 1 segundo
+
+    async function buscarDados(silencioso = false) {
+        try {
+            const syncIcon = document.getElementById('sync-indicator');
+            syncIcon.style.opacity = "1";
+
+            const response = await fetch(`${API_URL}?data=${dataAtual}&_t=${Date.now()}`);
+            if (!response.ok) throw new Error();
+            
+            const dados = await response.json();
+            const stringDados = JSON.stringify(dados);
+
+            // Só atualiza o HTML se os dados mudarem de verdade
+            if (stringDados !== ultimoDadosJSON) {
+                renderizarTabela(dados);
+                ultimoDadosJSON = stringDados;
+            }
+
+            setTimeout(() => { syncIcon.style.opacity = "0.3"; }, 500);
+            document.getElementById('data-titulo').innerText = dataAtual.split('-').reverse().join('/');
+
+        } catch (error) {
+            console.error("Falha na sincronização");
+        }
     }
 
-    // Fecha modal com a tecla ESC
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') fecharModal();
-    });
+    function renderizarTabela(atividades) {
+        const tbody = document.getElementById('corpoTabela');
+        let p = 0, c = 0;
 
-    document.getElementById('formRelato').addEventListener('submit', async (e) => {
-        e.preventDefault();
+        if (atividades.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; opacity:0.5;">Nenhum chamado para este dia.</td></tr>`;
+        } else {
+            tbody.innerHTML = '';
+            atividades.forEach(item => {
+                const status = item.status || 'Pendente';
+                status === 'Pendente' ? p++ : c++;
 
-        const btnEnviar = document.getElementById('btnEnviar');
-
-        // Coleta e limpa os dados (trim remove espaços vazios no início/fim)
-        const dados = {
-            nome: document.getElementById('nome').value.trim(),
-            setor_sala: document.getElementById('setor_sala').value.trim(),
-            tipo_servico: document.getElementById('tipo_servico').value,
-            descricao: document.getElementById('descricao').value.trim(),
-            data_solicitacao: new Date().toLocaleString('pt-BR')
-        };
-
-        // Feedback visual
-        btnEnviar.disabled = true;
-        btnEnviar.innerText = "ENVIANDO AGUARDE...";
-
-        try {
-            // Rota da sua API Python (Flask/FastAPI)
-            const response = await fetch('/api/helpdesk', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(dados)
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.data_registro || '---'}</td>
+                    <td><strong>${item.nome || '---'}</strong></td>
+                    <td>${item.setor_sala || '---'}</td>
+                    <td>${item.tipo_servico || '---'}</td>
+                    <td style="white-space:normal; min-width:250px;">${item.descricao || ''}</td>
+                    <td><span class="status-badge status-${status}">${status}</span></td>
+                    <td>
+                        <select onchange="alterarStatus('${item.id}', this.value)">
+                            <option value="Pendente" ${status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                            <option value="Concluido" ${status === 'Concluido' ? 'selected' : ''}>Concluído</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
-
-            if (response.ok) {
-                alert('✅ Solicitação enviada com sucesso!');
-                document.getElementById('formRelato').reset();
-            } else {
-                throw new Error('Erro na resposta do servidor');
-            }
-        } catch (error) {
-            console.error('Erro:', error);
-            alert('❌ Erro ao conectar com o servidor. Verifique sua conexão ou tente mais tarde.');
-        } finally {
-            btnEnviar.disabled = false;
-            btnEnviar.innerText = "ENVIAR SOLICITAÇÃO";
         }
-    });
-</script>
 
+        document.getElementById('count-total').innerText = atividades.length;
+        document.getElementById('count-pendente').innerText = p;
+        document.getElementById('count-concluido').innerText = c;
+    }
+
+    async function alterarStatus(id, novoStatus) {
+        try {
+            await fetch(`${STATUS_URL}/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: novoStatus })
+            });
+            buscarDados(true);
+        } catch (e) { alert("Erro ao salvar status"); }
+    }
+
+    function abrirModal() { document.getElementById('modalData').style.display = 'block'; }
+    function fecharModal() { document.getElementById('modalData').style.display = 'none'; }
+    
+    function aplicarFiltro() {
+        const novaData = document.getElementById('inputData').value;
+        if (novaData) {
+            dataAtual = novaData;
+            ultimoDadosJSON = ""; // Força atualização
+            buscarDados();
+            fecharModal();
+        }
+    }
+
+    // Configuração do Tempo Real (1 segundo)
+    buscarDados();
+    setInterval(() => buscarDados(true), 1000); 
+</script>
 </body>
 </html>
