@@ -1,226 +1,126 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Gestão de Ativos | TI Hospitalar</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
-    .input-dark {
-      width: 100%; padding: 0.75rem; background-color: #1e293b; border: 1px solid #334155;
-      border-radius: 0.5rem; font-size: 0.875rem; color: #f1f5f9; outline: none; transition: all 0.2s;
-    }
-    .input-dark:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-    .section-title { font-size: 10px; font-weight: 800; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block; }
-    .input-readonly { background-color: #0f172a; color: #94a3b8; cursor: not-allowed; border-style: dashed; }
-  </style>
-</head>
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import firebase_admin
+from firebase_admin import credentials, firestore
+from datetime import datetime
+import os
+import json
 
-<body class="min-h-screen flex items-center justify-center p-4">
-  <div class="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
+CORS(app)
 
-    <header class="mb-8 border-b border-slate-800 pb-4 flex justify-between items-end">
-      <div>
-        <h1 class="text-2xl font-bold text-white tracking-tight">Gestão de Ativos / Identificação</h1>
-        <p class="text-slate-400 text-sm">Responsável: JOSE AIRTON B. S. JUNIOR</p>
-      </div>
-      <button type="button" onclick="location.reload()" class="text-xs text-slate-500 hover:text-white underline">Limpar Tudo</button>
-    </header>
+# Inicialização do Firebase
+if not firebase_admin._apps:
+    cred_json = os.environ.get("FIREBASE_CREDENTIALS")
+    if cred_json:
+        cred = credentials.Certificate(json.loads(cred_json))
+        firebase_admin.initialize_app(cred)
 
-    <div class="mb-8 p-4 bg-slate-800/40 border border-slate-700 rounded-xl">
-      <span class="section-title text-blue-400">Consultar ou Editar Ativo</span>
-      <div class="flex gap-2">
-        <input id="inputBusca" class="input-dark border-blue-500/30" placeholder="Digite o ID do Ativo para buscar...">
-        <button type="button" onclick="buscarAtivo()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-lg font-bold transition-all">BUSCAR</button>
-      </div>
-    </div>
+db = firestore.client()
 
-    <form id="formAtivo" class="space-y-6" onsubmit="event.preventDefault(); salvarAtivo();">
+# --- MÓDULO: ATIVOS ---
+@app.route('/api/ativos', methods=['GET', 'POST'])
+def gerenciar_ativos():
+    if request.method == 'POST':
+        try:
+            dados = request.json
+            id_ativo = dados.get('id_ativo')
+            db.collection('ativos').document(id_ativo).set(dados)
+            return jsonify({"status": "sucesso"}), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+    elif request.method == 'GET':
+        try:
+            docs = db.collection('ativos').stream()
+            ativos = [doc.to_dict() for doc in docs]
+            return jsonify(ativos), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-      <div>
-        <span class="section-title">Dados do Usuário e Localização</span>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input id="usuario" class="input-dark" placeholder="Usuário">
-          <input id="setor" class="input-dark" placeholder="Setor">
-          <input id="id_ativo" class="input-dark border-blue-500/50" placeholder="ID do Ativo *" required>
-        </div>
-      </div>
+@app.route('/api/ativos/<id_ativo>', methods=['DELETE'])
+def excluir_ativo(id_ativo):
+    try:
+        db.collection('ativos').document(id_ativo).delete()
+        return jsonify({"status": "sucesso"}), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-      <div>
-        <span class="section-title">Especificações do Equipamento</span>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <input id="equipamento" class="input-dark" placeholder="Equipamento">
-          <input id="modelo" class="input-dark" placeholder="Modelo">
-          <input id="ns_serial" class="input-dark" placeholder="N/S (Serial)">
-          <input id="patrimonio" class="input-dark" placeholder="Patrimônio">
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <input id="hardware" class="input-dark" placeholder="Hardware (CPU, RAM, SSD...)">
-          <input id="software" class="input-dark" placeholder="Software (S.O, Versão...)">
-        </div>
-      </div>
+# --- MÓDULO: HELPDESK (RAT) - CORREÇÃO SEM ÍNDICE ---
+@app.route('/api/helpdesk', methods=['GET', 'POST'])
+def gerenciar_rat():
+    if request.method == 'POST':
+        try:
+            dados = request.json
+            agora = datetime.now()
+            dados['status'] = dados.get('status', 'Pendente')
+            dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
+            # Campo para o filtro por dia
+            dados['data_busca'] = agora.strftime("%Y-%m-%d")
+            db.collection('atividades').add(dados)
+            return jsonify({"status": "sucesso"}), 201
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-      <div class="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl">
-        <span class="section-title text-blue-400">Rede e Acesso Remoto</span>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <input id="id_suporte" class="input-dark" placeholder="ID Suporte (AnyDesk)">
-          <input id="ipv4" class="input-dark" placeholder="IPv4">
-          <input id="nome_computador" class="input-dark" placeholder="Nome do Computador">
-          <input id="hostname" class="input-dark" placeholder="Hostname">
-        </div>
-      </div>
+    elif request.method == 'GET':
+        try:
+            data_filtro = request.args.get('data')
+            # Busca simples: Apenas filtro (não exige índice composto)
+            if data_filtro:
+                query = db.collection('atividades').where('data_busca', '==', data_filtro)
+            else:
+                query = db.collection('atividades').limit(50)
+            
+            docs = query.stream()
+            
+            # Converte documentos para lista e inclui o ID
+            atividades = []
+            for doc in docs:
+                item = doc.to_dict()
+                item['id'] = doc.id
+                atividades.append(item)
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <span class="section-title">Status Físico do PC</span>
-          <select id="status_fisico" class="input-dark">
-            <option value="" class="bg-slate-900">Selecione o estado...</option>
-            <option value="Ótimo" class="bg-slate-900">Ótimo</option>
-            <option value="Bom" class="bg-slate-900">Bom (Marcas de uso)</option>
-            <option value="Regular" class="bg-slate-900">Regular (Precisa reparo)</option>
-            <option value="Crítico" class="bg-slate-900 text-red-400">Crítico (Danificado)</option>
-          </select>
-        </div>
-        <div>
-          <span class="section-title">Itens Requeridos</span>
-          <div class="flex gap-2">
-            <input id="inputItem" class="input-dark" placeholder="Ex: Teclado, Mouse...">
-            <button type="button" onclick="adicionarItem()" class="bg-blue-600 px-4 rounded-lg font-bold">+</button>
-          </div>
-          <div id="listaItens" class="flex flex-wrap gap-2 mt-2"></div>
-        </div>
-      </div>
+            # ORDENAÇÃO MANUAL: Substitui o 'order_by' do Firebase para evitar erro de índice
+            atividades.sort(key=lambda x: x.get('data_registro', ''), reverse=True)
 
-      <div>
-        <span class="section-title">Observações (OBS)</span>
-        <textarea id="obs" rows="3" class="input-dark" placeholder="Histórico técnico..."></textarea>
-      </div>
+            return jsonify(atividades), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-      <div class="flex flex-col md:flex-row gap-3 pt-4">
-        <button type="submit" id="btnSalvar" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/40">
-          SALVAR NO SISTEMA
-        </button>
-        <button type="button" id="btnExcluir" onclick="excluirAtivo()" class="hidden flex-1 bg-red-600/10 border border-red-600/40 text-red-500 hover:bg-red-600 hover:text-white py-3 rounded-xl font-bold transition-all">
-          EXCLUIR ATIVO
-        </button>
-      </div>
-    </form>
-  </div>
+# --- MÓDULO: RELATOS ---
+@app.route('/api/relatos', methods=['GET', 'POST'])
+def gerenciar_relatos():
+    if request.method == 'POST':
+        try:
+            dados = request.json
+            if 'data_registro' not in dados:
+                dados['data_registro'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            db.collection('relatos').add(dados)
+            return jsonify({"status": "sucesso"}), 201
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+    elif request.method == 'GET':
+        try:
+            docs = db.collection('relatos').stream()
+            relatos = [doc.to_dict() for doc in docs]
+            return jsonify(relatos), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-  <script>
-    let itensRequeridos = [];
+# --- ATUALIZAÇÃO DE STATUS ---
+@app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
+def atualizar_status_rat(id_doc):
+    try:
+        dados = request.json
+        novo_status = dados.get('status')
+        db.collection('atividades').document(id_doc).update({'status': novo_status})
+        return jsonify({"status": "sucesso"}), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-    function adicionarItem() {
-        const input = document.getElementById('inputItem');
-        const valor = input.value.trim();
-        if (valor && !itensRequeridos.includes(valor)) {
-            itensRequeridos.push(valor);
-            renderizarItens();
-            input.value = '';
-        }
-    }
+@app.route('/')
+def home():
+    return "API Central de TI rodando!"
 
-    function removerItem(index) {
-        itensRequeridos.splice(index, 1);
-        renderizarItens();
-    }
-
-    function renderizarItens() {
-        const container = document.getElementById('listaItens');
-        container.innerHTML = itensRequeridos.map((item, index) => `
-            <span class="bg-blue-600 text-white text-xs px-3 py-1 rounded-full flex items-center gap-2">
-                ${item}
-                <button type="button" onclick="removerItem(${index})" class="hover:text-red-300 font-bold">&times;</button>
-            </span>
-        `).join('');
-    }
-
-    async function buscarAtivo() {
-        const idBusca = document.getElementById("inputBusca").value || document.getElementById("id_ativo").value;
-        if (!idBusca) return alert("Digite um ID para buscar");
-
-        try {
-            const res = await fetch('/api/ativos');
-            const ativos = await res.json();
-            const ativo = ativos.find(a => a.id_ativo == idBusca);
-
-            if (ativo) {
-                document.getElementById("id_ativo").value = ativo.id_ativo || "";
-                document.getElementById("usuario").value = ativo.usuario || "";
-                document.getElementById("setor").value = ativo.setor || "";
-                document.getElementById("equipamento").value = ativo.equipamento || "";
-                document.getElementById("modelo").value = ativo.modelo || "";
-                document.getElementById("ns_serial").value = ativo.ns_serial || "";
-                document.getElementById("patrimonio").value = ativo.patrimonio || "";
-                document.getElementById("status_fisico").value = ativo.status_fisico || "";
-                document.getElementById("hardware").value = ativo.hardware || "";
-                document.getElementById("software").value = ativo.software || "";
-                document.getElementById("id_suporte").value = ativo.id_suporte || "";
-                document.getElementById("ipv4").value = ativo.ipv4 || "";
-                document.getElementById("nome_computador").value = ativo.nome_computador || "";
-                document.getElementById("hostname").value = ativo.hostname || "";
-                document.getElementById("obs").value = ativo.obs || "";
-
-                itensRequeridos = ativo.itens_requeridos || [];
-                renderizarItens();
-
-                document.getElementById("btnExcluir").classList.remove("hidden");
-                alert("Ativo encontrado!");
-            } else {
-                alert("Ativo não encontrado.");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Erro ao buscar dados.");
-        }
-    }
-
-    async function salvarAtivo() {
-        const dados = {
-            id_ativo: document.getElementById("id_ativo").value,
-            usuario: document.getElementById("usuario").value,
-            setor: document.getElementById("setor").value,
-            equipamento: document.getElementById("equipamento").value,
-            modelo: document.getElementById("modelo").value,
-            ns_serial: document.getElementById("ns_serial").value,
-            patrimonio: document.getElementById("patrimonio").value,
-            hardware: document.getElementById("hardware").value,
-            software: document.getElementById("software").value,
-            id_suporte: document.getElementById("id_suporte").value,
-            ipv4: document.getElementById("ipv4").value,
-            nome_computador: document.getElementById("nome_computador").value,
-            hostname: document.getElementById("hostname").value,
-            status_fisico: document.getElementById("status_fisico").value,
-            obs: document.getElementById("obs").value,
-            itens_requeridos: itensRequeridos,
-            data_atualizacao: new Date().toLocaleString()
-        };
-
-        try {
-            const res = await fetch('/api/ativos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dados)
-            });
-            if (res.ok) {
-                alert("Dados salvos com sucesso no Firestore!");
-                location.reload();
-            }
-        } catch (err) {
-            alert("Erro ao salvar: " + err.message);
-        }
-    }
-
-    async function excluirAtivo() {
-        const id = document.getElementById("id_ativo").value;
-        if (confirm("Deseja realmente excluir este ativo?")) {
-            await fetch(`/api/ativos/${id}`, { method: 'DELETE' });
-            alert("Ativo removido!");
-            location.reload();
-        }
-    }
-  </script>
-</body>
-</html>
+if __name__ == '__main__':
+    app.run(debug=True)
