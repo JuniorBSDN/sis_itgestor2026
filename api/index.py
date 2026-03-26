@@ -107,6 +107,66 @@ def gerenciar_relatos():
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+
+# --- MÓDULO: RESÍDUOS HOSPITALARES ---
+@app.route('/api/residuos', methods=['GET', 'POST'])
+def gerenciar_residuos():
+    if request.method == 'POST':
+        try:
+            dados = request.json
+            agora = datetime.now()
+            
+            # Formatação consistente com seu módulo de Helpdesk
+            if 'data_registro' not in dados:
+                dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
+            
+            # Campo crucial para o filtro de data do JS
+            if 'data_busca' not in dados:
+                dados['data_busca'] = agora.strftime("%Y-%m-%d")
+                
+            db.collection('residuos').add(dados)
+            return jsonify({"status": "sucesso"}), 201
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+    elif request.method == 'GET':
+        try:
+            data_filtro = request.args.get('data') # O JS enviará ?data=YYYY-MM-DD
+            
+            if data_filtro:
+                query = db.collection('residuos').where('data_busca', '==', data_filtro)
+            else:
+                query = db.collection('residuos').limit(100)
+            
+            docs = query.stream()
+            residuos = []
+            for doc in docs:
+                item = doc.to_dict()
+                item['id'] = doc.id
+                residuos.append(item)
+
+            # Ordenação manual por hora (data_registro) para evitar erro de índice no Firebase
+            residuos.sort(key=lambda x: x.get('data_registro', ''), reverse=True)
+
+            return jsonify(residuos), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+@app.route('/api/residuos/<id_doc>', methods=['PATCH', 'DELETE'])
+def acoes_residuos(id_doc):
+    try:
+        if request.method == 'PATCH':
+            dados = request.json
+            db.collection('residuos').document(id_doc).update(dados)
+            return jsonify({"status": "sucesso"}), 200
+            
+        elif request.method == 'DELETE':
+            db.collection('residuos').document(id_doc).delete()
+            return jsonify({"status": "sucesso"}), 200
+            
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
 # --- ATUALIZAÇÃO DE STATUS ---
 @app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
 def atualizar_status_rat(id_doc):
