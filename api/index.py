@@ -116,11 +116,11 @@ def gerenciar_residuos():
             dados = request.json
             agora = datetime.now()
             
-            # Formatação consistente com seu módulo de Helpdesk
+            # Padronização de datas para busca e exibição
             if 'data_registro' not in dados:
                 dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
             
-            # Campo crucial para o filtro de data do JS
+            # Campo crucial para o filtro do JS (formato YYYY-MM-DD)
             if 'data_busca' not in dados:
                 dados['data_busca'] = agora.strftime("%Y-%m-%d")
                 
@@ -131,7 +131,7 @@ def gerenciar_residuos():
 
     elif request.method == 'GET':
         try:
-            data_filtro = request.args.get('data') # O JS enviará ?data=YYYY-MM-DD
+            data_filtro = request.args.get('data') 
             
             if data_filtro:
                 query = db.collection('residuos').where('data_busca', '==', data_filtro)
@@ -145,7 +145,7 @@ def gerenciar_residuos():
                 item['id'] = doc.id
                 residuos.append(item)
 
-            # Ordenação manual por hora (data_registro) para evitar erro de índice no Firebase
+            # Ordenação manual para evitar erro de índice composto no Firebase
             residuos.sort(key=lambda x: x.get('data_registro', ''), reverse=True)
 
             return jsonify(residuos), 200
@@ -166,6 +166,8 @@ def acoes_residuos(id_doc):
             
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
 
 # --- ATUALIZAÇÃO DE STATUS ---
 @app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
