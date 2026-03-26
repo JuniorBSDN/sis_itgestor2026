@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BioControlImpar - Gestão de Resíduos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b111a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --accent-color: #00f2ff;
+            --secondary-accent: #7000ff;
+            --text-color: #ffffff;
+            --danger: #ff4d4d;
+            --success: #2ecc71;
+            --modal-bg: #151d29;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        .container { width: 100%; max-width: 400px; padding-bottom: 20px;}
+
+        header { margin-bottom: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        header h1 { font-size: 1.1rem; color: var(--accent-color); letter-spacing: 3px; font-weight: 300; }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-size: 0.7rem; text-transform: uppercase; opacity: 0.6; letter-spacing: 1px;}
+
+        select, input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        input:focus, select:focus { border-color: var(--accent-color); outline: none; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-accent));
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-submit:active { transform: scale(0.98); }
+
+        /* --- Seção de Cabeçalho do Histórico --- */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+            padding: 0 5px;
+        }
+
+        .history-header h2 { font-size: 0.8rem; opacity: 0.8; white-space: nowrap; font-weight: 400; text-transform: uppercase; letter-spacing: 1px;}
+
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-date {
+            padding: 7px 10px;
+            font-size: 0.8rem;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            width: auto;
+            border: 1px solid transparent;
+        }
+
+        .btn-pdf {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.5);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* --- Lista de Itens --- */
+        .history-item {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--accent-color);
+            cursor: pointer; /* Indica que é clicável */
+            transition: background 0.2s;
+        }
+
+        .history-item:active { background: rgba(255,255,255,0.1); }
+
+        .item-info strong { display: block; font-size: 0.95rem; margin-bottom: 2px;}
+        .item-info span { font-size: 0.75rem; opacity: 0.5; }
+        .item-weight { color: var(--accent-color); font-weight: 600; font-size: 1.1rem; }
+
+        /* --- Modal Estilo Action Sheet --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* Alinha no fundo */
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .modal-overlay.open { visibility: visible; opacity: 1; }
+
+        .action-sheet {
+            background: var(--modal-bg);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 25px 25px 0 0;
+            padding: 20px 20px 30px 20px;
+            transform: translateY(100%);
+            transition: 0.3s transform;
+        }
+
+        .modal-overlay.open .action-sheet { transform: translateY(0); }
+
+        .action-sheet-header { text-align: center; margin-bottom: 20px; color: rgba(255,255,255,0.5); font-size: 0.8rem;}
+        .action-sheet-header .handle { width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 0 auto 15px auto;}
+
+        .action-btn {
+            width: 100%;
+            padding: 18px;
+            background: rgba(255,255,255,0.05);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .action-btn.edit { border-left: 4px solid var(--success); color: var(--success); }
+        .action-btn.delete { border-left: 4px solid var(--danger); color: var(--danger); }
+
+        .btn-cancel {
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            margin-top: 10px;
+            justify-content: center;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header><h1>BIOCONTROL PRO</h1></header>
+
+    <div class="glass-card">
+        <input type="hidden" id="edit-id"> <div class="form-group">
+            <label>Tipo de Lixo</label>
+            <select id="tipo">
+                <option>Infectante (A)</option>
+                <option>Químico (B)</option>
+                <option>Comum (D)</option>
+                <option>Perfurocortante (E)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Quantidade (Kg)</label>
+            <input type="number" id="peso" placeholder="0.00" inputmode="decimal">
+        </div>
+        <button class="btn-submit" id="btn-salvar" onclick="salvarRegistro()">SALVAR REGISTRO</button>
+    </div>
+
+    <div class="history-header">
+        <h2>REGISTROS</h2>
+        <div class="filter-controls">
+            <input type="date" id="filtroData" class="filter-date">
+            <button class="btn-pdf" onclick="gerarPDF()">PDF</button>
+        </div>
+    </div>
+
+    <div id="lista">
+        </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="fecharModalExterno(event)">
+    <div class="action-sheet">
+        <div class="action-sheet-header">
+            <div class="handle"></div>
+            O que deseja fazer com este registro?
+        </div>
+        <button class="action-btn edit" onclick="prepararEdicao()">
+            <span>✏️</span> Alterar Registro
+        </button>
+        <button class="action-btn delete" onclick="excluirRegistro()">
+            <span>🗑️</span> Excluir Registro
+        </button>
+        <button class="action-btn btn-cancel" onclick="fecharModal()">Cancelar</button>
+    </div>
+</div>
+
+<script>
+async function salvarRegistro() {
+    const editId = document.getElementById('edit-id').value;
+    const pesoValue = document.getElementById('peso').value;
+
+    const payload = {
+        tipo: document.getElementById('tipo').value,
+        peso: parseFloat(pesoValue).toFixed(2),
+        data_busca: document.getElementById('filtroData').value // Garante que salva na data selecionada
+    };
+
+    const url = editId ? `/api/residuos/${editId}` : '/api/residuos';
+    const method = editId ? 'PATCH' : 'POST';
+
+    const response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    if(response.ok) {
+        // Limpar campos e recarregar lista...
+    }
+}
+</script>
+
+</body>
+</html>
