@@ -393,104 +393,6 @@
             font-weight: bold;
         }
 
-        /* Container da Seção Equipe */
-.equipe-tabs-container {
-    display: flex;
-    gap: 30px;
-    background: white;
-    padding: 30px;
-    border-radius: 24px;
-    box-shadow: var(--shadow);
-    margin-bottom: 40px;
-    min-height: 350px;
-}
-
-/* Coluna dos Botões (Esquerda) */
-.equipe-menu {
-    flex: 0 0 250px; /* Largura fixa para os botões */
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.tab-btn {
-    padding: 15px 20px;
-    border: 2px solid #f1f5f9;
-    border-radius: 12px;
-    background: white;
-    cursor: pointer;
-    text-align: left;
-    font-weight: 700;
-    color: var(--slate);
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-}
-
-/* Estado ativo/hover do botão */
-.tab-btn.active, .tab-btn:hover {
-    border-color: var(--red);
-    color: var(--red);
-    background: #fff1f2;
-    transform: translateX(5px);
-}
-
-/* Área de Conteúdo (Direita) */
-.equipe-display {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    border-left: 1px solid #f1f5f9;
-}
-
-.content-box {
-    display: none; /* Escondido por padrão */
-    animation: fadeIn 0.4s ease;
-    width: 100%;
-}
-
-.content-box.active {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-}
-
-.info-text h3 {
-    color: var(--red);
-    margin-bottom: 10px;
-    font-size: 1.4rem;
-}
-
-.info-text ul {
-    list-style: none;
-}
-
-.info-text li {
-    margin-bottom: 8px;
-    font-size: 1rem;
-    color: var(--slate);
-}
-
-.info-text li::before {
-    content: "•";
-    color: var(--red);
-    font-weight: bold;
-    margin-right: 8px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .equipe-tabs-container { flex-direction: column; }
-    .equipe-menu { flex: 1; }
-    .content-box.active { flex-direction: column; text-align: center; }
-}
 
          /* --- SEÇÃO TABS (NOVA EQUIPE) --- */
         .equipe-tabs-container {
@@ -516,6 +418,9 @@
         .info-text li::before { content: "•"; color: var(--red); font-weight: bold; position: absolute; left: 0; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+
+
 
 /* Container de Serviços (Estilo igual ao da Equipe) */
 .servicos-tabs-container {
@@ -550,42 +455,163 @@
     .s-content-box.active { flex-direction: column; text-align: center; }
     .servicos-display { border-left: none; border-top: 1px solid #f1f5f9; }
 }
-        /* --- FOOTER --- */
-.main-footer {
-    background-color: var(--dark);
-    color: white;
-    padding: 30px 20px;
-    text-align: center;
-    margin-top: 60px;
-    border-top: 4px solid var(--red);
-}
-
-.footer-content p {
-    font-size: 0.9rem;
-    opacity: 0.8;
-    letter-spacing: 0.5px;
-}
-
-.footer-content strong {
-    color: blue
-    font-weight: 800;
-}
-
-.footer-year {
-    font-size: 0.75rem !important;
-    margin-top: 10px;
-    opacity: 0.5 !important;
-}
-
-/* Ajuste para telas menores */
-@media (max-width: 768px) {
-    .main-footer {
-        padding: 20px 10px;
+.partners-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 30px;
+        align-items: center;
+        justify-items: center;
+        background: white;
+        padding: 40px;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        margin-bottom: 50px;
     }
+
+    .partner-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        transition: 0.4s ease;
+    }
+
+    .partner-item img {
+        max-width: 140px;
+        height: auto;
+        filter: grayscale(100%); /* Fica em P&B por padrão */
+        opacity: 0.6;
+        transition: 0.4s ease;
+        cursor: pointer;
+    }
+
+    .partner-item span {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--slate);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0;
+        transition: 0.4s ease;
+    }
+
+    /* Efeito de passar o mouse */
+    .partner-item:hover img {
+        filter: grayscale(0%); /* Ganha a cor original */
+        opacity: 1;
+        transform: scale(1.08);
+    }
+
+    .partner-item:hover span {
+        opacity: 1;
+    }
+
+    @media (max-width: 600px) {
+        .partners-grid {
+            grid-template-columns: 1fr 1fr;
+            padding: 20px;
+        }
+        .partner-item img {
+            max-width: 100px;
+        }
+    }
+
+        /* Estilos do Modal para a classificação de risco */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
 }
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 24px;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: var(--shadow);
+    position: relative;
+    animation: modalFade 0.3s ease;
+}
+
+@keyframes modalFade {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px; top: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--slate);
+}
+
+.btn-saiba-mais {
+    background: #f1f5f9;
+    color: var(--slate);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+
+.btn-saiba-mais:hover {
+    background: var(--dark);
+    color: white;
+}
+
     </style>
 </head>
 <body>
+
+<div style="background: #1e293b; color: white; font-size: 0.75rem; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    <div style="display: flex; gap: 15px;">
+        <span style="opacity: 0.8;">Acessibilidade:</span>
+        <a href="javascript:void(0)" onclick="toggleContrast()" style="color: white; text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+            ◐ Alto Contraste
+        </a>
+        <a href="javascript:void(0)" onclick="changeFontSize(1)" style="color: white; text-decoration: none; font-weight: 700;">A+</a>
+        <a href="javascript:void(0)" onclick="changeFontSize(-1)" style="color: white; text-decoration: none; font-weight: 700;">A-</a>
+    </div>
+
+    <div style="display: flex; gap: 15px;">
+        <a href="#conteudo-principal" style="color: white; text-decoration: none; opacity: 0.8;">Ir para o conteúdo [1]</a>
+        <a href="#footer" style="color: white; text-decoration: none; opacity: 0.8;">Ir para o rodapé [2]</a>
+    </div>
+</div>
+
+<style>
+    /* Classe de Alto Contraste que o JS vai aplicar */
+    body.alto-contraste {
+        background: #000 !important;
+        color: #fff !important;
+    }
+    body.alto-contraste div,
+    body.alto-contraste footer,
+    body.alto-contraste section {
+        background: #000 !important;
+        color: #fff !important;
+        border-color: #fff !important;
+    }
+    body.alto-contraste a {
+        color: #ffff00 !important; /* Links em Amarelo para destacar no preto */
+    }
+    body.alto-contraste .m-card,
+    body.alto-contraste .atendimento-card {
+        border: 2px solid #fff !important;
+    }
+</style>
 
 <header class="banner-header">
     <div class="header-container">
@@ -613,15 +639,28 @@
         <div style="color: var(--slate); font-size: 1rem; line-height: 1.7;">
             <p style="margin-bottom: 15px;">
                 O <strong>Hospital Municipal de Vigia – Raimundo Vasconcelos</strong> é o pilar fundamental da assistência à saúde em nossa região. Como uma unidade dedicada à <strong>Urgência e Emergência</strong>, operamos ininterruptamente para oferecer socorro imediato e tratamento decisivo em momentos críticos.</p>
-            <p style="margin-bottom: 15px;">
-                Nossa atuação é pautada pelo <strong>Pronto Atendimento</strong> ágil, onde cada segundo conta. Através do Protocolo de Manchester, garantimos que a ciência e a ética guiem a prioridade dos atendimentos, assegurando que a vida esteja sempre em primeiro lugar. Seja no suporte avançado ou na consulta de urgência, o Hospital de Vigia está de prontidão, zelando por cada cidadão vigiense.</p>
-        </div>
+            </div>
         <br>
+
+        <!--QUANDO BUSCAR ATENDIMENTO-->
+    <div class="atendimento-card hospital-card" style="text-align: left; align-self: flex-start; width: 100%;">
+    <h3 style="color: var(--red); margin-top: 0; font-size: 1.5rem; text-align: left;">
+        ⚠️ Casos de Urgência e Emergência
+    </h3>
+    <p style="text-align: left;">O atendimento hospitalar é prioritário para situações de <strong>risco de vida</strong> ou <strong>sofrimento intenso</strong>:</p>
+    <ul class="atendimento-list" style="text-align: left; padding-left: 0; list-style-position: inside;">
+        <li>🔴 <strong>Dificuldade respiratória:</strong> Falta de ar grave ou dor forte no peito.</li>
+        <li>🔴 <strong>Traumas agudos:</strong> Acidentes, cortes profundos, hemorragias ou fraturas.</li>
+        <li>🔴 <strong>Alterações neurológicas:</strong> Desmaios, convulsões ou perda súbita de fala/movimento.</li>
+        <li>🔴 <strong>Acidentes biológicos:</strong> Picadas de animais peçonhentos (cobras, escorpiões).</li>
+        <li>🔴 <strong>Sintomas graves:</strong> Febre muito alta persistente ou vômitos incoercíveis.</li>
+    </ul>
+</div>
+
         <section class="fluxo-acolhimento">
             <h2>Detalhes do Acolhimento - A entrada do paciente</h2>
             <p style="color: var(--slate); margin-top: -15px; margin-bottom: 30px;">Entenda as etapas fundamentais desde a chegada à unidade.</p>
             <div class="fluxo-container">
-
                 <div class="fluxo-card">
                     <svg class="fluxo-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
@@ -632,7 +671,6 @@
                     <h3>Recepção</h3>
                     <p>O paciente realiza o cadastro e apresenta seus documentos para abertura do prontuário.</p>
                 </div>
-
                 <div class="fluxo-seta">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -670,64 +708,69 @@
                 <p style="margin: 0; color: #2d3748;">
                     <strong style="color: #c53030;">⚠️ ATENÇÃO:</strong>Embora esse seja o fluxo padrão, em casos de <strong>emergência extrema</strong> (parada cardiorrespiratória ou traumas graves), o paciente é direcionado imediatamente para a <strong>Sala Vermelha</strong>. A burocracia é realizada posteriormente.
                 </p>
-                <br>
-                <p>O fluxo (especialmente a Triagem) garante que o recurso médico seja direcionado para quem tem o menor tempo de reserva fisiológica. Ou seja: o infarto não pode esperar atrás de uma dor de garganta, independentemente de quem chegou primeiro.</p>
-            </div>
+                </div>
         </section>
     </div>
 </section>
 
 <main class="content">
-    <h2>Classificação de Risco (Protocolo Manchester)</h2>
-    <p>O Protocolo de Manchester é juridicamente sólido no Brasil porque une a autonomia profissional do enfermeiro (Res. 661/21 COFEN) com a obrigatoriedade de organização das urgências (Portaria 2048/02 MS). Ele protege o hospital contra processos de omissão de socorro, desde que os tempos de espera sejam respeitados.</p>
-    <br>
-    <div class="m-slider">
-        <div class="m-card" style="background: #ef4444;">
-            <div class="m-main">Emergência<span>Imediato</span></div>
-            <div class="m-detalhes">
-                <p>Risco de morte imediato. Casos como parada cardiorrespiratória e traumas gravíssimos.</p>
-            </div>
-        </div>
-        <div class="m-card" style="background: #f97316;">
-            <div class="m-main">Muito Urgente<span>Até 10 min</span></div>
-            <div class="m-detalhes">
-                <p>Risco severo. Dor no peito intensa, arritmias ou hemorragias grandes.</p>
-            </div>
-        </div>
-        <div class="m-card" style="background: #eab308; color: #1e293b;">
-            <div class="m-main">Urgente<span>Até 60 min</span></div>
-            <div class="m-detalhes">
-                <p>Potencial de gravidade. Fraturas, febre alta ou dor abdominal moderada.</p>
-            </div>
-        </div>
-        <div class="m-card" style="background: #22c55e;">
-            <div class="m-main">Pouco Urgente<span>Até 120 min</span></div>
-            <div class="m-detalhes">
-                <p>Baixo risco. Pequenos ferimentos, vômitos ou sintomas de virose.</p>
-            </div>
-        </div>
-        <div class="m-card" style="background: #3b82f6;">
-            <div class="m-main">Não Urgente<span>Até 240 min</span></div>
-            <div class="m-detalhes">
-                <p>Casos crônicos, troca de receitas ou exames de rotina.</p>
-            </div>
-        </div>
-    </div>
+<h2>Classificação de Risco (Protocolo Manchester)</h2>
+<p style="font-size: 0.95rem; color: var(--slate); margin-bottom: 10px;">
+    O atendimento é baseado na gravidade clínica, não na ordem de chegada.
+    <button class="btn-saiba-mais" onclick="openModal()">Saiba mais sobre a base legal</button>
+</p>
 
-    <!--QUANDO BUSCAR ATENDIMENTO-->
-    <div class="atendimento-card hospital-card">
-        <h3 style="color: var(--red); margin-top: 0; font-size: 1.5rem;">
-            ⚠️ Casos de Urgência e Emergência
-        </h3>
-        <p>O atendimento hospitalar é prioritário para situações de <strong>risco de vida</strong> ou <strong>sofrimento intenso</strong>:</p>
-        <ul class="atendimento-list">
-            <li>🔴 <strong>Dificuldade respiratória:</strong> Falta de ar grave ou dor forte no peito.</li>
-            <li>🔴 <strong>Traumas agudos:</strong> Acidentes, cortes profundos, hemorragias ou fraturas.</li>
-            <li>🔴 <strong>Alterações neurológicas:</strong> Desmaios, convulsões ou perda súbita de fala/movimento.</li>
-            <li>🔴 <strong>Acidentes biológicos:</strong> Picadas de animais peçonhentos (cobras, escorpiões).</li>
-            <li>🔴 <strong>Sintomas graves:</strong> Febre muito alta persistente ou vômitos incoercíveis.</li>
-        </ul>
-    </div><br>
+<div id="manchesterModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <h3 style="color: var(--red); margin-bottom: 15px;">Base Jurídica do Protocolo</h3>
+        <p style="font-size: 0.95rem; line-height: 1.6; color: #334155;">
+            O Protocolo de Manchester é juridicamente sólido no Brasil porque une a **autonomia profissional do enfermeiro** (Res. 661/21 COFEN) com a **obrigatoriedade de organização das urgências** (Portaria 2048/02 MS).
+            <br><br>
+            Ele protege a instituição e os profissionais contra processos de omissão de socorro, garantindo que o recurso médico seja direcionado prioritariamente para quem tem o menor tempo de reserva fisiológica.
+        </p>
+    </div>
+</div>
+
+<div class="m-slider">
+    <div class="m-card" style="background: #ef4444;">
+        <div class="m-main">Emergência<span>Imediato</span></div>
+        <div class="m-detalhes"><p>Risco de morte imediato. Parada cardiorrespiratória e traumas gravíssimos.</p></div>
+    </div>
+    <div class="m-card" style="background: #f97316;">
+        <div class="m-main">Muito Urgente<span>Até 10 min</span></div>
+        <div class="m-detalhes"><p>Risco severo. Dor no peito intensa ou hemorragias grandes.</p></div>
+    </div>
+    <div class="m-card" style="background: #eab308; color: #1e293b;">
+        <div class="m-main">Urgente<span>Até 60 min</span></div>
+        <div class="m-detalhes"><p>Potencial de gravidade. Fraturas ou febre alta.</p></div>
+    </div>
+    <div class="m-card" style="background: #22c55e;">
+        <div class="m-main">Pouco Urgente<span>Até 120 min</span></div>
+        <div class="m-detalhes"><p>Baixo risco. Pequenos ferimentos ou vômitos.</p></div>
+    </div>
+    <div class="m-card" style="background: #3b82f6;">
+        <div class="m-main">Não Urgente<span>Até 240 min</span></div>
+        <div class="m-detalhes"><p>Casos crônicos ou exames de rotina.</p></div>
+    </div>
+</div>
+ <script>
+    function openModal() {
+    document.getElementById("manchesterModal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("manchesterModal").style.display = "none";
+}
+
+// Fecha o modal se o usuário clicar fora da caixa branca
+window.onclick = function(event) {
+    let modal = document.getElementById("manchesterModal");
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+</script>
 
     <h2>Equipe Multidisciplinar</h2>
     <p style="margin-bottom: 20px; color: var(--slate);">Passe o mouse sobre os profissionais para ver detalhes:</p>
@@ -955,7 +998,7 @@
 }
     </SCRIPT>
 
-
+<h2>Mais informações</h2>
     <div class="grid-info">
         <section class="card-post">
             <h3>🕒 Horários</h3>
@@ -970,33 +1013,150 @@
             <p style="margin-bottom: 10px;"><strong>* Sala Vermelha:</strong> 1 visitante por dia</p>
             <p style="margin-bottom: 10px;"><strong>* Visitas enfermaria:</strong> 2 visitantes por pacientes uma vez ao dia</p>
         </section>
-    </div><br>
-    <footer class="main-footer">
-    <div class="footer-content">
-        <p>Desenvolvido por <strong>Airton Junior</strong> - T.I - Instituto Impar</p>
-        <p class="footer-year">© 2026 - Sistema de Informação Hospitalar</p>
+    </div>
+</main>
+<footer style="background: white; padding: 60px 20px 40px; border-top: 1px solid #e2e8f0; margin-top: 60px; font-family: 'Inter', sans-serif;">
+    <div style="max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 50px;">
+
+        <div style="display: flex; flex-direction: column; gap: 25px;">
+            <div>
+                <h4 style="color: var(--dark); margin-bottom: 12px; font-size: 0.85rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; border-left: 3px solid var(--red); padding-left: 10px;">
+                    Responsabilidade Técnica
+                </h4>
+                <p style="font-size: 0.9rem; color: #334155; line-height: 1.6;">
+                    <strong>Diretor Técnico Médico:</strong><br>
+                    PAULO ROBERTO CRUZ DE MORAES<br>
+                    <span style="color: var(--slate);">CRM/PA: 11259/PA</span>
+                </p>
+            </div>
+
+            <div>
+                <h4 style="color: var(--dark); margin-bottom: 12px; font-size: 0.85rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; border-left: 3px solid var(--red); padding-left: 10px;">
+                    Avisos Legais
+                </h4>
+                <p style="font-size: 0.8rem; color: var(--slate); line-height: 1.5; font-style: italic; margin-bottom: 10px;">
+                    Este site é estritamente informativo e não substitui a consulta médica presencial. Em caso de emergência, ligue 192 ou dirija-se à unidade.
+                </p>
+                <p style="font-size: 0.75rem; color: var(--slate); font-weight: 500;">
+                    © 2026 Hospital de Vigia. Proteção de dados conforme LGPD.
+                </p>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <h4 style="color: var(--dark); margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                Instituição
+            </h4>
+            <div style="background: white; padding: 5px; border-radius: 12px; display: inline-block; width: fit-content; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <img src="https://stm.vigia.d2ti.com.br/portalPrefeitura/template/vigia/img/logo.png" alt="Brasão Vigia" style="height: 60px; width: auto; margin-bottom: 5px;">
+            </div>
+            <p style="font-size: 0.85rem; color: var(--slate); line-height: 1.6;">
+                Praça da Independência, s/n - Centro, Vigia - PA<br>
+                <strong>CNPJ:</strong> 05.351.606/0001-95
+            </p>
+            <a href="https://vigia.pa.gov.br/" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: var(--dark); text-decoration: none; font-size: 0.85rem; font-weight: 700; background: #e2e8f0; padding: 8px 15px; border-radius: 8px; width: fit-content; transition: 0.3s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                Visitar Portal Municipal
+            </a>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <h4 style="color: var(--dark); margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                Gestão Administrativa
+            </h4>
+            <div style="background: white; padding: 12px; border-radius: 12px; display: inline-block; width: fit-content; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,fit=crop/YbNB4pyLDVsVz8eR/lg-iimpar-9BAYAf4LOIYjmjZ5.jpeg" alt="Logo Instituto Impar" style="height: 45px; width: auto;">
+            </div>
+            <p style="font-size: 0.85rem; color: #334155; line-height: 1.6;">
+                O <strong>Instituto Impar</strong> é o responsável pela gestão técnico-administrativa desta unidade, comprometido com a eficiência pública e a humanização do atendimento.
+            </p>
+            <p style="font-size: 0.85rem; color: var(--slate);"><strong>CNPJ:</strong> 02.965.948/0001-07 (Matriz)</p>
+            <a href="https://institutoimpar.org.br/" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: white; text-decoration: none; font-size: 0.85rem; font-weight: 700; background: var(--red); padding: 10px 20px; border-radius: 8px; width: fit-content; transition: 0.3s; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                Portal do Instituto
+            </a>
+        </div>
+    </div>
+
+    <div style="max-width: 1100px; margin: 50px auto 0; padding-top: 25px; border-top: 1px solid #cbd5e1; text-align: center;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <p style="font-size: 0.7rem; color: var(--slate); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;">
+                Desenvolvido pelo <span style="color: var(--dark);">Setor de Tecnologia da Informação (T.I.)</span> — Instituto Impar
+            </p>
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                <p style="font-size: 0.8rem; color: var(--slate);">© 2026 Hospital de Vigia.</p>
+                <a href="privacidade.html" style="color: var(--red); text-decoration: none; font-size: 0.8rem; font-weight: 700; border-bottom: 1px solid transparent; transition: 0.3s;" onmouseover="this.style.borderBottom='1px solid var(--red)'" onmouseout="this.style.borderBottom='1px solid transparent'">
+                    Política de Privacidade (LGPD)
+                </a>
+            </div>
+        </div>
     </div>
 </footer>
 
-<script>
-    // Pequena animação de entrada para os cards
-    const cards = document.querySelectorAll('.card-post, .m-card, .info-social, .equipe-card');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = 1;
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, { threshold: 0.1 });
 
-    cards.forEach(card => {
-        card.style.opacity = 0;
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'all 0.6s ease-out';
-        observer.observe(card);
+<script>
+    // Função para as abas da equipe
+    function openTab(evt, tabName) {
+        var i, contentBox, tabBtn;
+        contentBox = document.getElementsByClassName("content-box");
+        for (i = 0; i < contentBox.length; i++) {
+            contentBox[i].classList.remove("active");
+        }
+        tabBtn = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tabBtn.length; i++) {
+            tabBtn[i].classList.remove("active");
+        }
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+
+    // Acessibilidade: Garantir que o hover funcione via teclado também
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('focus', function(e) {
+            const targetId = this.getAttribute('onmouseover').match(/'([^']+)'/)[1];
+            openTab(e, targetId);
+        });
     });
+
+    // Controle de Tamanho de Fonte
+let currentFontSize = 1; // 1 = 200% (16px padrão)
+
+function changeFontSize(delta) {
+    currentFontSize += delta * 0.1;
+    if (currentFontSize < 0.8) currentFontSize = 0.8; // Limite mínimo
+    if (currentFontSize > 1.5) currentFontSize = 2.5; // Limite máximo
+    document.body.style.fontSize = currentFontSize + "em";
+}
+
+// Alternar Alto Contraste
+function toggleContrast() {
+    document.body.classList.toggle('alto-contraste');
+
+    // Salva a preferência do usuário no navegador
+    const isContrast = document.body.classList.contains('alto-contraste');
+    localStorage.setItem('contraste', isContrast);
+}
+
+// Verifica se o usuário já tinha deixado o contraste ligado antes
+window.onload = function() {
+    if (localStorage.getItem('contraste') === 'true') {
+        document.body.classList.add('alto-contraste');
+    }
+};
 </script>
 
+<div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+        <div class="vw-plugin-top-wrapper"></div>
+    </div>
+</div>
+
+
+
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+</script>
 </body>
 </html>
