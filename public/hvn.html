@@ -772,131 +772,112 @@ window.onclick = function(event) {
 }
 </script>
 
-    <h2>Equipe Multidisciplinar</h2>
-    <p style="margin-bottom: 20px; color: var(--slate);">Passe o mouse sobre os profissionais para ver detalhes:</p>
 
-    <div class="equipe-tabs-container">
-        <div class="equipe-menu">
-            <button class="tab-btn active" onmouseover="openTab(event, 'med')">Médicos</button>
-            <button class="tab-btn" onmouseover="openTab(event, 'enf')">Enfermagem</button>
-            <button class="tab-btn" onmouseover="openTab(event, 'nut')">Nutricionistas</button>
-            <button class="tab-btn" onmouseover="openTab(event, 'soc')">Serviço Social</button>
-            <button class="tab-btn" onmouseover="openTab(event, 'far')">Farmácia</button>
-            <button class="tab-btn" onmouseover="openTab(event, 'fis')">Fisioterapia</button>
+
+<h2>Equipe Multidisciplinar</h2>
+<p style="margin-bottom: 20px; color: var(--slate);">Clique ou passe o mouse para ver detalhes:</p>
+
+<div class="servicos-tabs-container">
+    <div class="servicos-menu">
+        <button class="s-tab-btn active" onmouseover="openService(event, 'med')" onclick="openService(event, 'med')">Médicos</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'enf')" onclick="openService(event, 'enf')">Enfermagem</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'nut')" onclick="openService(event, 'nut')">Nutricionistas</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'soc')" onclick="openService(event, 'soc')">Serviço Social</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'far')" onclick="openService(event, 'far')">Farmácia</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'fis')" onclick="openService(event, 'fis')">Fisioterapia</button>
+    </div>
+
+    <div class="servicos-display">
+        <div id="med" class="s-content-box active">
+            <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            <div class="info-text">
+                <h3>Corpo Médico</h3>
+                <ul>
+                    <li>Atendimento em Urgência e Emergência 24h.</li>
+                    <li>Diagnósticos precisos e prescrições clínicas.</li>
+                    <li>Realização de procedimentos de suporte à vida.</li>
+                </ul>
+            </div>
         </div>
 
-        <div class="equipe-display">
-            <div id="med" class="content-box active">
-                <svg class="equipe-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-                <div class="info-text">
-                    <h3>Corpo Médico</h3>
-                    <ul>
-                        <li>Atendimento em Urgência e Emergência 24h.</li>
-                        <li>Diagnósticos precisos e prescrições clínicas.</li>
-                        <li>Realização de procedimentos de suporte à vida.</li>
-                    </ul>
-                </div>
+        <div id="enf" class="s-content-box">
+            <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1a.3.3 0 1 0-.2-.3"></path><circle cx="11" cy="7" r="5"></circle></svg>
+            <div class="info-text">
+                <h3>Enfermagem</h3>
+                <ul>
+                    <li>Classificação de Risco (Triagem Manchester).</li>
+                    <li>Administração de medicamentos e cuidados diretos.</li>
+                    <li>Monitoramento constante dos sinais vitais.</li>
+                </ul>
             </div>
+        </div>
 
-            <div id="enf" class="content-box">
-                <svg class="equipe-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1a.3.3 0 1 0-.2-.3"></path><circle cx="11" cy="7" r="5"></circle></svg>
-                <div class="info-text">
-                    <h3>Enfermagem</h3>
-                    <ul>
-                        <li>Classificação de Risco (Triagem Manchester).</li>
-                        <li>Administração de medicamentos e cuidados diretos.</li>
-                        <li>Monitoramento constante dos sinais vitais.</li>
-                    </ul>
-                </div>
+        <div id="nut" class="s-content-box">
+            <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+            <div class="info-text">
+                <h3>Nutricionistas</h3>
+                <ul>
+                    <li>Planejamento de dietas hospitalares específicas.</li>
+                    <li>Avaliação do estado nutricional dos pacientes.</li>
+                    <li>Controle rigoroso de segurança alimentar.</li>
+                </ul>
             </div>
+        </div>
 
-            <div id="nut" class="content-box">
-                <svg class="equipe-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
-                <div class="info-text">
-                    <h3>Nutricionistas</h3>
-                    <ul>
-                        <li>Planejamento de dietas hospitalares específicas.</li>
-                        <li>Avaliação do estado nutricional dos pacientes.</li>
-                        <li>Controle rigoroso de segurança alimentar.</li>
-                    </ul>
-                </div>
+        <div id="soc" class="s-content-box">
+            <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <div class="info-text">
+                <h3>Serviço Social</h3>
+                <ul>
+                    <li>Mediação entre hospital, paciente e família.</li>
+                    <li>Orientações sobre direitos e benefícios sociais.</li>
+                    <li>Apoio no processo de alta e transferência.</li>
+                </ul>
             </div>
+        </div>
 
-            <div id="soc" class="content-box">
-                <svg class="equipe-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                <div class="info-text">
-                    <h3>Serviço Social</h3>
-                    <ul>
-                        <li>Mediação entre hospital, paciente e família.</li>
-                        <li>Orientações sobre direitos e benefícios sociais.</li>
-                        <li>Apoio no processo de alta e transferência.</li>
-                    </ul>
-                </div>
+        <div id="far" class="s-content-box">
+            <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="M8.5 8.5l7 7"></path></svg>
+            <div class="info-text">
+                <h3>Farmácia</h3>
+                <ul>
+                    <li>Dispensação segura de medicamentos.</li>
+                    <li>Análise de interações medicamentosas.</li>
+                    <li>Controle de insumos e materiais médicos.</li>
+                </ul>
             </div>
+        </div>
 
-            <div id="far" class="content-box">
-                <svg class="equipe-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="M8.5 8.5l7 7"></path></svg>
-                <div class="info-text">
-                    <h3>Farmácia</h3>
-                    <ul>
-                        <li>Dispensação segura de medicamentos.</li>
-                        <li>Análise de interações medicamentosas.</li>
-                        <li>Controle rigoroso de insumos e materiais médicos.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div id="fis" class="content-box">
-                <svg class="equipe-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"></circle><path d="m6.5 9 11 0"></path><path d="M10 14h4l2 7"></path><path d="m8 21 2-7-1-5"></path></svg>
-                <div class="info-text">
-                    <h3>Fisioterapia</h3>
-                    <ul>
-                        <li>Reabilitação respiratória e motora.</li>
-                        <li>Prevenção de complicações por imobilidade.</li>
-                        <li>Assistência em pacientes críticos na estabilização.</li>
-                    </ul>
-                </div>
+        <div id="fis" class="s-content-box">
+            <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"></circle><path d="m6.5 9 11 0"></path><path d="M10 14h4l2 7"></path><path d="m8 21 2-7-1-5"></path></svg>
+            <div class="info-text">
+                <h3>Fisioterapia</h3>
+                <ul>
+                    <li>Reabilitação respiratória e motora.</li>
+                    <li>Prevenção de complicações por imobilidade.</li>
+                    <li>Assistência em pacientes críticos na estabilização.</li>
+                </ul>
             </div>
         </div>
     </div>
-    <script>
-        function openTab(evt, tabName) {
-    // Esconde todos os conteúdos
-    var i, contentBox, tabBtn;
-    contentBox = document.getElementsByClassName("content-box");
-    for (i = 0; i < contentBox.length; i++) {
-        contentBox[i].classList.remove("active");
-    }
+</div>
 
-    // Remove a classe active de todos os botões
-    tabBtn = document.getElementsByClassName("tab-btn");
-    for (i = 0; i < tabBtn.length; i++) {
-        tabBtn[i].classList.remove("active");
-    }
-
-    // Mostra o conteúdo atual e marca o botão como ativo
-    document.getElementById(tabName).classList.add("active");
-    evt.currentTarget.classList.add("active");
-}
-    </script>
-
-    <h2>Serviços e Exames Disponíveis</h2>
+<h2>Serviços e Exames Disponíveis</h2>
 <p style="margin-bottom: 20px; color: var(--slate);">Selecione o serviço para ver orientações e disponibilidade:</p>
 
 <div class="servicos-tabs-container">
     <div class="servicos-menu">
-        <button class="s-tab-btn active" onmouseover="openService(event, 'lab')">Laboratório</button>
-        <button class="s-tab-btn" onmouseover="openService(event, 'raiox')">Raio-X</button>
-        <button class="s-tab-btn" onmouseover="openService(event, 'tomo')">Tomografia</button>
-        <button class="s-tab-btn" onmouseover="openService(event, 'curat')">Curativos</button>
-        <button class="s-tab-btn" onmouseover="openService(event, 'eletro')">Eletrocardio</button>
-        <button class="s-tab-btn" onmouseover="openService(event, 'vacina')">Vacinação</button>
+        <button class="s-tab-btn active" onmouseover="openService(event, 'lab')" onclick="openService(event, 'lab')">Laboratório</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'raiox')" onclick="openService(event, 'raiox')">Raio-X</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'tomo')" onclick="openService(event, 'tomo')">Tomografia</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'curat')" onclick="openService(event, 'curat')">Curativos</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'eletro')" onclick="openService(event, 'eletro')">Eletrocardio</button>
+        <button class="s-tab-btn" onmouseover="openService(event, 'vacina')" onclick="openService(event, 'vacina')">Vacinação</button>
     </div>
 
     <div class="servicos-display">
-
         <div id="lab" class="s-content-box active">
-            <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M5 12h14M8 5l8 14M16 5L8 19"></path><circle cx="12" cy="12" r="10"></circle></svg>
+            <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v20M5 12h14M8 5l8 14M16 5L8 19"></path></svg>
             <div class="info-text">
                 <h3>Exames Laboratoriais</h3>
                 <ul>
@@ -914,7 +895,6 @@ window.onclick = function(event) {
                 <ul>
                     <li>Exames de imagem digital de alta precisão.</li>
                     <li>Disponível 24h para casos de urgência.</li>
-                    <li>Laudos realizados por especialistas em radiologia.</li>
                 </ul>
             </div>
         </div>
@@ -922,11 +902,10 @@ window.onclick = function(event) {
         <div id="tomo" class="s-content-box">
             <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
             <div class="info-text">
-                <h3>Tomografia Computadorizada</h3>
+                <h3>Tomografia</h3>
                 <ul>
                     <li>Imagens em 3D para diagnósticos complexos.</li>
                     <li>Agendamento via regulação municipal.</li>
-                    <li>Uso de contraste sob supervisão médica.</li>
                 </ul>
             </div>
         </div>
@@ -934,11 +913,10 @@ window.onclick = function(event) {
         <div id="curat" class="s-content-box">
             <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><path d="M12 8v8M8 12h8"/></svg>
             <div class="info-text">
-                <h3>Curativos e Pequenos Reparos</h3>
+                <h3>Curativos</h3>
                 <ul>
                     <li>Tratamento de feridas cirúrgicas e crônicas.</li>
                     <li>Materiais de alta tecnologia para cicatrização.</li>
-                    <li>Orientações de higiene para cuidados em domicílio.</li>
                 </ul>
             </div>
         </div>
@@ -946,58 +924,51 @@ window.onclick = function(event) {
         <div id="eletro" class="s-content-box">
             <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12h3L9 3l6 18 4-9h3"/></svg>
             <div class="info-text">
-                <h3>Eletrocardiograma (ECG)</h3>
+                <h3>Eletrocardiograma</h3>
                 <ul>
                     <li>Monitoramento da atividade elétrica do coração.</li>
                     <li>Exame rápido e indolor para triagem cardíaca.</li>
-                    <li>Leitura imediata para casos de dor no peito.</li>
                 </ul>
             </div>
         </div>
+
         <div id="vacina" class="s-content-box">
-    <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="2" x2="22" y2="6"></line>
-        <line x1="7.5" y1="12.5" x2="11.5" y2="16.5"></line>
-        <path d="M14 4.5l5.5 5.5"></path>
-        <path d="M3 21l3-3"></path>
-        <path d="M9 15l2-2"></path>
-        <path d="M16 10l-4.5 4.5a1 1 0 0 1-1.4 0l-3.2-3.2a1 1 0 0 1 0-1.4L11.5 5.5a1 1 0 0 1 1.4 0L16 10z"></path>
-    </svg>
-    <div class="info-text">
-        <h3>Sala de Vacina</h3>
-        <ul>
-            <li>Aplicação de vacinas de rotina e campanhas sazonais.</li>
-            <li><strong>Documentação:</strong> Necessário levar CPF e Cartão do SUS.</li>
-            <li><strong>Importante:</strong> Não esqueça a Caderneta de Vacinação.</li>
-            <li>Horário específico: Segunda a Sexta, das 08h às 17h.</li>
-        </ul>
-    </div>
-</div>
+            <svg class="s-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 4.5l5.5 5.5M3 21l3-3M9 15l2-2"></path><path d="M16 10l-4.5 4.5a1 1 0 0 1-1.4 0l-3.2-3.2a1 1 0 0 1 0-1.4L11.5 5.5a1 1 0 0 1 1.4 0L16 10z"></path></svg>
+            <div class="info-text">
+                <h3>Vacinação</h3>
+                <ul>
+                    <li>Segunda a Sexta, das 08h às 17h.</li>
+                    <li>Necessário levar CPF e Cartão do SUS.</li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 
-    <SCRIPT>
-        function openService(evt, serviceName) {
-    var i, sContentBox, sTabBtn;
+<script>
+    function openService(evt, serviceName) {
+        var i, sContentBox, sTabBtn;
 
-    // Esconde os conteúdos de serviços
-    sContentBox = document.getElementsByClassName("s-content-box");
-    for (i = 0; i < sContentBox.length; i++) {
-        sContentBox[i].classList.remove("active");
+        // Encontra o container pai direto desta seção
+        var container = evt.currentTarget.closest('.servicos-tabs-container');
+
+        // Esconde apenas os conteúdos dentro deste container
+        sContentBox = container.querySelectorAll(".s-content-box");
+        for (i = 0; i < sContentBox.length; i++) {
+            sContentBox[i].classList.remove("active");
+        }
+
+        // Desativa apenas os botões dentro deste container
+        sTabBtn = container.querySelectorAll(".s-tab-btn");
+        for (i = 0; i < sTabBtn.length; i++) {
+            sTabBtn[i].classList.remove("active");
+        }
+
+        // Ativa o item selecionado
+        document.getElementById(serviceName).classList.add("active");
+        evt.currentTarget.classList.add("active");
     }
-
-    // Desativa os botões de serviços
-    sTabBtn = document.getElementsByClassName("s-tab-btn");
-    for (i = 0; i < sTabBtn.length; i++) {
-        sTabBtn[i].classList.remove("active");
-    }
-
-    // Ativa o serviço selecionado
-    document.getElementById(serviceName).classList.add("active");
-    evt.currentTarget.classList.add("active");
-}
-    </SCRIPT>
-
+</script>
 <h2>Mais informações</h2>
     <div class="grid-info">
         <section class="card-post">
@@ -1043,15 +1014,26 @@ window.onclick = function(event) {
             </div>
         </div>
 
+        <!--SECRETARIA DE MEIO AMBIENTE-->
         <div style="display: flex; flex-direction: column; gap: 15px;">
-            <h4 style="color: var(--dark); margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                <h4 style="color: var(--dark); margin-bottom: 12px; font-size: 0.85rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; border-left: 3px solid var(--red); padding-left: 10px;">
                 Instituição
             </h4>
             <div style="background: white; padding: 5px; border-radius: 12px; display: inline-block; width: fit-content; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <img src="https://stm.vigia.d2ti.com.br/portalPrefeitura/template/vigia/img/logo.png" alt="Brasão Vigia" style="height: 60px; width: auto; margin-bottom: 5px;">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOzI0DeiJb7uWW5rlZaPDX4V6LzUN10w-sSA&s" alt="Brasão Vigia" style="height: 100px; width: auto; margin-bottom: 5px;">
             </div>
             <p style="font-size: 0.85rem; color: var(--slate); line-height: 1.6;">
-                Praça da Independência, s/n - Centro, Vigia - PA<br>
+                <strong>SECRETARIA DE SAUDE DE VIGIA</strong><br>
+                Av. Barão do Guajará, S/N - Castanheira, Vigia-PA
+            </p><br>
+
+            <!--PREFEITURA DE VIGIA-->
+            <div style="background: white; padding: 5px; border-radius: 12px; display: inline-block; width: fit-content; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <img src="https://stm.vigia.d2ti.com.br/portalPrefeitura/template/vigia/img/logo.png" alt="Brasão Vigia" style="height: 80px; width: auto; margin-bottom: 5px;">
+            </div>
+            <p style="font-size: 0.85rem; color: var(--slate); line-height: 1.6;">
+                <strong>PREFEITURA MUNICIPAL DE VIGIA DE NAZARÉ</strong><br>
+                Av. Barão do Guajará, S/N - Castanheira, Vigia-PA<br>
                 <strong>CNPJ:</strong> 05.351.606/0001-95
             </p>
             <a href="https://vigia.pa.gov.br/" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: var(--dark); text-decoration: none; font-size: 0.85rem; font-weight: 700; background: #e2e8f0; padding: 8px 15px; border-radius: 8px; width: fit-content; transition: 0.3s;">
@@ -1061,7 +1043,7 @@ window.onclick = function(event) {
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 15px;">
-            <h4 style="color: var(--dark); margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                <h4 style="color: var(--dark); margin-bottom: 12px; font-size: 0.85rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; border-left: 3px solid var(--red); padding-left: 10px;">
                 Gestão Administrativa
             </h4>
             <div style="background: white; padding: 12px; border-radius: 12px; display: inline-block; width: fit-content; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
@@ -1078,19 +1060,31 @@ window.onclick = function(event) {
         </div>
     </div>
 
-    <div style="max-width: 1100px; margin: 50px auto 0; padding-top: 25px; border-top: 1px solid #cbd5e1; text-align: center;">
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            <p style="font-size: 0.7rem; color: var(--slate); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;">
-                Desenvolvido pelo <span style="color: var(--dark);">Setor de Tecnologia da Informação (T.I.)</span> — Instituto Impar
+    <footer style="background: #f8fafc; padding: 40px 20px;">
+    <div style="max-width: 1100px; margin: 0 auto; padding-top: 25px; border-top: 1px solid #cbd5e1; text-align: center;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+
+            <p style="font-size: 0.75rem; color: var(--slate); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; margin: 0;">
+                Desenvolvido pelo <span style="color: #1e293b;">Setor de Tecnologia da Informação (T.I.)</span> — Instituto Impar
             </p>
+
+            <p style="font-size: 0.65rem; color: #94a3b8; margin: -5px 0 5px 0;">
+                Lead Developer: <strong>JOSE AIRTON BORGES DE SOUZA JUNIOR</strong>
+            </p>
+
             <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;">
-                <p style="font-size: 0.8rem; color: var(--slate);">© 2026 Hospital de Vigia.</p>
-                <a href="privacidade.html" style="color: var(--red); text-decoration: none; font-size: 0.8rem; font-weight: 700; border-bottom: 1px solid transparent; transition: 0.3s;" onmouseover="this.style.borderBottom='1px solid var(--red)'" onmouseout="this.style.borderBottom='1px solid transparent'">
+                <p style="font-size: 0.8rem; color: var(--slate); margin: 0;">© 2026 Hospital de Vigia.</p>
+                <span style="color: #cbd5e1;">|</span>
+                <a href="privacidade.html" style="color: #ef4444; text-decoration: none; font-size: 0.8rem; font-weight: 700; border-bottom: 1px solid transparent; transition: 0.3s;"
+                   onmouseover="this.style.borderBottom='1px solid #ef4444'"
+                   onmouseout="this.style.borderBottom='1px solid transparent'">
                     Política de Privacidade (LGPD)
                 </a>
             </div>
+
         </div>
     </div>
+</footer>
 </footer>
 
 
@@ -1119,12 +1113,12 @@ window.onclick = function(event) {
     });
 
     // Controle de Tamanho de Fonte
-let currentFontSize = 1; // 1 = 200% (16px padrão)
+let currentFontSize = 1; // 1 = 100% (16px padrão)
 
 function changeFontSize(delta) {
     currentFontSize += delta * 0.1;
     if (currentFontSize < 0.8) currentFontSize = 0.8; // Limite mínimo
-    if (currentFontSize > 1.5) currentFontSize = 2.5; // Limite máximo
+    if (currentFontSize > 1.5) currentFontSize = 1.5; // Limite máximo
     document.body.style.fontSize = currentFontSize + "em";
 }
 
