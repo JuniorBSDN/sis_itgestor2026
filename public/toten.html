@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA DE SENHAS - HOSPITAL</title>
+    <style>
+        :root {
+            --bg-hospital: white;
+            --btn-normal: #1976D2;
+            --btn-pref: #388E3C;
+            --btn-prio: #E65100;
+            --text-white: #ffffff;
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-hospital);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-white);
+        }
+
+        .container {
+            width: 90%;
+            /* Aumentamos a largura máxima para deixar os botões mais largos */
+            max-width: 800px;
+            text-align: center;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            border: 1px solid #1e252b;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            text-transform: uppercase;
+            color: #90a4ae;
+            letter-spacing: 3px;
+            margin: 0;
+        }
+
+        .button-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* Espaço entre os botões */
+        }
+
+        .btn-totem {
+            border: none;
+            border-radius: 12px;
+            /* Padding lateral aumentado para dar peso à largura */
+            padding: 30px 40px;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+            width: 100%; /* Garante que o botão use toda a largura do container de 800px */
+            display: block;
+        }
+
+        .btn-totem:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+        }
+
+        /* Cores Sólidas Hospitalares */
+        .normal { background-color: var(--btn-normal); }
+        .preferencial { background-color: var(--btn-pref); }
+        .prioridade { background-color: var(--btn-prio); }
+
+        .btn-totem span {
+            display: block;
+            font-size: 1rem;
+            font-weight: 400;
+            margin-top: 8px;
+            opacity: 0.85;
+            text-transform: none;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-info {
+            margin-top: 40px;
+            color: #455a64;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Senha</h1>
+        </div>
+
+        <div class="button-stack">
+            <button class="btn-totem normal" onclick="gerar('N')">
+                Atendimento Comum
+                <span>Fluxo geral de pacientes</span>
+            </button>
+
+            <button class="btn-totem preferencial" onclick="gerar('P')">
+                Preferencial
+                <span>Gestantes, Idosos e PCD</span>
+            </button>
+
+            <button class="btn-totem prioridade" onclick="gerar('M')">
+                Prioridade Máxima
+                <span>Acima de 80 anos / Autismo</span>
+            </button>
+        </div>
+
+        <div class="footer-info">
+            <p>Instituto Impar - Técnologias</p>
+        </div>
+    </div>
+
+    <script>
+
+        // URL da sua API (Se estiver no Vercel ou local, altere aqui)
+        const API_URL = "http://127.0.0.1:5000/api/fila";
+
+        async function gerar(tipo) {
+            // 1. Gerar número da senha localmente (Sequencial)
+            let contador = localStorage.getItem(`cont_${tipo}`) || 0;
+            contador = parseInt(contador) + 1;
+            localStorage.setItem(`cont_${tipo}`, contador);
+
+            // Formata para 3 dígitos (ex: 001, 002)
+            const numeroFormatado = contador.toString().padStart(3, '0');
+            const senhaCompleta = `${tipo}-${numeroFormatado}`;
+
+            // 2. Preparar os dados para a API
+            const dados = {
+                senha: senhaCompleta,
+                tipo_atendimento: tipo, // N, P ou M
+                origem: "Totem Principal",
+                status: "aguardando"
+            };
+
+            try {
+                // Desabilita os botões temporariamente para evitar cliques duplos
+                const botoes = document.querySelectorAll('.btn-totem');
+                botoes.forEach(b => b.disabled = true);
+
+                // 3. Enviar para a sua API Central
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                if (response.ok) {
+                    console.log("Sucesso:", senhaCompleta);
+
+                    // Feedback visual para o paciente
+                    exibirSucesso(senhaCompleta);
+                } else {
+                    throw new Error("Erro ao registrar no servidor");
+                }
+
+            } catch (error) {
+                console.error("Erro na comunicação:", error);
+                alert("Erro de conexão com o servidor de TI. Tente novamente.");
+            } finally {
+                // Reabilita os botões após 3 segundos
+                setTimeout(() => {
+                    const botoes = document.querySelectorAll('.btn-totem');
+                    botoes.forEach(b => b.disabled = false);
+                }, 3000);
+            }
+        }
+
+        function exibirSucesso(senha) {
+            // Substitui o alert por uma mensagem mais limpa se preferir
+            // Por enquanto, mantendo o padrão solicitado
+            alert(`SUA SENHA É: ${senha}\n\nPor favor, aguarde a chamada no painel.`);
+        }
+
+        // Função para resetar contadores (útil para o início do plantão)
+        function resetarContadoresDiarios() {
+            localStorage.clear();
+            console.log("Contadores de senhas resetados.");
+        }
+    </script>
+
+</body>
+</html>
