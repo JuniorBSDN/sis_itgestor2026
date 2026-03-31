@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Senhas Responsivo</title>
+    <style>
+        :root { --cor-padrao: #6A1B9A; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #f0f2f5; }
+
+        /* Painel de Controle Responsivo */
+        #painel {
+            background: #2c3e50;
+            padding: 15px;
+            color: white;
+            display: flex;
+            flex-wrap: wrap; /* Permite quebrar linha no celular */
+            justify-content: center;
+            gap: 15px;
+            align-items: flex-end;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .campo { display: flex; flex-direction: column; font-size: 12px; flex: 1; min-width: 120px; }
+        label { margin-bottom: 4px; font-weight: bold; }
+        input { padding: 10px; border-radius: 6px; border: none; font-size: 14px; }
+
+        .botoes { display: flex; gap: 10px; width: 100%; justify-content: center; margin-top: 10px; }
+        button {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-gerar { background: #27ae60; color: white; }
+        .btn-print { background: #e67e22; color: white; }
+
+        /* Container da Grade - Responsivo na tela */
+        #grade-senhas {
+            display: grid;
+            grid-template-columns: 1fr; /* 1 coluna no celular */
+            gap: 10px;
+            padding: 15px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        /* Estilo da Senha */
+        .senha-box {
+            background: white;
+            border: 1px dashed #ccc;
+            height: 180px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+        }
+
+        .titulo { font-size: 14px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
+        .numero { font-size: 50px; font-weight: bold; }
+        .rodape { font-size: 9px; margin-top: 8px; color: #777; }
+
+        /* Tablet e Desktop (Visualização em tela) */
+        @media (min-width: 600px) {
+            #grade-senhas { grid-template-columns: repeat(2, 1fr); }
+            .botoes { width: auto; margin-top: 0; }
+        }
+        @media (min-width: 1000px) {
+            #grade-senhas { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        /* CONFIGURAÇÃO PARA IMPRESSÃO (Força 4 colunas no A4) */
+        @media print {
+            #painel { display: none; }
+            body { background: white; }
+            #grade-senhas {
+                display: grid !important;
+                grid-template-columns: repeat(4, 25%) !important;
+                padding: 0;
+                margin: 0;
+                width: 100%;
+            }
+            .senha-box {
+                border: 0.5px dashed #000;
+                border-radius: 0;
+                page-break-inside: avoid;
+                height: 19vh; /* Ajuste para caber 5 linhas por página */
+            }
+            .titulo, .numero {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="painel">
+        <div class="campo">
+            <label>Título:</label>
+            <input type="text" id="inputTitulo" value="Teste Rápido">
+        </div>
+        <div class="campo">
+            <label>Qtde:</label>
+            <input type="number" id="inputQuantidade" value="400">
+        </div>
+        <div class="campo">
+            <label>Cor:</label>
+            <input type="color" id="inputCor" value="#6A1B9A" style="height: 38px; padding: 2px;">
+        </div>
+        <div class="botoes">
+            <button class="btn-gerar" onclick="gerarSenhas()">ATUALIZAR</button>
+            <button class="btn-print" onclick="window.print()">IMPRIMIR</button>
+        </div>
+    </div>
+
+    <div id="grade-senhas"></div>
+
+    <script>
+        function gerarSenhas() {
+            const container = document.getElementById('grade-senhas');
+            const tituloTexto = document.getElementById('inputTitulo').value;
+            const total = parseInt(document.getElementById('inputQuantidade').value);
+            const corSelecionada = document.getElementById('inputCor').value;
+
+            container.innerHTML = '';
+
+            for (let i = 1; i <= total; i++) {
+                const numeroFormatado = i.toString().padStart(3, '0');
+
+                const div = document.createElement('div');
+                div.className = 'senha-box';
+                div.innerHTML = `
+                    <div class="titulo" style="color: ${corSelecionada}">${tituloTexto}</div>
+                    <div class="numero" style="color: ${corSelecionada}">${numeroFormatado}</div>
+                    <div class="rodape">SENHA</div>
+                `;
+                container.appendChild(div);
+            }
+        }
+        window.onload = gerarSenhas;
+    </script>
+
+</body>
+</html>
