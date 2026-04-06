@@ -3,24 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mily - Gerador CME</title>
+    <title>Jamily - Gerador CME</title>
     <style>
-        /* --- TEMA MODERNO SCIFI DARK (FEMININO) --- */
+        /* --- VARIÁVEIS DE CORES --- */
         :root {
-            --fundo-deep: #020202;       /* Preto Profundo */
-            --roxo-neon: #9d00ff;        /* Roxo Elétrico */
-            --magenta-viva: #ff00ff;     /* Magenta Neon */
-            --ciano-tech: #00ffff;       /* Ciano Digital */
-            --texto-claro: #e0e0e0;
+            --bg-body: #f0f4f8;
+            --bg-panel: rgba(255, 255, 255, 0.85);
+            --bg-input: rgba(255, 255, 255, 0.9);
+            --border-panel: rgba(138, 43, 226, 0.2);
+            --text-main: #2d3436;
+            --accent-purple: #8a2be2;
+            --accent-magenta: #ff007f;
+            --shadow: rgba(138, 43, 226, 0.1);
+        }
+
+        body.dark-mode {
+            --bg-body: #020202;
+            --bg-panel: rgba(10, 0, 20, 0.9);
+            --bg-input: rgba(0, 0, 0, 0.5);
+            --border-panel: rgba(157, 0, 255, 0.4);
+            --text-main: #e0e0e0;
+            --accent-purple: #9d00ff;
+            --accent-magenta: #ff00ff;
+            --shadow: rgba(0, 0, 0, 0.8);
         }
 
         body {
-            background-color: var(--fundo-deep);
-            background-image:
-                radial-gradient(circle at 15% 25%, rgba(157, 0, 255, 0.15) 0%, transparent 45%),
-                radial-gradient(circle at 85% 75%, rgba(0, 255, 255, 0.1) 0%, transparent 45%);
-            color: var(--texto-claro);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -28,34 +39,33 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            transition: background 0.4s ease, color 0.4s ease;
         }
 
-        /* --- PAINEL HOLOGRÁFICO --- */
         .painel-terminal {
-            background: rgba(10, 0, 20, 0.85);
-            border: 1px solid rgba(157, 0, 255, 0.4);
+            background: var(--bg-panel);
+            border: 1px solid var(--border-panel);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            padding: 30px;
+            padding: 35px;
             width: 100%;
-            max-width: 420px;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(157, 0, 255, 0.2);
+            max-width: 440px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
             z-index: 10;
         }
 
         h2 {
             text-align: center;
             text-transform: uppercase;
-            letter-spacing: 4px;
-            font-size: 20px;
-            font-weight: 300;
-            margin-bottom: 25px;
-            background: linear-gradient(90deg, var(--roxo-neon), var(--magenta-viva));
+            letter-spacing: 3px;
+            font-size: 22px;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-magenta));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-panel);
+            padding-bottom: 15px;
         }
 
         .campo { margin-bottom: 15px; }
@@ -65,7 +75,7 @@
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            color: var(--roxo-neon);
+            color: var(--accent-purple);
             margin-bottom: 5px;
             font-weight: bold;
         }
@@ -73,34 +83,42 @@
         input {
             width: 100%;
             padding: 12px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(0, 255, 255, 0.2);
+            background: var(--bg-input);
+            border: 1px solid var(--border-panel);
             border-radius: 8px;
-            color: #fff;
+            color: var(--text-main);
             font-size: 14px;
             box-sizing: border-box;
             outline: none;
             transition: 0.3s;
+            font-family: inherit;
+        }
+
+        /* Estilo para o ícone do calendário */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.5);
+            cursor: pointer;
+        }
+        body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) sepia(100%) saturate(500%) hue-rotate(250deg);
         }
 
         input:focus {
-            border-color: var(--magenta-viva);
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
-            background: rgba(255, 0, 255, 0.05);
+            border-color: var(--accent-magenta);
+            box-shadow: 0 0 10px var(--accent-magenta);
         }
 
         .grid-duplo {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 2fr 1fr;
             gap: 15px;
         }
 
-        /* --- BOTÃO DE EXECUÇÃO --- */
         .btn-imprimir {
             width: 100%;
             padding: 16px;
             margin-top: 20px;
-            background: linear-gradient(45deg, var(--roxo-neon), var(--magenta-viva));
+            background: linear-gradient(45deg, var(--accent-purple), var(--accent-magenta));
             color: white;
             border: none;
             border-radius: 10px;
@@ -108,61 +126,51 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(157, 0, 255, 0.4);
+            box-shadow: 0 5px 15px var(--shadow);
             transition: 0.3s ease;
         }
 
         .btn-imprimir:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 0, 255, 0.6);
             filter: brightness(1.1);
         }
 
-        /* --- ÁREA DE IMPRESSÃO (GRADE A4) --- */
+        .theme-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--accent-purple);
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* --- ÁREA DE IMPRESSÃO --- */
         #grade-impressao { display: none; }
 
         .etiqueta-card {
-            width: 90mm;
-            height: 50mm;
-            background: white;
-            color: black;
-            padding: 10px;
-            box-sizing: border-box;
+            width: 90mm; height: 50mm;
+            background: white; color: black;
+            padding: 12px; box-sizing: border-box;
             border: 0.2mm solid #ddd;
             float: left;
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            display: flex; flex-direction: column; justify-content: space-between;
         }
 
         .etiqueta-topo {
-            text-align: center;
-            font-weight: bold;
-            font-size: 12px;
-            border-bottom: 2px solid black;
-            padding-bottom: 4px;
-            line-height: 1.2;
+            text-align: center; font-weight: bold; font-size: 12px;
+            border-bottom: 1.5px solid black; padding-bottom: 4px;
         }
 
-        .linha-dados {
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            display: flex;
-            margin: 2px 0;
-        }
-
-        .linha-dados span {
-            font-weight: normal;
-            border-bottom: 1px dotted #444;
-            flex-grow: 1;
-            margin-left: 5px;
-            overflow: hidden;
-        }
+        .linha-dados { font-size: 10px; font-weight: bold; text-transform: uppercase; display: flex; margin: 2px 0; }
+        .linha-dados span { font-weight: normal; border-bottom: 1px dotted #444; flex-grow: 1; margin-left: 5px; }
 
         @media print {
-            body { background: white !important; padding: 0 !important; background-image: none !important; }
+            body { background: white !important; padding: 0 !important; }
             .painel-terminal { display: none !important; }
             #grade-impressao { display: block !important; width: 100% !important; }
             .etiqueta-card { -webkit-print-color-adjust: exact; page-break-inside: avoid; }
@@ -176,7 +184,7 @@
 
         <div class="campo">
             <label>Material:</label>
-            <input type="text" id="material">
+            <input type="text" id="material" placeholder="Ex: Kit Cirúrgico">
         </div>
 
         <div class="grid-duplo">
@@ -185,7 +193,7 @@
                 <input type="text" id="lote">
             </div>
             <div class="campo">
-                <label>Qtde Etiquetas</label>
+                <label>Qtde</label>
                 <input type="number" id="qtd" min="1" value="1">
             </div>
         </div>
@@ -193,30 +201,62 @@
         <div class="grid-duplo">
             <div class="campo">
                 <label>Data Esterilização:</label>
-                <input type="text" id="dtEst">
+                <input type="date" id="dtEst">
             </div>
             <div class="campo">
-                <label>Data Limite DE USO:</label>
-                <input type="text" id="dtLim">
+                <label>Data Limite:</label>
+                <input type="date" id="dtLim">
             </div>
         </div>
 
         <div class="campo">
-            <label>Responsável(PREPARO)</label>
+            <label>Responsável (Preparo)</label>
             <input type="text" id="resp">
         </div>
 
         <div class="campo">
-            <label>Método de ESTERELIZAÇÃO</label>
-            <input type="text" id="metodo">
+            <label>Método de Esterilização</label>
+            <input type="text" id="metodo" value="AUTOCLAVE">
         </div>
 
-        <button class="btn-imprimir" onclick="gerarImpressao()">Imprimir etiquetas</button>
+        <button class="btn-imprimir" onclick="gerarImpressao()">Imprimir Etiquetas</button>
+
+        <div class="theme-switch" onclick="toggleTheme()">
+            <span id="theme-icon">🌙</span> <span id="theme-text">MODO ESCURO</span>
+        </div>
     </div>
 
     <div id="grade-impressao"></div>
 
     <script>
+        // Formatar data de AAAA-MM-DD para DD/MM/AAAA
+        function formatarDataBR(dataString) {
+            if (!dataString) return "";
+            const [ano, mes, dia] = dataString.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                icon.innerText = '☀️';
+                text.innerText = 'MODO CLARO';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.innerText = '🌙';
+                text.innerText = 'MODO ESCURO';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            toggleTheme();
+        }
+
         function gerarImpressao() {
             const grid = document.getElementById('grade-impressao');
             const qtd = parseInt(document.getElementById('qtd').value) || 1;
@@ -224,8 +264,8 @@
             const dados = {
                 m: document.getElementById('material').value,
                 l: document.getElementById('lote').value,
-                e: document.getElementById('dtEst').value,
-                v: document.getElementById('dtLim').value,
+                e: formatarDataBR(document.getElementById('dtEst').value),
+                v: formatarDataBR(document.getElementById('dtLim').value),
                 r: document.getElementById('resp').value,
                 met: document.getElementById('metodo').value
             };
@@ -249,10 +289,7 @@
                 `;
             }
 
-            // Pequeno atraso para garantir renderização antes de abrir o diálogo de impressão
-            setTimeout(() => {
-                window.print();
-            }, 300);
+            setTimeout(() => { window.print(); }, 300);
         }
     </script>
 </body>
