@@ -42,17 +42,74 @@
             transition: background 0.4s ease, color 0.4s ease;
         }
 
+        /* --- BOTÃO INFO --- */
+        .info-trigger {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid var(--border-panel);
+            background: var(--bg-panel);
+            color: var(--accent-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-style: italic;
+            box-shadow: 0 4px 10px var(--shadow);
+            transition: 0.3s;
+        }
+
+        .info-trigger:hover { transform: scale(1.1); border-color: var(--accent-magenta); }
+
+        /* --- MODAL DE INFORMAÇÕES --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-panel);
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 0 30px var(--accent-purple);
+        }
+
+        .modal-content h3 { color: var(--accent-magenta); margin-top: 0; }
+        .modal-content p { font-size: 14px; line-height: 1.5; }
+        .close-modal {
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* --- PAINEL PRINCIPAL --- */
         .painel-terminal {
             background: var(--bg-panel);
             border: 1px solid var(--border-panel);
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             padding: 35px;
             width: 100%;
             max-width: 440px;
             border-radius: 20px;
             box-shadow: 0 10px 40px var(--shadow);
-            z-index: 10;
+            position: relative;
         }
 
         h2 {
@@ -69,115 +126,46 @@
         }
 
         .campo { margin-bottom: 15px; }
+        label { display: block; font-size: 10px; text-transform: uppercase; color: var(--accent-purple); margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border-panel); border-radius: 8px; color: var(--text-main); font-size: 14px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--accent-magenta); box-shadow: 0 0 10px var(--accent-magenta); }
 
-        label {
-            display: block;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--accent-purple);
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-input);
-            border: 1px solid var(--border-panel);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 14px;
-            box-sizing: border-box;
-            outline: none;
-            transition: 0.3s;
-            font-family: inherit;
-        }
-
-        /* Estilo para o ícone do calendário */
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(0.5);
-            cursor: pointer;
-        }
-        body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1) sepia(100%) saturate(500%) hue-rotate(250deg);
-        }
-
-        input:focus {
-            border-color: var(--accent-magenta);
-            box-shadow: 0 0 10px var(--accent-magenta);
-        }
-
-        .grid-duplo {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 15px;
-        }
+        .grid-duplo { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
 
         .btn-imprimir {
-            width: 100%;
-            padding: 16px;
-            margin-top: 20px;
+            width: 100%; padding: 16px; margin-top: 20px;
             background: linear-gradient(45deg, var(--accent-purple), var(--accent-magenta));
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px var(--shadow);
-            transition: 0.3s ease;
+            color: white; border: none; border-radius: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;
         }
 
-        .btn-imprimir:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.1);
-        }
+        .theme-switch { margin-top: 20px; cursor: pointer; font-size: 12px; font-weight: bold; color: var(--accent-purple); text-align: center; }
 
-        .theme-switch {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--accent-purple);
-            width: 100%;
-            justify-content: center;
-        }
-
-        /* --- ÁREA DE IMPRESSÃO --- */
+        /* --- IMPRESSÃO --- */
         #grade-impressao { display: none; }
-
-        .etiqueta-card {
-            width: 90mm; height: 50mm;
-            background: white; color: black;
-            padding: 12px; box-sizing: border-box;
-            border: 0.2mm solid #ddd;
-            float: left;
-            font-family: Arial, sans-serif;
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-
-        .etiqueta-topo {
-            text-align: center; font-weight: bold; font-size: 12px;
-            border-bottom: 1.5px solid black; padding-bottom: 4px;
-        }
-
-        .linha-dados { font-size: 10px; font-weight: bold; text-transform: uppercase; display: flex; margin: 2px 0; }
+        .etiqueta-card { width: 90mm; height: 50mm; background: white; color: black; padding: 12px; border: 0.2mm solid #ddd; float: left; font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: space-between; }
+        .etiqueta-topo { text-align: center; font-weight: bold; font-size: 12px; border-bottom: 1.5px solid black; padding-bottom: 4px; }
+        .linha-dados { font-size: 10px; font-weight: bold; display: flex; margin: 2px 0; }
         .linha-dados span { font-weight: normal; border-bottom: 1px dotted #444; flex-grow: 1; margin-left: 5px; }
 
         @media print {
-            body { background: white !important; padding: 0 !important; }
-            .painel-terminal { display: none !important; }
+            body { background: white !important; }
+            .painel-terminal, .info-trigger { display: none !important; }
             #grade-impressao { display: block !important; width: 100% !important; }
-            .etiqueta-card { -webkit-print-color-adjust: exact; page-break-inside: avoid; }
         }
     </style>
 </head>
 <body>
+
+    <div class="info-trigger" onclick="toggleModal(true)">i</div>
+
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal-content">
+            <h3>SOBRE O APP</h3>
+            <p><strong>Função:</strong> Gerador de etiquetas de identificação para materiais esterilizados (CME), facilitando o controle de validade e lotes hospitalares.</p>
+            <p><strong>Desenvolvedor:</strong> Jose Airton B. Souza Jr.<br><em>- Fone: 91 983252639</em></p>
+            <button class="close-modal" onclick="toggleModal(false)">Entendido</button>
+        </div>
+    </div>
 
     <div class="painel-terminal">
         <h2>Jamily - v1.0</h2>
@@ -229,7 +217,10 @@
     <div id="grade-impressao"></div>
 
     <script>
-        // Formatar data de AAAA-MM-DD para DD/MM/AAAA
+        function toggleModal(show) {
+            document.getElementById('infoModal').style.display = show ? 'flex' : 'none';
+        }
+
         function formatarDataBR(dataString) {
             if (!dataString) return "";
             const [ano, mes, dia] = dataString.split('-');
@@ -241,26 +232,20 @@
             const icon = document.getElementById('theme-icon');
             const text = document.getElementById('theme-text');
             body.classList.toggle('dark-mode');
-
             if (body.classList.contains('dark-mode')) {
-                icon.innerText = '☀️';
-                text.innerText = 'MODO CLARO';
+                icon.innerText = '☀️'; text.innerText = 'MODO CLARO';
                 localStorage.setItem('theme', 'dark');
             } else {
-                icon.innerText = '🌙';
-                text.innerText = 'MODO ESCURO';
+                icon.innerText = '🌙'; text.innerText = 'MODO ESCURO';
                 localStorage.setItem('theme', 'light');
             }
         }
 
-        if (localStorage.getItem('theme') === 'dark') {
-            toggleTheme();
-        }
+        if (localStorage.getItem('theme') === 'dark') toggleTheme();
 
         function gerarImpressao() {
             const grid = document.getElementById('grade-impressao');
             const qtd = parseInt(document.getElementById('qtd').value) || 1;
-
             const dados = {
                 m: document.getElementById('material').value,
                 l: document.getElementById('lote').value,
@@ -269,26 +254,19 @@
                 r: document.getElementById('resp').value,
                 met: document.getElementById('metodo').value
             };
-
             grid.innerHTML = '';
-
             for (let i = 0; i < qtd; i++) {
                 grid.innerHTML += `
                     <div class="etiqueta-card">
-                        <div class="etiqueta-topo">
-                            HOSPITAL MUNICIPAL DE VIGIA<br>
-                            IDENTIFICAÇÃO DE MATERIAIS // CME
-                        </div>
+                        <div class="etiqueta-topo">HOSPITAL MUNICIPAL DE VIGIA<br>IDENTIFICAÇÃO DE MATERIAIS</div>
                         <div class="linha-dados">MATERIAL: <span>${dados.m}</span></div>
                         <div class="linha-dados">LOTE: <span>${dados.l}</span></div>
                         <div class="linha-dados">DATA ESTERILIZAÇÃO: <span>${dados.e}</span></div>
                         <div class="linha-dados">DATA LIMITE DE USO: <span>${dados.v}</span></div>
                         <div class="linha-dados">RESPONSÁVEL(PREPARO): <span>${dados.r}</span></div>
                         <div class="linha-dados">MÉTODO DE ESTERILIZAÇÃO: <span>${dados.met}</span></div>
-                    </div>
-                `;
+                    </div>`;
             }
-
             setTimeout(() => { window.print(); }, 300);
         }
     </script>
