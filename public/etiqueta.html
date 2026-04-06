@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mily - Gerador CME</title>
+    <style>
+        /* --- TEMA MODERNO SCIFI DARK (FEMININO) --- */
+        :root {
+            --fundo-deep: #020202;       /* Preto Profundo */
+            --roxo-neon: #9d00ff;        /* Roxo Elétrico */
+            --magenta-viva: #ff00ff;     /* Magenta Neon */
+            --ciano-tech: #00ffff;       /* Ciano Digital */
+            --texto-claro: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--fundo-deep);
+            background-image:
+                radial-gradient(circle at 15% 25%, rgba(157, 0, 255, 0.15) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(0, 255, 255, 0.1) 0%, transparent 45%);
+            color: var(--texto-claro);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- PAINEL HOLOGRÁFICO --- */
+        .painel-terminal {
+            background: rgba(10, 0, 20, 0.85);
+            border: 1px solid rgba(157, 0, 255, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 30px;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(157, 0, 255, 0.2);
+            z-index: 10;
+        }
+
+        h2 {
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 20px;
+            font-weight: 300;
+            margin-bottom: 25px;
+            background: linear-gradient(90deg, var(--roxo-neon), var(--magenta-viva));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .campo { margin-bottom: 15px; }
+
+        label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--roxo-neon);
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--magenta-viva);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+            background: rgba(255, 0, 255, 0.05);
+        }
+
+        .grid-duplo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* --- BOTÃO DE EXECUÇÃO --- */
+        .btn-imprimir {
+            width: 100%;
+            padding: 16px;
+            margin-top: 20px;
+            background: linear-gradient(45deg, var(--roxo-neon), var(--magenta-viva));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(157, 0, 255, 0.4);
+            transition: 0.3s ease;
+        }
+
+        .btn-imprimir:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 0, 255, 0.6);
+            filter: brightness(1.1);
+        }
+
+        /* --- ÁREA DE IMPRESSÃO (GRADE A4) --- */
+        #grade-impressao { display: none; }
+
+        .etiqueta-card {
+            width: 90mm;
+            height: 50mm;
+            background: white;
+            color: black;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 0.2mm solid #ddd;
+            float: left;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .etiqueta-topo {
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            border-bottom: 2px solid black;
+            padding-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .linha-dados {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: flex;
+            margin: 2px 0;
+        }
+
+        .linha-dados span {
+            font-weight: normal;
+            border-bottom: 1px dotted #444;
+            flex-grow: 1;
+            margin-left: 5px;
+            overflow: hidden;
+        }
+
+        @media print {
+            body { background: white !important; padding: 0 !important; background-image: none !important; }
+            .painel-terminal { display: none !important; }
+            #grade-impressao { display: block !important; width: 100% !important; }
+            .etiqueta-card { -webkit-print-color-adjust: exact; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="painel-terminal">
+        <h2>Jamily - v1.0</h2>
+
+        <div class="campo">
+            <label>Material:</label>
+            <input type="text" id="material">
+        </div>
+
+        <div class="grid-duplo">
+            <div class="campo">
+                <label>Lote:</label>
+                <input type="text" id="lote">
+            </div>
+            <div class="campo">
+                <label>Qtde Etiquetas</label>
+                <input type="number" id="qtd" min="1" value="1">
+            </div>
+        </div>
+
+        <div class="grid-duplo">
+            <div class="campo">
+                <label>Data Esterilização:</label>
+                <input type="text" id="dtEst">
+            </div>
+            <div class="campo">
+                <label>Data Limite DE USO:</label>
+                <input type="text" id="dtLim">
+            </div>
+        </div>
+
+        <div class="campo">
+            <label>Responsável(PREPARO)</label>
+            <input type="text" id="resp">
+        </div>
+
+        <div class="campo">
+            <label>Método de ESTERELIZAÇÃO</label>
+            <input type="text" id="metodo">
+        </div>
+
+        <button class="btn-imprimir" onclick="gerarImpressao()">Imprimir etiquetas</button>
+    </div>
+
+    <div id="grade-impressao"></div>
+
+    <script>
+        function gerarImpressao() {
+            const grid = document.getElementById('grade-impressao');
+            const qtd = parseInt(document.getElementById('qtd').value) || 1;
+
+            const dados = {
+                m: document.getElementById('material').value,
+                l: document.getElementById('lote').value,
+                e: document.getElementById('dtEst').value,
+                v: document.getElementById('dtLim').value,
+                r: document.getElementById('resp').value,
+                met: document.getElementById('metodo').value
+            };
+
+            grid.innerHTML = '';
+
+            for (let i = 0; i < qtd; i++) {
+                grid.innerHTML += `
+                    <div class="etiqueta-card">
+                        <div class="etiqueta-topo">
+                            HOSPITAL MUNICIPAL DE VIGIA<br>
+                            IDENTIFICAÇÃO DE MATERIAIS // CME
+                        </div>
+                        <div class="linha-dados">MATERIAL: <span>${dados.m}</span></div>
+                        <div class="linha-dados">LOTE: <span>${dados.l}</span></div>
+                        <div class="linha-dados">DATA ESTERILIZAÇÃO: <span>${dados.e}</span></div>
+                        <div class="linha-dados">DATA LIMITE DE USO: <span>${dados.v}</span></div>
+                        <div class="linha-dados">RESPONSÁVEL(PREPARO): <span>${dados.r}</span></div>
+                        <div class="linha-dados">MÉTODO DE ESTERILIZAÇÃO: <span>${dados.met}</span></div>
+                    </div>
+                `;
+            }
+
+            // Pequeno atraso para garantir renderização antes de abrir o diálogo de impressão
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+    </script>
+</body>
+</html>
