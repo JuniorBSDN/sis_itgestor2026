@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BioControl Pro - Excel Cloud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0b111a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --accent-color: #00f2ff;
+            --secondary-accent: #7000ff;
+            --text-color: #ffffff;
+            --danger: #ff4d4d;
+            --success: #2ecc71;
+            --modal-bg: #151d29;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex; justify-content: center;
+            min-height: 100vh; padding: 15px;
+        }
+
+        .container { width: 100%; max-width: 400px; }
+
+        header { margin-bottom: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        header h1 { font-size: 1.1rem; color: var(--accent-color); letter-spacing: 3px; font-weight: 300; }
+        header p { font-size: 0.7rem; opacity: 0.6; margin-top: 5px; }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; padding: 20px; margin-bottom: 25px;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-size: 0.7rem; text-transform: uppercase; opacity: 0.6; }
+
+        select, input {
+            width: 100%; padding: 14px; background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
+            color: white; font-size: 1rem; outline: none;
+        }
+
+        select:focus, input:focus { border-color: var(--accent-color); }
+
+        .btn-submit {
+            width: 100%; padding: 16px; border: none; border-radius: 12px;
+            color: #000; font-weight: 700; font-size: 1rem; cursor: pointer;
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-accent));
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:active { transform: scale(0.98); }
+
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .filter-date { width: auto; padding: 7px; font-size: 0.8rem; background: rgba(255,255,255,0.07); color: white; border: none; border-radius: 8px; }
+
+        .btn-excel {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .history-item {
+            background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .item-info strong { display: block; font-size: 0.95rem; }
+        .item-info span { font-size: 0.75rem; opacity: 0.5; }
+        .item-weight { color: var(--accent-color); font-weight: 600; font-size: 1.1rem; }
+
+        .loading-text { text-align: center; opacity: 0.5; font-size: 0.9rem; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>JOYCE</h1>
+        <p>BIOCONTROL PRO • CLOUD EXCEL</p>
+    </header>
+
+    <div class="glass-card">
+        <div class="form-group">
+            <label>Tipo de Lixo</label>
+            <select id="tipo">
+                <option>Infectante (A)</option>
+                <option>Químico (B)</option>
+                <option>Comum (D)</option>
+                <option>Perfurocortante (E)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Quantidade (Kg)</label>
+            <input type="number" id="peso" placeholder="0.00" inputmode="decimal" step="0.01">
+        </div>
+        <button class="btn-submit" id="btn-salvar" onclick="salvarNoExcel()">SALVAR NA PLANILHA</button>
+    </div>
+
+    <div class="history-header">
+        <input type="date" id="filtroData" class="filter-date" onchange="buscarDados()">
+        <button class="btn-excel" onclick="baixarArquivoExcel()">BAIXAR .XLSX</button>
+    </div>
+
+    <div id="lista"></div>
+</div>
+
+<script>
+    /**
+     * CONFIGURAÇÃO:
+     * Cole aqui a URL gerada no Google Apps Script (Implantar > App da Web)
+     */
+    const API_URL = 'SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI';
+
+    let registrosCarregados = [];
+
+    // Define a data padrão como hoje
+    document.getElementById('filtroData').valueAsDate = new Date();
+
+    // 1. FUNÇÃO PARA SALVAR OS DADOS NA PLANILHA
+    async function salvarNoExcel() {
+        const tipo = document.getElementById('tipo').value;
+        const peso = document.getElementById('peso').value;
+        const data = document.getElementById('filtroData').value;
+
+        if (!peso) {
+            alert("Por favor, digite o peso.");
+            return;
+        }
+
+        const btn = document.getElementById('btn-salvar');
+        btn.disabled = true;
+        btn.textContent = "ENVIANDO...";
+
+        const payload = {
+            action: "salvar",
+            id: "ID-" + Date.now(),
+            tipo: tipo,
+            peso: parseFloat(peso).toFixed(2),
+            data: data,
+            hora: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
+        };
+
+        try {
+            // Enviando para o Google Sheets
+            await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Necessário para Google Apps Script
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            document.getElementById('peso').value = '';
+            alert("Salvo com sucesso na planilha!");
+            // Aguarda 1.5s para o Google processar e atualiza a lista
+            setTimeout(buscarDados, 1500);
+
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao conectar com o banco de dados.");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "SALVAR NA PLANILHA";
+        }
+    }
+
+    // 2. FUNÇÃO PARA BUSCAR DADOS DA PLANILHA
+    async function buscarDados() {
+        const listaDiv = document.getElementById('lista');
+        const dataFiltro = document.getElementById('filtroData').value;
+
+        listaDiv.innerHTML = '<div class="loading-text">Sincronizando com Excel...</div>';
+
+        try {
+            const response = await fetch(API_URL);
+            const todosOsDados = await response.json();
+
+            // Filtra localmente apenas os da data selecionada
+            registrosCarregados = todosOsDados.filter(r => r.data_busca === dataFiltro);
+
+            listaDiv.innerHTML = '';
+
+            if (registrosCarregados.length === 0) {
+                listaDiv.innerHTML = '<div class="loading-text">Nenhum registro encontrado.</div>';
+                return;
+            }
+
+            registrosCarregados.forEach(r => {
+                listaDiv.innerHTML += `
+                    <div class="history-item">
+                        <div class="item-info">
+                            <strong>${r.tipo}</strong>
+                            <span>${r.hora}</span>
+                        </div>
+                        <div class="item-weight">${r.peso} kg</div>
+                    </div>`;
+            });
+
+        } catch (error) {
+            listaDiv.innerHTML = '<div class="loading-text" style="color:red">Erro ao carregar dados da planilha. Verifique a URL da API.</div>';
+        }
+    }
+
+    // 3. FUNÇÃO PARA GERAR O ARQUIVO XLSX PARA DOWNLOAD
+    function baixarArquivoExcel() {
+        if (registrosCarregados.length === 0) {
+            alert("Não há dados na lista para exportar.");
+            return;
+        }
+
+        const dataFormatada = document.getElementById('filtroData').value;
+
+        // Formata os dados para o Excel
+        const worksheetData = registrosCarregados.map(r => ({
+            "DATA": r.data_busca,
+            "HORA": r.hora,
+            "TIPO DE RESÍDUO": r.tipo,
+            "PESO (KG)": parseFloat(r.peso)
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(worksheetData);
+
+        // Ajusta largura das colunas
+        ws['!cols'] = [{wch:15}, {wch:10}, {wch:20}, {wch:10}];
+
+        XLSX.utils.book_append_sheet(wb, ws, "BioControl");
+        XLSX.writeFile(wb, `BioControl_Relatorio_${dataFormatada}.xlsx`);
+    }
+
+    // Inicia carregando os dados do dia
+    buscarDados();
+</script>
+
+</body>
+</html>
