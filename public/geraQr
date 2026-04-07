@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIT GESTOR 2026 | Gerador de Etiquetas QR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* DEFINIÇÃO DE TONS (DARK/SCI-FI PARA INTERFACE) */
+        :root {
+            --bg-dark: #0d1117;
+            --card-bg: #161b22;
+            --neon-green: #00ff41;
+            --text-gray: #c9d1d9;
+            --border-color: #30363d;
+            --input-bg: #010409;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-gray);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* PAINEL DE CONTROLE (OCULTO NA IMPRESSÃO) */
+        .no-print {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.05);
+            margin-bottom: 40px;
+        }
+
+        h2 { color: var(--neon-green); margin-top: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; }
+        label { display: block; margin: 10px 0 5px; font-size: 0.9rem; opacity: 0.8; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 6px;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--neon-green); box-shadow: 0 0 5px var(--neon-green); }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-generate { background-color: var(--neon-green); color: #000; }
+        .btn-print { background-color: #21262d; color: #fff; border: 1px solid var(--border-color); }
+
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* ÁREA DE ETIQUETAS (MODO CLARO PARA IMPRESSÃO) */
+        #print-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .etiqueta {
+            background: #fff; /* Fundo branco para leitura do QR */
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            color: #000; /* Texto preto para impressão */
+            border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .etiqueta-texto {
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            height: 34px;
+            overflow: hidden;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        /* CONFIGURAÇÕES DE IMPRESSÃO (A4) */
+        @media print {
+            .no-print { display: none; }
+            body { background: #fff; padding: 0; }
+            #print-area {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 5mm;
+                padding: 5mm;
+            }
+            .etiqueta {
+                border: 1px dashed #ccc;
+                page-break-inside: avoid;
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <h2>SIT GESTOR | Gerador de Etiquetas</h2>
+
+    <label>Link de Destino:</label>
+    <input type="text" id="url" value="https://sisitgestor2026.vercel.app/helpdesk.html">
+
+    <label>Texto da Etiqueta:</label>
+    <input type="text" id="label-text" placeholder="Ex: Problemas com o PC? Escaneie aqui">
+
+    <label>Quantidade de Etiquetas:</label>
+    <input type="number" id="qty" value="4" min="1">
+
+    <div class="btn-group">
+        <button class="btn-generate" onclick="generateLabels()">Gerar Etiquetas</button>
+        <button class="btn-print" onclick="window.print()">Imprimir</button>
+    </div>
+</div>
+
+<div id="print-area">
+    </div>
+
+<script>
+    function generateLabels() {
+        const url = document.getElementById('url').value;
+        const text = document.getElementById('label-text').value;
+        const qty = parseInt(document.getElementById('qty').value);
+        const printArea = document.getElementById('print-area');
+
+        if (!url) {
+            alert("Insira um link válido.");
+            return;
+        }
+
+        // Limpa a área de impressão antes de gerar novas
+        printArea.innerHTML = "";
+
+        for (let i = 0; i < qty; i++) {
+            // Criar elemento da etiqueta
+            const etiqueta = document.createElement('div');
+            etiqueta.className = 'etiqueta';
+
+            // Criar elemento do texto
+            const txtDiv = document.createElement('div');
+            txtDiv.className = 'etiqueta-texto';
+            txtDiv.innerText = text || "Escaneie para Suporte";
+            etiqueta.appendChild(txtDiv);
+
+            // Criar container do QR Code
+            const qrDiv = document.createElement('div');
+            qrDiv.id = 'qr-' + i;
+            etiqueta.appendChild(qrDiv);
+
+            printArea.appendChild(etiqueta);
+
+            // Gerar o QR Code
+            new QRCode(qrDiv, {
+                text: url,
+                width: 140,
+                height: 140,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H // Nível alto para resistir a sujeira
+            });
+        }
+    }
+
+    // Gerar etiquetas iniciais ao carregar
+    window.onload = generateLabels;
+</script>
+
+</body>
+</html>
