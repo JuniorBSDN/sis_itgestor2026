@@ -2,251 +2,150 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BioControl Pro - Excel Cloud</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor-HVN | Registro com Excel Automático</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
-            --bg-color: #0b111a;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --accent-color: #00f2ff;
-            --secondary-accent: #7000ff;
-            --text-color: #ffffff;
-            --danger: #ff4d4d;
-            --success: #2ecc71;
-            --modal-bg: #151d29;
+            --hvn-primary: #2563eb; --hvn-secondary: #64748b; --hvn-success: #10b981;
+            --hvn-bg: #f8fafc; --sidebar: #0f172a; --white: #ffffff; --border: #e2e8f0;
         }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--hvn-bg); display: flex; min-height: 100vh; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        .sidebar { width: 260px; background: var(--sidebar); color: white; padding: 2rem; position: fixed; height: 100vh; }
+        .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 2.5rem; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex; justify-content: center;
-            min-height: 100vh; padding: 15px;
-        }
+        .card { background: var(--white); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 1rem; text-align: left; font-size: 0.75rem; color: var(--hvn-secondary); border-bottom: 1px solid var(--border); }
+        td { padding: 1rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 
-        .container { width: 100%; max-width: 400px; }
+        .btn-main { padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; background: var(--hvn-primary); color: white; display: flex; align-items: center; gap: 8px; }
+        .btn-excel { background: var(--hvn-success); margin-left: 10px; }
 
-        header { margin-bottom: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-        header h1 { font-size: 1.1rem; color: var(--accent-color); letter-spacing: 3px; font-weight: 300; }
-        header p { font-size: 0.7rem; opacity: 0.6; margin-top: 5px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 2rem; border-radius: 20px; width: 450px; }
 
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px; padding: 20px; margin-bottom: 25px;
-        }
-
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 6px; font-size: 0.7rem; text-transform: uppercase; opacity: 0.6; }
-
-        select, input {
-            width: 100%; padding: 14px; background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
-            color: white; font-size: 1rem; outline: none;
-        }
-
-        select:focus, input:focus { border-color: var(--accent-color); }
-
-        .btn-submit {
-            width: 100%; padding: 16px; border: none; border-radius: 12px;
-            color: #000; font-weight: 700; font-size: 1rem; cursor: pointer;
-            background: linear-gradient(135deg, var(--accent-color), var(--secondary-accent));
-            transition: transform 0.2s;
-        }
-
-        .btn-submit:active { transform: scale(0.98); }
-
-        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .filter-date { width: auto; padding: 7px; font-size: 0.8rem; background: rgba(255,255,255,0.07); color: white; border: none; border-radius: 8px; }
-
-        .btn-excel {
-            background: rgba(46, 204, 113, 0.2);
-            color: #2ecc71;
-            border: 1px solid #2ecc71;
-            padding: 7px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .history-item {
-            background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-left: 4px solid var(--accent-color);
-        }
-
-        .item-info strong { display: block; font-size: 0.95rem; }
-        .item-info span { font-size: 0.75rem; opacity: 0.5; }
-        .item-weight { color: var(--accent-color); font-weight: 600; font-size: 1.1rem; }
-
-        .loading-text { text-align: center; opacity: 0.5; font-size: 0.9rem; padding: 20px; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>JOYCE</h1>
-        <p>BIOCONTROL PRO • CLOUD EXCEL</p>
+<aside class="sidebar">
+    <h3>GESTOR HVN</h3>
+    <p style="font-size: 0.7rem; color: #64748b;">Excel Automático Ativado</p>
+</aside>
+
+<main class="main-content">
+    <header style="display: flex; justify-content: space-between; margin-bottom: 2rem;">
+        <h1>Registros da Unidade</h1>
+        <div style="display: flex;">
+            <button class="btn-main" onclick="abrirModal()"><i class="fas fa-plus"></i> Novo Registro</button>
+            <button class="btn-main btn-excel" onclick="baixarExcel()"><i class="fas fa-file-excel"></i> Baixar Atual</button>
+        </div>
     </header>
 
-    <div class="glass-card">
-        <div class="form-group">
-            <label>Tipo de Lixo</label>
-            <select id="tipo">
-                <option>Infectante (A)</option>
-                <option>Químico (B)</option>
-                <option>Comum (D)</option>
-                <option>Perfurocortante (E)</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Quantidade (Kg)</label>
-            <input type="number" id="peso" placeholder="0.00" inputmode="decimal" step="0.01">
-        </div>
-        <button class="btn-submit" id="btn-salvar" onclick="salvarNoExcel()">SALVAR NA PLANILHA</button>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>Função</th>
+                    <th>Turno</th>
+                </tr>
+            </thead>
+            <tbody id="lista-corpo"></tbody>
+        </table>
     </div>
+</main>
 
-    <div class="history-header">
-        <input type="date" id="filtroData" class="filter-date" onchange="buscarDados()">
-        <button class="btn-excel" onclick="baixarArquivoExcel()">BAIXAR .XLSX</button>
+<div id="modalForm" class="modal">
+    <div class="modal-content">
+        <h2>Novo Funcionário</h2>
+        <input type="text" id="f-nome" placeholder="Nome Completo">
+        <input type="text" id="f-tel" placeholder="Telefone">
+        <select id="f-funcao">
+            <option value="Enfermagem">Enfermagem</option>
+            <option value="Médico(a)">Médico(a)</option>
+            <option value="Administrativo">Administrativo</option>
+        </select>
+        <select id="f-turno">
+            <option value="12x36">12x36</option>
+            <option value="Comercial">Comercial</option>
+        </select>
+        <button class="btn-main" style="width: 100%; justify-content: center;" onclick="salvarERegistrar()">Salvar e Gerar Excel</button>
+        <button onclick="fecharModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Cancelar</button>
     </div>
-
-    <div id="lista"></div>
 </div>
 
 <script>
-    /**
-     * CONFIGURAÇÃO:
-     * Cole aqui a URL gerada no Google Apps Script (Implantar > App da Web)
-     */
-    const API_URL = 'SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI';
+    let funcionarios = [];
 
-    let registrosCarregados = [];
+    function abrirModal() { document.getElementById('modalForm').style.display = 'flex'; }
+    function fecharModal() { document.getElementById('modalForm').style.display = 'none'; }
 
-    // Define a data padrão como hoje
-    document.getElementById('filtroData').valueAsDate = new Date();
+    function salvarERegistrar() {
+        const nome = document.getElementById('f-nome').value;
+        const tel = document.getElementById('f-tel').value;
+        const funcao = document.getElementById('f-funcao').value;
+        const turno = document.getElementById('f-turno').value;
 
-    // 1. FUNÇÃO PARA SALVAR OS DADOS NA PLANILHA
-    async function salvarNoExcel() {
-        const tipo = document.getElementById('tipo').value;
-        const peso = document.getElementById('peso').value;
-        const data = document.getElementById('filtroData').value;
+        if(!nome || !tel) return alert("Preencha os dados!");
 
-        if (!peso) {
-            alert("Por favor, digite o peso.");
-            return;
-        }
+        // 1. Adiciona ao Array
+        funcionarios.push({
+            Nome: nome,
+            Telefone: tel,
+            Função: funcao,
+            Turno: turno,
+            Data_Registro: new Date().toLocaleString()
+        });
 
-        const btn = document.getElementById('btn-salvar');
-        btn.disabled = true;
-        btn.textContent = "ENVIANDO...";
+        // 2. Atualiza a Tabela na Tela
+        renderizar();
 
-        const payload = {
-            action: "salvar",
-            id: "ID-" + Date.now(),
-            tipo: tipo,
-            peso: parseFloat(peso).toFixed(2),
-            data: data,
-            hora: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
-        };
+        // 3. FECHA MODAL E GERA EXCEL AUTOMATICAMENTE
+        fecharModal();
+        baixarExcel();
 
-        try {
-            // Enviando para o Google Sheets
-            await fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Necessário para Google Apps Script
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            document.getElementById('peso').value = '';
-            alert("Salvo com sucesso na planilha!");
-            // Aguarda 1.5s para o Google processar e atualiza a lista
-            setTimeout(buscarDados, 1500);
-
-        } catch (error) {
-            console.error(error);
-            alert("Erro ao conectar com o banco de dados.");
-        } finally {
-            btn.disabled = false;
-            btn.textContent = "SALVAR NA PLANILHA";
-        }
+        // Limpa campos
+        document.getElementById('f-nome').value = "";
+        document.getElementById('f-tel').value = "";
     }
 
-    // 2. FUNÇÃO PARA BUSCAR DADOS DA PLANILHA
-    async function buscarDados() {
-        const listaDiv = document.getElementById('lista');
-        const dataFiltro = document.getElementById('filtroData').value;
-
-        listaDiv.innerHTML = '<div class="loading-text">Sincronizando com Excel...</div>';
-
-        try {
-            const response = await fetch(API_URL);
-            const todosOsDados = await response.json();
-
-            // Filtra localmente apenas os da data selecionada
-            registrosCarregados = todosOsDados.filter(r => r.data_busca === dataFiltro);
-
-            listaDiv.innerHTML = '';
-
-            if (registrosCarregados.length === 0) {
-                listaDiv.innerHTML = '<div class="loading-text">Nenhum registro encontrado.</div>';
-                return;
-            }
-
-            registrosCarregados.forEach(r => {
-                listaDiv.innerHTML += `
-                    <div class="history-item">
-                        <div class="item-info">
-                            <strong>${r.tipo}</strong>
-                            <span>${r.hora}</span>
-                        </div>
-                        <div class="item-weight">${r.peso} kg</div>
-                    </div>`;
-            });
-
-        } catch (error) {
-            listaDiv.innerHTML = '<div class="loading-text" style="color:red">Erro ao carregar dados da planilha. Verifique a URL da API.</div>';
-        }
+    function renderizar() {
+        const corpo = document.getElementById('lista-corpo');
+        corpo.innerHTML = funcionarios.map(f => `
+            <tr>
+                <td><strong>${f.Nome}</strong></td>
+                <td>${f.Telefone}</td>
+                <td>${f.Função}</td>
+                <td>${f.Turno}</td>
+            </tr>
+        `).join('');
     }
 
-    // 3. FUNÇÃO PARA GERAR O ARQUIVO XLSX PARA DOWNLOAD
-    function baixarArquivoExcel() {
-        if (registrosCarregados.length === 0) {
-            alert("Não há dados na lista para exportar.");
-            return;
-        }
+    // FUNÇÃO PARA GERAR O ARQUIVO EXCEL
+    function baixarExcel() {
+        if(funcionarios.length === 0) return;
 
-        const dataFormatada = document.getElementById('filtroData').value;
+        // Cria uma "folha" (worksheet) a partir do nosso array de objetos
+        const worksheet = XLSX.utils.json_to_sheet(funcionarios);
 
-        // Formata os dados para o Excel
-        const worksheetData = registrosCarregados.map(r => ({
-            "DATA": r.data_busca,
-            "HORA": r.hora,
-            "TIPO DE RESÍDUO": r.tipo,
-            "PESO (KG)": parseFloat(r.peso)
-        }));
+        // Cria um "livro" (workbook)
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Funcionários");
 
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(worksheetData);
-
-        // Ajusta largura das colunas
-        ws['!cols'] = [{wch:15}, {wch:10}, {wch:20}, {wch:10}];
-
-        XLSX.utils.book_append_sheet(wb, ws, "BioControl");
-        XLSX.writeFile(wb, `BioControl_Relatorio_${dataFormatada}.xlsx`);
+        // Gera o arquivo e inicia o download automático
+        XLSX.writeFile(workbook, "Registros_Gestor_HVN.xlsx");
     }
-
-    // Inicia carregando os dados do dia
-    buscarDados();
 </script>
 
 </body>
