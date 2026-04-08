@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BioControl Pro - Gestão Local</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         :root {
             --bg-color: #0b111a;
@@ -40,6 +44,15 @@
             border-radius: 20px; padding: 20px; margin-bottom: 25px;
         }
 
+        .total-card {
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(112, 0, 255, 0.1));
+            border: 1px solid var(--accent-color);
+            border-radius: 15px; padding: 15px; margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .total-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+        .total-value { font-size: 1.4rem; font-weight: 600; color: var(--accent-color); }
+
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-size: 0.7rem; text-transform: uppercase; opacity: 0.6; }
 
@@ -55,23 +68,23 @@
             background: linear-gradient(135deg, var(--accent-color), var(--secondary-accent));
         }
 
-        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .filter-date { padding: 7px; font-size: 0.8rem; background: rgba(255,255,255,0.07); color: white; border: none; border-radius: 8px; }
-        .btn-excel { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; padding: 7px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 8px; }
+        .filter-date { flex: 1; padding: 7px; font-size: 0.8rem; background: rgba(255,255,255,0.07); color: white; border: none; border-radius: 8px; }
+        
+        .btn-action { padding: 8px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; cursor: pointer; border: 1px solid; }
+        .btn-excel { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border-color: #2ecc71; }
+        .btn-pdf { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border-color: #e74c3c; }
 
         .history-item {
             background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center;
             border-left: 4px solid var(--accent-color); cursor: pointer;
-            transition: 0.2s;
         }
-        .history-item:active { transform: scale(0.98); background: rgba(255,255,255,0.1); }
 
         .item-info strong { display: block; font-size: 0.95rem; }
         .item-info span { font-size: 0.75rem; opacity: 0.5; }
         .item-weight { color: var(--accent-color); font-weight: 600; font-size: 1.1rem; }
 
-        /* Modal de Ações */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: flex-end; z-index: 1000;
@@ -117,9 +130,12 @@
         <button class="btn-submit" id="btn-salvar" onclick="salvarRegistro()">SALVAR REGISTRO</button>
     </div>
 
+    <div id="resumo-dia"></div>
+
     <div class="history-header">
         <input type="date" id="filtroData" class="filter-date" onchange="renderLista()">
-        <button class="btn-excel" onclick="baixarExcel()">BAIXAR EXCEL</button>
+        <button class="btn-action btn-excel" onclick="baixarExcel()">EXCEL</button>
+        <button class="btn-action btn-pdf" onclick="gerarPDF()">PDF</button>
     </div>
 
     <div id="lista"></div>
@@ -136,6 +152,7 @@
 <script>
     const STORAGE_KEY = 'biocontrol_v3';
     let idParaAcao = null;
+    let filtradosGlobal = [];
 
     document.getElementById('filtroData').valueAsDate = new Date();
 
@@ -150,14 +167,12 @@
         let registros = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
         if (idEdicao) {
-            // Modo Edição
             const index = registros.findIndex(r => r.id == idEdicao);
             if (index !== -1) {
                 registros[index].tipo = tipo;
                 registros[index].peso = parseFloat(peso).toFixed(2);
             }
         } else {
-            // Novo Registro
             const novo = {
                 id: Date.now(),
                 tipo: tipo,
@@ -175,18 +190,22 @@
 
     function renderLista() {
         const listaDiv = document.getElementById('lista');
+        const resumoDiv = document.getElementById('resumo-dia');
         const dataFiltro = document.getElementById('filtroData').value;
         const registros = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
-        const filtrados = registros.filter(r => r.data === dataFiltro);
+        filtradosGlobal = registros.filter(r => r.data === dataFiltro);
         listaDiv.innerHTML = '';
+        resumoDiv.innerHTML = '';
 
-        if (filtrados.length === 0) {
+        if (filtradosGlobal.length === 0) {
             listaDiv.innerHTML = '<p style="text-align:center; opacity:0.3; padding:20px;">Sem registros.</p>';
             return;
         }
 
-        filtrados.reverse().forEach(r => {
+        let somaTotal = 0;
+        filtradosGlobal.slice().reverse().forEach(r => {
+            somaTotal += parseFloat(r.peso);
             listaDiv.innerHTML += `
                 <div class="history-item" onclick="abrirModal(${r.id})">
                     <div class="item-info">
@@ -196,35 +215,32 @@
                     <div class="item-weight">${r.peso} kg</div>
                 </div>`;
         });
+
+        resumoDiv.innerHTML = `
+            <div class="total-card">
+                <span class="total-label">Total do Dia</span>
+                <span class="total-value">${somaTotal.toFixed(2)} Kg</span>
+            </div>`;
     }
 
-    function abrirModal(id) {
-        idParaAcao = id;
-        document.getElementById('modalOverlay').style.display = 'flex';
-    }
-
-    function fecharModal() {
-        document.getElementById('modalOverlay').style.display = 'none';
-    }
+    function abrirModal(id) { idParaAcao = id; document.getElementById('modalOverlay').style.display = 'flex'; }
+    function fecharModal() { document.getElementById('modalOverlay').style.display = 'none'; }
 
     function prepararEdicao() {
         const registros = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        const registro = registros.find(r => r.id == idParaAcao);
-
-        document.getElementById('edit-id').value = registro.id;
-        document.getElementById('tipo').value = registro.tipo;
-        document.getElementById('peso').value = registro.peso;
-
+        const r = registros.find(r => r.id == idParaAcao);
+        document.getElementById('edit-id').value = r.id;
+        document.getElementById('tipo').value = r.tipo;
+        document.getElementById('peso').value = r.peso;
         const btn = document.getElementById('btn-salvar');
         btn.textContent = "ATUALIZAR DADOS";
         btn.style.background = "var(--success)";
-
         fecharModal();
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function excluirRegistro() {
-        if (!confirm("Deseja realmente excluir?")) return;
+        if (!confirm("Excluir?")) return;
         let registros = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         registros = registros.filter(r => r.id != idParaAcao);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(registros));
@@ -240,25 +256,44 @@
         btn.style.background = "";
     }
 
+    function gerarPDF() {
+        if (filtradosGlobal.length === 0) return alert("Sem dados.");
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const dataFiltro = document.getElementById('filtroData').value;
+
+        doc.setFontSize(18);
+        doc.text("JOYCE - BIOCONTROL PRO", 14, 15);
+        doc.setFontSize(10);
+        doc.text(`Relatório: ${dataFiltro.split('-').reverse().join('/')}`, 14, 22);
+
+        const colunas = ["Hora", "Tipo", "Peso (Kg)"];
+        const linhas = filtradosGlobal.map(r => [r.hora, r.tipo, r.peso]);
+        
+        const total = filtradosGlobal.reduce((acc, curr) => acc + parseFloat(curr.peso), 0);
+        linhas.push([{ content: 'TOTAL DO DIA', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } }, { content: total.toFixed(2) + ' kg', styles: { fontStyle: 'bold' } }]);
+
+        doc.autoTable({
+            head: [colunas],
+            body: linhas,
+            startY: 30,
+            theme: 'striped',
+            headStyles: { fillColor: [112, 0, 255] }
+        });
+
+        doc.save(`BioControl_${dataFiltro}.pdf`);
+    }
+
     function baixarExcel() {
-        const registros = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        if (registros.length === 0) return alert("Nada para exportar.");
-
-        const dadosExcel = registros.map(r => ({
-            "Data": r.data,
-            "Hora": r.hora,
-            "Tipo": r.tipo,
-            "Peso (Kg)": parseFloat(r.peso)
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(dadosExcel);
+        if (filtradosGlobal.length === 0) return alert("Sem dados.");
+        const dados = filtradosGlobal.map(r => ({ "Data": r.data, "Hora": r.hora, "Tipo": r.tipo, "Peso": r.peso }));
+        const ws = XLSX.utils.json_to_sheet(dados);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "BioControl");
-        XLSX.writeFile(wb, "BioControl_Geral.xlsx");
+        XLSX.writeFile(wb, "BioControl_Filtrado.xlsx");
     }
 
     renderLista();
 </script>
-
 </body>
 </html>
