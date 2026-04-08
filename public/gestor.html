@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor-HVN | Painel Completo</title>
+    <title>Gestor-HVN | Painel SQL</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -17,34 +17,27 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--hvn-bg); color: #1e293b; min-height: 100vh; display: flex; }
 
-        /* Sidebar */
         .sidebar { width: 260px; background: var(--sidebar); color: white; padding: 2rem; position: fixed; height: 100vh; }
         .logo-area { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #1e293b; }
 
-        /* Main Content */
         .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 2.5rem; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 
-        /* Table & Cards */
         .card { background: var(--white); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8fafc; padding: 1rem 1.5rem; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--hvn-secondary); border-bottom: 1px solid var(--border); }
         td { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; vertical-align: middle; }
 
-        /* Ações Icons */
         .action-group { display: flex; gap: 8px; justify-content: flex-end; }
         .btn-action { width: 35px; height: 35px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; background: white; }
         .btn-action:hover { transform: translateY(-2px); box-shadow: 0 3px 5px rgba(0,0,0,0.1); }
         .btn-edit { color: var(--hvn-warning); }
         .btn-qr { color: var(--hvn-primary); }
-        .btn-report { color: var(--hvn-success); }
         .btn-delete { color: var(--hvn-danger); }
 
-        /* Modals */
         .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 2rem; border-radius: 20px; width: 100%; max-width: 500px; position: relative; }
-        .modal-header { margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-
+        
         .form-group { margin-bottom: 1rem; }
         label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--hvn-secondary); }
         input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
@@ -52,10 +45,7 @@
         .btn-main { padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; background: var(--hvn-primary); color: white; }
         #qrcode-box { display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 20px; }
 
-        @media print {
-            .no-print { display: none !important; }
-            .modal { position: absolute; display: block; background: white; inset: 0; }
-        }
+        @media print { .no-print { display: none !important; } .modal { position: absolute; display: block; background: white; inset: 0; } }
     </style>
 </head>
 <body>
@@ -63,64 +53,60 @@
 <aside class="sidebar no-print">
     <div class="logo-area">
         <h3>GESTOR <span style="color:var(--hvn-primary)">HVN</span></h3>
-        <p style="font-size: 0.7rem; color: #64748b; margin-top: 5px;">Ambiente de Gestão</p>
+        <p style="font-size: 0.7rem; color: #64748b; margin-top: 5px;">Sistema SQL Ativo</p>
     </div>
-    <nav>
-        <div style="color:white; background:#1e293b; padding:10px; border-radius:8px; display:flex; align-items:center; gap:10px;">
-            <i class="fas fa-users"></i> Equipe Hospitalar
-        </div>
-    </nav>
 </aside>
 
 <main class="main-content">
     <header class="no-print">
         <div>
-            <h1>Controle de Colaboradores</h1>
-            <p id="counter" style="color:var(--hvn-secondary)">Carregando...</p>
+            <h1>Equipe Hospitalar</h1>
+            <p id="counter" style="color:var(--hvn-secondary)">Sincronizando banco de dados...</p>
         </div>
-        <button class="btn-main" onclick="abrirModalCadastro()"><i class="fas fa-plus"></i> Novo Funcionário</button>
+        <button class="btn-main" onclick="abrirModalCadastro()"><i class="fas fa-plus"></i> Novo Colaborador</button>
     </header>
 
     <div class="card">
         <table>
             <thead>
-    <tr>
-        <th>Nome</th>
-        <th>CPF</th> <th>Telefone</th>
-        <th>Função</th>
-        <th>Turno</th>
-        <th style="text-align: right;">Ações</th>
-    </tr>
-</thead>
-            <tbody id="lista-corpo"></tbody>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF (Login)</th>
+                    <th>Telefone</th>
+                    <th>Função</th>
+                    <th>Turno</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-corpo">
+                <tr><td colspan="6" style="text-align:center; padding:2rem;">Buscando informações no servidor...</td></tr>
+            </tbody>
         </table>
     </div>
 </main>
 
 <div id="modalForm" class="modal no-print">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modal-titulo">Cadastrar Funcionário</h2>
-        </div>
+        <h2 id="modal-titulo" style="margin-bottom:15px">Cadastrar</h2>
         <div class="form-group">
-            <label>CPF (Apenas números - Será o login do RAT)</label>
-            <input type="text" id="f-cpf" placeholder="00000000000" maxlength="11">
+            <label>CPF (Apenas números - Login do RAT)</label>
+            <input type="text" id="f-cpf" placeholder="Ex: 12345678901" maxlength="11">
         </div>
         <div class="form-group">
             <label>Nome Completo</label>
-            <input type="text" id="f-nome" placeholder="Ex: Dr. Carlos Ferreira">
+            <input type="text" id="f-nome" placeholder="Nome do colaborador">
         </div>
         <div class="form-group">
-            <label>Telefone / WhatsApp</label>
+            <label>Telefone</label>
             <input type="text" id="f-tel" placeholder="(00) 00000-0000">
         </div>
         <div class="form-group">
             <label>Função</label>
             <select id="f-funcao">
+                <option value="Técnico(a)">Técnico(a)</option>
                 <option value="Médico(a)">Médico(a)</option>
                 <option value="Enfermagem">Enfermagem</option>
                 <option value="Administrativo">Administrativo</option>
-                <option value="Técnico(a)">Técnico(a)</option>
             </select>
         </div>
         <div class="form-group">
@@ -132,23 +118,21 @@
             </select>
         </div>
         <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="btn-main" style="flex:1" onclick="salvar()">Salvar Dados</button>
-            <button class="btn-main" style="flex:1; background:var(--hvn-secondary)" onclick="fecharModais()">Cancelar</button>
+            <button class="btn-main" style="flex:1" onclick="salvar()">Confirmar</button>
+            <button class="btn-main" style="flex:1; background:var(--hvn-secondary)" onclick="fecharModais()">Sair</button>
         </div>
     </div>
 </div>
 
 <div id="modalQR" class="modal">
     <div class="modal-content" style="max-width: 350px;">
-        <div class="modal-header">
-            <h2>Cartão de Acesso</h2>
-        </div>
+        <h2 style="text-align:center">Cartão de Acesso</h2>
         <div id="qrcode-box">
             <h4 id="qr-nome-display" style="color:var(--hvn-primary)">---</h4>
             <div id="canvas-qrcode"></div>
-            <p style="font-size: 0.7rem; color: #64748b; text-align: center;">Utilize este código para validações no sistema.</p>
+            <p style="font-size: 0.7rem; color: #64748b; text-align: center;">Acesso único por CPF</p>
         </div>
-        <button class="btn-main no-print" style="width: 100%;" onclick="window.print()">Imprimir QR Code</button>
+        <button class="btn-main no-print" style="width: 100%;" onclick="window.print()">Imprimir</button>
         <button class="btn-main no-print" style="width: 100%; margin-top: 10px; background:var(--hvn-secondary)" onclick="fecharModais()">Fechar</button>
     </div>
 </div>
@@ -157,38 +141,53 @@
     const API_URL = '/api/funcionarios';
     let funcionariosCache = [];
 
-    // Busca inicial de dados do servidor SQL
     async function buscarFuncionarios() {
         try {
-            const response = await fetch(API_URL);
+            // O "?t=" força o navegador a não usar o cache antigo
+            const response = await fetch(`${API_URL}?t=${Date.now()}`);
+            if (!response.ok) throw new Error("Falha na rede");
             funcionariosCache = await response.json();
             renderizar();
         } catch (error) {
-            console.error("Erro ao buscar:", error);
+            console.error("Erro:", error);
+            document.getElementById('lista-corpo').innerHTML = `<tr><td colspan="6" style="text-align:center; color:red">Erro ao conectar com o servidor SQL.</td></tr>`;
         }
     }
 
-    function abrirModalCadastro() {
-        document.getElementById('modal-titulo').innerText = "Cadastrar Funcionário";
-        document.getElementById('f-cpf').disabled = false;
-        document.getElementById('f-cpf').value = "";
-        document.getElementById('f-nome').value = "";
-        document.getElementById('f-tel').value = "";
-        document.getElementById('modalForm').style.display = 'flex';
-    }
+    function renderizar() {
+        const corpo = document.getElementById('lista-corpo');
+        document.getElementById('counter').innerText = `${funcionariosCache.length} colaboradores no banco SQL.`;
 
-    function fecharModais() {
-        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        if (funcionariosCache.length === 0) {
+            corpo.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem;">Nenhum registro encontrado no banco.</td></tr>`;
+            return;
+        }
+
+        corpo.innerHTML = funcionariosCache.map(f => `
+            <tr>
+                <td><strong>${f.nome}</strong></td>
+                <td>${f.cpf}</td>
+                <td>${f.tel}</td>
+                <td>${f.funcao}</td>
+                <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:0.8rem;">${f.turno}</span></td>
+                <td>
+                    <div class="action-group no-print">
+                        <div class="btn-action btn-qr" onclick="abrirQR('${f.nome}', '${f.cpf}')"><i class="fas fa-qrcode"></i></div>
+                        <div class="btn-action btn-edit" onclick="abrirEditar('${f.cpf}')"><i class="fas fa-user-edit"></i></div>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
     }
 
     async function salvar() {
-        const cpf = document.getElementById('f-cpf').value.replace(/\D/g, ''); // Limpa pontos e traços
+        const cpf = document.getElementById('f-cpf').value.replace(/\D/g, '');
         const nome = document.getElementById('f-nome').value;
         const tel = document.getElementById('f-tel').value;
         const funcao = document.getElementById('f-funcao').value;
         const turno = document.getElementById('f-turno').value;
 
-        if(cpf.length < 11 || !nome || !tel) return alert("Preencha CPF (11 dígitos), Nome e Telefone!");
+        if(cpf.length < 11 || !nome) return alert("CPF e Nome são obrigatórios!");
 
         const dados = { id: cpf, nome, tel, funcao, turno };
 
@@ -203,42 +202,28 @@
                 fecharModais();
                 buscarFuncionarios();
             } else {
-                alert("Erro ao salvar no servidor.");
+                alert("Erro ao salvar. Verifique o servidor.");
             }
         } catch (e) {
-            console.error(e);
+            alert("Erro de conexão.");
         }
     }
 
-function renderizar() {
-    const corpo = document.getElementById('lista-corpo');
-    // 'funcionariosCache' é a lista que veio do seu fetch('/api/funcionarios')
-    document.getElementById('counter').innerText = `${funcionariosCache.length} colaboradores cadastrados.`;
-
-    corpo.innerHTML = funcionariosCache.map(f => `
-        <tr>
-            <td><strong>${f.nome}</strong></td>
-            <td>${f.cpf}</td> <td>${f.tel}</td>
-            <td>${f.funcao}</td>
-            <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:0.8rem;">${f.turno}</span></td>
-            <td>
-                <div class="action-group no-print">
-                    <div class="btn-action btn-qr" title="Gerar QR" onclick="abrirQR('${f.nome}', '${f.cpf}')"><i class="fas fa-qrcode"></i></div>
-                    <div class="btn-action btn-edit" title="Editar" onclick="abrirEditar('${f.cpf}')"><i class="fas fa-user-edit"></i></div>
-                    <div class="btn-action btn-delete" title="Excluir" onclick="excluir('${f.cpf}')"><i class="fas fa-trash"></i></div>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
+    function abrirModalCadastro() {
+        document.getElementById('modal-titulo').innerText = "Novo Colaborador";
+        document.getElementById('f-cpf').disabled = false;
+        document.getElementById('f-cpf').value = "";
+        document.getElementById('f-nome').value = "";
+        document.getElementById('f-tel').value = "";
+        document.getElementById('modalForm').style.display = 'flex';
+    }
 
     function abrirEditar(cpf) {
         const f = funcionariosCache.find(x => x.cpf === cpf);
         if (!f) return;
-
-        document.getElementById('modal-titulo').innerText = "Alterar Colaborador";
+        document.getElementById('modal-titulo').innerText = "Editar Dados";
         document.getElementById('f-cpf').value = f.cpf;
-        document.getElementById('f-cpf').disabled = true; // CPF não se altera
+        document.getElementById('f-cpf').disabled = true;
         document.getElementById('f-nome').value = f.nome;
         document.getElementById('f-tel').value = f.tel;
         document.getElementById('f-funcao').value = f.funcao;
@@ -254,14 +239,10 @@ function renderizar() {
         document.getElementById('modalQR').style.display = 'flex';
     }
 
-    function excluir(id) {
-        // Implementação de delete via API se desejar
-        alert("Para excluir, use o painel administrativo do banco de dados ou implemente a rota DELETE no index.py");
-    }
-
+    function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
     window.onclick = (e) => { if(e.target.className == 'modal') fecharModais(); }
 
-    // Inicia a busca ao carregar
+    // Início imediato
     buscarFuncionarios();
 </script>
 </body>
