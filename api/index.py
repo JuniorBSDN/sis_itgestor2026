@@ -96,6 +96,7 @@ def gerenciar_funcionarios():
     cur = conn.cursor()
     if request.method == 'POST':
         dados = request.json
+        # O ID que vem do front agora é o CPF
         cpf = str(dados.get('id')).replace('.', '').replace('-', '').strip()
         cur.execute('''INSERT INTO funcionarios (cpf, nome, tel, funcao, turno) 
                        VALUES (%s, %s, %s, %s, %s) 
@@ -107,7 +108,8 @@ def gerenciar_funcionarios():
         conn.close()
         return jsonify({"status": "sucesso"}), 200
     
-    cur.execute('SELECT * FROM funcionarios')
+    # O GET precisa retornar a coluna CPF para o HTML exibir
+    cur.execute('SELECT cpf, nome, tel, funcao, turno FROM funcionarios')
     res = cur.fetchall()
     cur.close()
     conn.close()
