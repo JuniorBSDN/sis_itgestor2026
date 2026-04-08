@@ -93,27 +93,29 @@ def login():
 @app.route('/api/funcionarios', methods=['GET', 'POST'])
 def gerenciar_funcionarios():
     conn = get_db_connection()
-    cur = conn.cursor()
+    cur = conn.cursor() # Certifique-se que get_db_connection usa RealDictCursor
+    
     if request.method == 'POST':
         dados = request.json
-        # O ID que vem do front agora é o CPF
+        # Limpa o CPF para garantir que sejam apenas números
         cpf = str(dados.get('id')).replace('.', '').replace('-', '').strip()
-        cur.execute('''INSERT INTO funcionarios (cpf, nome, tel, funcao, turno) 
-                       VALUES (%s, %s, %s, %s, %s) 
-                       ON CONFLICT (cpf) DO UPDATE SET nome=%s, tel=%s, funcao=%s, turno=%s''',
-                    (cpf, dados['nome'], dados['tel'], dados['funcao'], dados['turno'],
-                     dados['nome'], dados['tel'], dados['funcao'], dados['turno']))
+        cur.execute('''
+            INSERT INTO funcionarios (cpf, nome, tel, funcao, turno) 
+            VALUES (%s, %s, %s, %s, %s) 
+            ON CONFLICT (cpf) DO UPDATE SET nome=%s, tel=%s, funcao=%s, turno=%s
+        ''', (cpf, dados['nome'], dados['tel'], dados['funcao'], dados['turno'],
+              dados['nome'], dados['tel'], dados['funcao'], dados['turno']))
         conn.commit()
         cur.close()
         conn.close()
         return jsonify({"status": "sucesso"}), 200
     
-    # O GET precisa retornar a coluna CPF para o HTML exibir
+    # IMPORTANTE: Selecione as colunas explicitamente
     cur.execute('SELECT cpf, nome, tel, funcao, turno FROM funcionarios')
-    res = cur.fetchall()
+    lista = cur.fetchall()
     cur.close()
     conn.close()
-    return jsonify(res), 200
+    return jsonify(lista), 200 # Isso enviará um JSON com a chave "cpf"
 
 # --- MÓDULO: HELPDESK / RAT ---
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
