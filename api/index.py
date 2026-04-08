@@ -15,15 +15,16 @@ def get_db_connection():
     url = os.environ.get('POSTGRES_URL')
     if url and url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql://", 1)
-    # sslmode=require é obrigatório para o Vercel Postgres
+    
+    # Adicionando parâmetros de conexão para garantir estabilidade no Vercel
     return psycopg2.connect(url, cursor_factory=RealDictCursor)
 
-# --- INICIALIZAÇÃO DO BANCO (Criação de Tabelas) ---
+# --- INICIALIZAÇÃO DO BANCO ---
 def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # 1. Funcionários (Gestor) - CPF como Chave Primária
+    # Tabela de Funcionários (Chave Primária é o CPF)
     cur.execute('''CREATE TABLE IF NOT EXISTS funcionarios (
         cpf TEXT PRIMARY KEY,
         nome TEXT NOT NULL,
@@ -32,7 +33,7 @@ def init_db():
         turno TEXT
     );''')
 
-    # 2. Atividades (RAT / Helpdesk)
+    # Tabela de Atividades (RAT)
     cur.execute('''CREATE TABLE IF NOT EXISTS atividades (
         id SERIAL PRIMARY KEY,
         nome_solicitante TEXT,
@@ -42,41 +43,35 @@ def init_db():
         status TEXT DEFAULT 'Pendente',
         data_abertura TEXT,
         tecnico_conclusao TEXT,
-        data_conclusao TEXT,
-        data_busca DATE DEFAULT CURRENT_DATE
+        data_conclusao TEXT
     );''')
 
-    # 3. Ativos, Relatos e Resíduos (Usando JSONB para flexibilidade)
+    # Tabelas Extras (Ativos, Relatos e Fila)
     cur.execute('CREATE TABLE IF NOT EXISTS ativos (id_ativo TEXT PRIMARY KEY, dados JSONB);')
-    cur.execute('CREATE TABLE IF NOT EXISTS relatos (id SERIAL PRIMARY KEY, dados JSONB, data_registro TEXT);')
-    cur.execute('CREATE TABLE IF NOT EXISTS residuos (id SERIAL PRIMARY KEY, dados JSONB, data_busca TEXT, data_registro TEXT);')
-
-    # 4. Fila de Senhas
-    cur.execute('''CREATE TABLE IF NOT EXISTS fila (
-        id SERIAL PRIMARY KEY,
-        senha TEXT,
-        status TEXT,
-        data_registro TEXT,
-        chamada_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        dados JSONB
-    );''')
+    cur.execute('CREATE TABLE IF NOT EXISTS fila (id SERIAL PRIMARY KEY, senha TEXT, status TEXT, dados JSONB);')
 
     conn.commit()
     cur.close()
     conn.close()
 
-# Inicia as tabelas
+# Executa a criação das tabelas ao iniciar o app
 try:
     init_db()
 except Exception as e:
-    print(f"Erro ao inicializar tabelas: {e}")
+    print(f"Erro ao iniciar banco: {e}")
 
-# --- MÓDULO: AUTENTICAÇÃO ---
+# --- ROTAS DA API ---
+
+@app.route('/')
+def home():
+    return "Servidor SQL Central de TI Online!"
+
+# Login por CPF
 @app.route('/api/login', methods=['POST'])
 def login():
     try:
         dados = request.json
-        cpf = dados.get('cpf', '').replace('.', '').replace('-', '').strip()
+        cpf = str(dados.get('cpf', '')).replace('.', '').replace('-', '').strip()
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('SELECT nome, funcao FROM funcionarios WHERE cpf = %s', (cpf,))
@@ -89,35 +84,34 @@ def login():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-# --- MÓDULO: GESTOR (FUNCIONÁRIOS) ---
+# Gestão de Funcionários
 @app.route('/api/funcionarios', methods=['GET', 'POST'])
 def gerenciar_funcionarios():
     conn = get_db_connection()
-    cur = conn.cursor() # Certifique-se que get_db_connection usa RealDictCursor
+    cur = conn.cursor()
     
     if request.method == 'POST':
         dados = request.json
-        # Limpa o CPF para garantir que sejam apenas números
+        # O 'id' enviado pelo HTML é o CPF
         cpf = str(dados.get('id')).replace('.', '').replace('-', '').strip()
-        cur.execute('''
-            INSERT INTO funcionarios (cpf, nome, tel, funcao, turno) 
-            VALUES (%s, %s, %s, %s, %s) 
-            ON CONFLICT (cpf) DO UPDATE SET nome=%s, tel=%s, funcao=%s, turno=%s
-        ''', (cpf, dados['nome'], dados['tel'], dados['funcao'], dados['turno'],
-              dados['nome'], dados['tel'], dados['funcao'], dados['turno']))
+        cur.execute('''INSERT INTO funcionarios (cpf, nome, tel, funcao, turno) 
+                       VALUES (%s, %s, %s, %s, %s) 
+                       ON CONFLICT (cpf) DO UPDATE SET nome=%s, tel=%s, funcao=%s, turno=%s''',
+                    (cpf, dados['nome'], dados['tel'], dados['funcao'], dados['turno'],
+                     dados['nome'], dados['tel'], dados['funcao'], dados['turno']))
         conn.commit()
         cur.close()
         conn.close()
         return jsonify({"status": "sucesso"}), 200
-    
-    # IMPORTANTE: Selecione as colunas explicitamente
-    cur.execute('SELECT cpf, nome, tel, funcao, turno FROM funcionarios')
-    lista = cur.fetchall()
+
+    # Retorna todos os colaboradores
+    cur.execute('SELECT cpf, nome, tel, funcao, turno FROM funcionarios ORDER BY nome ASC')
+    res = cur.fetchall()
     cur.close()
     conn.close()
-    return jsonify(lista), 200 # Isso enviará um JSON com a chave "cpf"
+    return jsonify(res), 200
 
-# --- MÓDULO: HELPDESK / RAT ---
+# Helpdesk / RAT
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
 def gerenciar_rat():
     conn = get_db_connection()
@@ -132,14 +126,14 @@ def gerenciar_rat():
         cur.close()
         conn.close()
         return jsonify({"status": "sucesso"}), 201
-    
+
     cur.execute('SELECT * FROM atividades ORDER BY id DESC')
     res = cur.fetchall()
     cur.close()
     conn.close()
     return jsonify(res), 200
 
-# --- AÇÃO: CONCLUIR RAT COM IDENTIFICAÇÃO DO TÉCNICO ---
+# Conclusão de RAT com Nome do Técnico
 @app.route('/api/status_rat_concluir/<int:id_doc>', methods=['PATCH'])
 def concluir_rat(id_doc):
     try:
@@ -147,9 +141,6 @@ def concluir_rat(id_doc):
         nome_tecnico = dados.get('nome_tecnico')
         data_fim = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        if not nome_tecnico:
-            return jsonify({"status": "erro", "mensagem": "Técnico não identificado"}), 400
-
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('''UPDATE atividades SET status = 'Concluido', tecnico_conclusao = %s, data_conclusao = %s 
@@ -160,46 +151,6 @@ def concluir_rat(id_doc):
         return jsonify({"status": "sucesso"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
-# --- MÓDULO: FILA DE SENHAS ---
-@app.route('/api/fila', methods=['GET', 'POST'])
-def gerenciar_fila():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    if request.method == 'POST':
-        dados = request.json
-        data_reg = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        cur.execute('INSERT INTO fila (senha, status, data_registro, dados) VALUES (%s, %s, %s, %s)',
-                    (dados.get('senha'), 'aguardando', data_reg, json.dumps(dados)))
-        conn.commit()
-        cur.close()
-        conn.close()
-        return jsonify({"status": "sucesso"}), 201
-    
-    cur.execute("SELECT * FROM fila WHERE status = 'aguardando' ORDER BY id ASC")
-    res = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify(res), 200
-
-# --- MÓDULO: ATIVOS ---
-@app.route('/api/ativos', methods=['GET', 'POST'])
-def gerenciar_ativos():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    if request.method == 'POST':
-        dados = request.json
-        cur.execute('INSERT INTO ativos (id_ativo, dados) VALUES (%s, %s) ON CONFLICT (id_ativo) DO UPDATE SET dados=%s',
-                    (dados.get('id_ativo'), json.dumps(dados), json.dumps(dados)))
-        conn.commit()
-        return jsonify({"status": "sucesso"}), 200
-    cur.execute('SELECT dados FROM ativos')
-    res = [row['dados'] for row in cur.fetchall()]
-    return jsonify(res), 200
-
-@app.route('/')
-def home():
-    return "API Central de TI (Vercel Postgres) Operacional!"
 
 if __name__ == '__main__':
     app.run(debug=True)
