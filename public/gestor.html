@@ -210,8 +210,9 @@
         }
     }
 
-    function renderizar() {
+function renderizar() {
     const corpo = document.getElementById('lista-corpo');
+    // 'funcionariosCache' é a lista que veio do seu fetch('/api/funcionarios')
     document.getElementById('counter').innerText = `${funcionariosCache.length} colaboradores cadastrados.`;
 
     corpo.innerHTML = funcionariosCache.map(f => `
