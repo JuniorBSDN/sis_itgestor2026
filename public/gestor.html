@@ -211,26 +211,25 @@
     }
 
     function renderizar() {
-        const corpo = document.getElementById('lista-corpo');
-        document.getElementById('counter').innerText = `${funcionariosCache.length} colaboradores cadastrados.`;
+    const corpo = document.getElementById('lista-corpo');
+    document.getElementById('counter').innerText = `${funcionariosCache.length} colaboradores cadastrados.`;
 
-        corpo.innerHTML = funcionariosCache.map(f => `
-            <tr>
-                <td><strong>${f.nome}</strong></td>
-                <td>${f.cpf}</td>
-                <td>${f.tel}</td>
-                <td>${f.funcao}</td>
-                <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:0.8rem;">${f.turno}</span></td>
-                <td>
-                    <div class="action-group no-print">
-                        <div class="btn-action btn-qr" title="Gerar QR Code" onclick="abrirQR('${f.nome}', '${f.cpf}')"><i class="fas fa-qrcode"></i></div>
-                        <div class="btn-action btn-edit" title="Alterar Dados" onclick="abrirEditar('${f.cpf}')"><i class="fas fa-user-edit"></i></div>
-                        <div class="btn-action btn-delete" title="Excluir" onclick="excluir('${f.cpf}')"><i class="fas fa-trash"></i></div>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-    }
+    corpo.innerHTML = funcionariosCache.map(f => `
+        <tr>
+            <td><strong>${f.nome}</strong></td>
+            <td>${f.cpf}</td> <td>${f.tel}</td>
+            <td>${f.funcao}</td>
+            <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:0.8rem;">${f.turno}</span></td>
+            <td>
+                <div class="action-group no-print">
+                    <div class="btn-action btn-qr" title="Gerar QR" onclick="abrirQR('${f.nome}', '${f.cpf}')"><i class="fas fa-qrcode"></i></div>
+                    <div class="btn-action btn-edit" title="Editar" onclick="abrirEditar('${f.cpf}')"><i class="fas fa-user-edit"></i></div>
+                    <div class="btn-action btn-delete" title="Excluir" onclick="excluir('${f.cpf}')"><i class="fas fa-trash"></i></div>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
 
     function abrirEditar(cpf) {
         const f = funcionariosCache.find(x => x.cpf === cpf);
