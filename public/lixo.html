@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BioControl Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         :root {
             --bg-color: #0b111a;
@@ -46,7 +49,7 @@
         select, input {
             width: 100%; padding: 14px; background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
-            color: white; font-size: 1rem;
+            color: white; font-size: 1rem; outline: none;
         }
 
         .btn-submit {
@@ -57,7 +60,7 @@
 
         .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .filter-date { padding: 7px; font-size: 0.8rem; background: rgba(255,255,255,0.07); color: white; border: none; border-radius: 8px; }
-        .btn-pdf { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; padding: 7px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
+        .btn-pdf { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; padding: 7px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
 
         .history-item {
             background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 10px;
@@ -76,12 +79,14 @@
         }
         .action-sheet {
             background: var(--modal-bg); width: 100%; max-width: 400px;
-            border-radius: 25px 25px 0 0; padding: 20px;
+            border-radius: 25px 25px 0 0; padding: 20px; animation: slideUp 0.3s ease-out;
         }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
         .action-btn {
             width: 100%; padding: 18px; background: rgba(255,255,255,0.05);
             border: none; border-radius: 15px; color: white; font-size: 1rem;
-            margin-bottom: 10px; text-align: left; font-weight: 600;
+            margin-bottom: 10px; text-align: left; font-weight: 600; cursor: pointer;
         }
         .action-btn.edit { border-left: 4px solid var(--success); color: var(--success); }
         .action-btn.delete { border-left: 4px solid var(--danger); color: var(--danger); }
@@ -92,7 +97,7 @@
 <div class="container">
     <header>
         <h1>JOYCE</h1>
-    <P>BIOCONTROL PRO</P>
+        <p style="font-size: 0.7rem; opacity: 0.5; letter-spacing: 2px;">BIOCONTROL PRO</p>
     </header>
 
     <div class="glass-card">
@@ -108,14 +113,14 @@
         </div>
         <div class="form-group">
             <label>Quantidade (Kg)</label>
-            <input type="number" id="peso" placeholder="0.00" inputmode="decimal">
+            <input type="number" id="peso" placeholder="0.00" inputmode="decimal" step="0.01">
         </div>
         <button class="btn-submit" id="btn-salvar" onclick="salvarRegistro()">SALVAR REGISTRO</button>
     </div>
 
     <div class="history-header">
         <input type="date" id="filtroData" class="filter-date" onchange="renderLista()">
-        <button class="btn-pdf" onclick="gerarPDF()">PDF</button>
+        <button class="btn-pdf" onclick="gerarPDF()">GERAR PDF</button>
     </div>
 
     <div id="lista"></div>
@@ -134,60 +139,71 @@
     let idParaAcao = null;
     let registrosLocais = [];
 
+    // Inicializa a data de hoje no filtro
     document.getElementById('filtroData').valueAsDate = new Date();
 
     async function renderLista() {
         const data = document.getElementById('filtroData').value;
         const listaDiv = document.getElementById('lista');
-        listaDiv.innerHTML = '<p style="text-align:center; opacity:0.5">Carregando...</p>';
+        listaDiv.innerHTML = '<p style="text-align:center; opacity:0.5; padding:20px;">Carregando...</p>';
 
         try {
             const res = await fetch(`${API_URL}?data=${data}`);
             registrosLocais = await res.json();
-            
+
             listaDiv.innerHTML = '';
-            if (registrosLocais.length === 0) {
-                listaDiv.innerHTML = '<p style="text-align:center; opacity:0.3">Nenhum registro.</p>';
+            if (!registrosLocais || registrosLocais.length === 0) {
+                listaDiv.innerHTML = '<p style="text-align:center; opacity:0.3; padding:20px;">Nenhum registro para este dia.</p>';
                 return;
             }
 
             registrosLocais.forEach(r => {
+                const hora = r.data_registro ? r.data_registro.split(' ')[1] : '--:--';
                 listaDiv.innerHTML += `
                     <div class="history-item" onclick="abrirModal('${r.id}')">
                         <div class="item-info">
                             <strong>${r.tipo}</strong>
-                            <span>${r.data_registro.split(' ')[1]}</span>
+                            <span>${hora}</span>
                         </div>
                         <div class="item-weight">${r.peso} kg</div>
                     </div>`;
             });
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            listaDiv.innerHTML = '<p style="text-align:center; color:var(--danger);">Erro ao carregar dados.</p>';
+        }
     }
 
     async function salvarRegistro() {
         const id = document.getElementById('edit-id').value;
+        const pesoInput = document.getElementById('peso').value;
+
+        if (!pesoInput) return alert("Por favor, insira o peso.");
+
         const payload = {
             tipo: document.getElementById('tipo').value,
-            peso: parseFloat(document.getElementById('peso').value).toFixed(2),
+            peso: parseFloat(pesoInput).toFixed(2),
             data_busca: document.getElementById('filtroData').value
         };
 
         const method = id ? 'PATCH' : 'POST';
         const url = id ? `${API_URL}/${id}` : API_URL;
 
-        const res = await fetch(url, {
-            method: method,
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        });
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
 
-        if (res.ok) {
-            document.getElementById('edit-id').value = '';
-            document.getElementById('peso').value = '';
-            document.getElementById('btn-salvar').textContent = "SALVAR REGISTRO";
-            document.getElementById('btn-salvar').style.background = "";
-            renderLista();
-        }
+            if (res.ok) {
+                document.getElementById('edit-id').value = '';
+                document.getElementById('peso').value = '';
+                document.getElementById('btn-salvar').textContent = "SALVAR REGISTRO";
+                document.getElementById('btn-salvar').style.background = "";
+                renderLista();
+            }
+        } catch (e) { alert("Erro ao salvar no servidor."); }
     }
 
     function abrirModal(id) { idParaAcao = id; document.getElementById('modalOverlay').style.display = 'flex'; }
@@ -195,38 +211,82 @@
 
     function prepararEdicao() {
         const r = registrosLocais.find(item => item.id === idParaAcao);
+        if(!r) return;
         document.getElementById('tipo').value = r.tipo;
         document.getElementById('peso').value = r.peso;
         document.getElementById('edit-id').value = r.id;
-        document.getElementById('btn-salvar').textContent = "ATUALIZAR";
+        document.getElementById('btn-salvar').textContent = "ATUALIZAR DADOS";
         document.getElementById('btn-salvar').style.background = "var(--success)";
         fecharModal();
-        window.scrollTo(0,0);
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     async function excluirRegistro() {
-        if (!confirm("Excluir?")) return;
-        await fetch(`${API_URL}/${idParaAcao}`, { method: 'DELETE' });
-        fecharModal();
-        renderLista();
+        if (!confirm("Deseja realmente excluir este registro?")) return;
+        try {
+            await fetch(`${API_URL}/${idParaAcao}`, { method: 'DELETE' });
+            fecharModal();
+            renderLista();
+        } catch (e) { alert("Erro ao excluir."); }
     }
 
     function gerarPDF() {
+        if (registrosLocais.length === 0) return alert("Não há registros para gerar o PDF.");
+
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        const data = document.getElementById('filtroData').value;
-        doc.text(`Relatório de Resíduos - ${data}`, 10, 10);
-        let y = 20;
-        let total = 0;
+        const dataFiltro = document.getElementById('filtroData').value;
+
+        // Cabeçalho estilizado
+        doc.setFontSize(18);
+        doc.setTextColor(0, 242, 255); // Cor Accent
+        doc.text("JOYCE - BIOCONTROL PRO", 14, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Relatório de Resíduos Hospitalares`, 14, 28);
+        doc.text(`Data Base: ${dataFiltro.split('-').reverse().join('/')}`, 14, 33);
+        doc.text(`Exportado em: ${new Date().toLocaleString('pt-BR')}`, 14, 38);
+
+        // Preparação da Tabela
+        const colunas = ["Hora", "Classificação do Resíduo", "Peso Bruto (Kg)"];
+        const linhas = [];
+        let pesoTotal = 0;
+
         registrosLocais.forEach(r => {
-            doc.text(`${r.data_registro.split(' ')[1]} - ${r.tipo}: ${r.peso}kg`, 10, y);
-            total += parseFloat(r.peso);
-            y += 10;
+            const hora = r.data_registro ? r.data_registro.split(' ')[1] : '--:--';
+            linhas.push([hora, r.tipo, `${r.peso} kg`]);
+            pesoTotal += parseFloat(r.peso);
         });
-        doc.text(`Total: ${total.toFixed(2)}kg`, 10, y + 5);
-        doc.save(`residuos_${data}.pdf`);
+
+        // Linha final de totalização
+        linhas.push([
+            { content: 'PESO TOTAL ACUMULADO', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold', fillColor: [240, 240, 240] } },
+            { content: `${pesoTotal.toFixed(2)} kg`, styles: { fontStyle: 'bold', fillColor: [240, 240, 240] } }
+        ]);
+
+        // Geração Automática (Gerencia múltiplas páginas sozinha)
+        doc.autoTable({
+            head: [colunas],
+            body: linhas,
+            startY: 45,
+            theme: 'striped',
+            headStyles: { fillColor: [112, 0, 255], textColor: [255, 255, 255] },
+            styles: { fontSize: 9, cellPadding: 3 },
+            margin: { bottom: 20 },
+            didDrawPage: function (data) {
+                // Numeração de páginas no rodapé
+                const num = doc.internal.getNumberOfPages();
+                doc.setFontSize(8);
+                doc.setTextColor(150);
+                doc.text(`Página ${num}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
+            }
+        });
+
+        doc.save(`BioControl_Relatorio_${dataFiltro}.pdf`);
     }
 
+    // Carregamento inicial
     renderLista();
 </script>
 </body>
