@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Materiais - Requisição</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            border-bottom: 1px solid #334155;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            background: rgba(15, 23, 42, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        input, select {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            padding: 12px;
+            color: white;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        #pNome { flex: 3; }
+        #pQtd { flex: 1; }
+        #pMedida { flex: 1; }
+
+        .btn {
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: 0.2s;
+            padding: 12px 24px;
+        }
+
+        .btn-add { background: var(--primary); color: white; }
+        .btn-add:hover { background: #1d4ed8; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; }
+        td { padding: 15px 12px; border-bottom: 1px solid #334155; }
+
+        .center-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 40px;
+            gap: 15px;
+        }
+
+        .count-badge {
+            background: #334155;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #38bdf8;
+        }
+
+        .actions { display: flex; gap: 12px; }
+        .btn-pdf { background: #ef4444; color: white; }
+        .btn-excel { background: #10b981; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 style="margin:0">Kleber v.1</h2>
+        <span style="font-size: 0.85rem; color: #94a3b8;">Lista de compras - Requisição de Materiais e Insumos</span>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="pNome" placeholder="Descrição do produto (ex: Cabo de Rede CAT6)">
+        <input type="number" id="pQtd" placeholder="Qtd" min="1">
+        <select id="pMedida">
+            <option value="Un">Unidade</option>
+            <option value="Mt">Metros</option>
+            <option value="Cx">Caixa</option>
+            <option value="Kg">Quilos</option>
+            <option value="Pç">Peça</option>
+        </select>
+        <button class="btn btn-add" onclick="addItem()">Adicionar</button>
+    </div>
+
+    <div style="min-height: 200px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item / Produto</th>
+                    <th>Quantidade</th>
+                    <th style="text-align: right;">Ação</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaCorpo"></tbody>
+        </table>
+    </div>
+
+    <div class="center-box">
+        <div class="count-badge">Itens na lista: <span id="totalContagem">0</span></div>
+        <div class="actions">
+            <button class="btn btn-pdf" onclick="exportPDF()">Gerar PDF</button>
+            <button class="btn btn-excel" onclick="exportExcel()">Exportar Excel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let listaCompras = [];
+
+    function addItem() {
+        const nome = document.getElementById('pNome').value;
+        const qtd = document.getElementById('pQtd').value;
+        const medida = document.getElementById('pMedida').value;
+
+        if(!nome || !qtd) return;
+
+        listaCompras.push({ nome, qtd, medida });
+        render();
+
+        document.getElementById('pNome').value = '';
+        document.getElementById('pQtd').value = '';
+        document.getElementById('pNome').focus();
+    }
+
+    function render() {
+        const corpo = document.getElementById('tabelaCorpo');
+        const contador = document.getElementById('totalContagem');
+        corpo.innerHTML = '';
+
+        listaCompras.forEach((item, i) => {
+            corpo.innerHTML += `
+                <tr>
+                    <td><strong>${item.nome}</strong></td>
+                    <td>${item.qtd} ${item.medida}</td>
+                    <td style="text-align: right;">
+                        <button onclick="remover(${i})" style="color:#ef4444; background:none; border:none; cursor:pointer; font-size:1.2rem">✕</button>
+                    </td>
+                </tr>
+            `;
+        });
+        contador.innerText = listaCompras.length;
+    }
+
+    function remover(i) {
+        listaCompras.splice(i, 1);
+        render();
+    }
+
+    function exportExcel() {
+        if(listaCompras.length === 0) return alert("Adicione itens primeiro!");
+        const ws = XLSX.utils.json_to_sheet(listaCompras.map(i => ({ "Produto": i.nome, "Quantidade": i.qtd, "Medida": i.medida })));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Lista");
+        XLSX.writeFile(wb, "lista_compras.xlsx");
+    }
+
+    function exportPDF() {
+        if(listaCompras.length === 0) return alert("A lista está vazia!");
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(16);
+        doc.text("Requisição de Materiais", 14, 20);
+
+        const rows = listaCompras.map(i => [i.nome, `${i.qtd} ${i.medida}`]);
+
+        doc.autoTable({
+            head: [['Produto / Descrição', 'Quantidade']],
+            body: rows,
+            startY: 30,
+            theme: 'striped',
+            headStyles: { fillColor: [37, 99, 235] }
+        });
+
+        doc.save("lista_compras.pdf");
+    }
+</script>
+
+</body>
+</html>
