@@ -140,17 +140,64 @@
 
         .theme-switch { margin-top: 20px; cursor: pointer; font-size: 12px; font-weight: bold; color: var(--accent-purple); text-align: center; }
 
-        /* --- IMPRESSÃO --- */
-        #grade-impressao { display: none; }
-        .etiqueta-card { width: 90mm; height: 50mm; background: white; color: black; padding: 12px; border: 0.2mm solid #ddd; float: left; font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: space-between; }
-        .etiqueta-topo { text-align: center; font-weight: bold; font-size: 12px; border-bottom: 1.5px solid black; padding-bottom: 4px; }
-        .linha-dados { font-size: 10px; font-weight: bold; display: flex; margin: 2px 0; }
-        .linha-dados span { font-weight: normal; border-bottom: 1px dotted #444; flex-grow: 1; margin-left: 5px; }
+        /* --- CONFIGURAÇÃO DE IMPRESSÃO (4 COLUNAS) --- */
+        #grade-impressao {
+            display: none;
+        }
 
         @media print {
-            body { background: white !important; }
-            .painel-terminal, .info-trigger { display: none !important; }
-            #grade-impressao { display: block !important; width: 100% !important; }
+            @page {
+                size: portrait;
+                margin: 5mm;
+            }
+            body { background: white !important; margin: 0; padding: 0; }
+            .painel-terminal, .info-trigger, .modal-overlay { display: none !important; }
+
+            #grade-impressao {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr); /* 4 colunas */
+                gap: 2mm;
+                width: 100%;
+            }
+
+            .etiqueta-card {
+                width: 100%;
+                height: 45mm; /* Ajustado para caber bem no layout */
+                background: white;
+                color: black;
+                padding: 5px;
+                border: 0.1mm solid #000;
+                box-sizing: border-box;
+                font-family: Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                page-break-inside: avoid;
+            }
+
+            .etiqueta-topo {
+                text-align: center;
+                font-weight: bold;
+                font-size: 7pt; /* Fonte menor para caber em 4 colunas */
+                border-bottom: 1px solid black;
+                padding-bottom: 2px;
+                margin-bottom: 4px;
+                line-height: 1.1;
+            }
+
+            .linha-dados {
+                font-size: 6.5pt;
+                font-weight: bold;
+                margin: 1px 0;
+                display: block; /* Empilhado para economizar espaço horizontal */
+            }
+
+            .linha-dados span {
+                font-weight: normal;
+                border-bottom: 0.5px dotted #444;
+                display: inline-block;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -161,14 +208,14 @@
     <div class="modal-overlay" id="infoModal">
         <div class="modal-content">
             <h3>SOBRE O APP</h3>
-            <p><strong>Função:</strong> Gerador de etiquetas de identificação para materiais esterilizados (CME), facilitando o controle de validade e lotes hospitalares.</p>
-            <p><strong>Desenvolvedor:</strong> Jose Airton B. Souza Jr.<br><em>- Fone: 91 983252639</em></p>
+            <p><strong>Função:</strong> Gerador de etiquetas de identificação para materiais esterilizados (CME).</p>
+            <p><strong>Desenvolvedor:</strong> Jose Airton B. Souza Jr./Fone 91 983252639</p>
             <button class="close-modal" onclick="toggleModal(false)">Entendido</button>
         </div>
     </div>
 
     <div class="painel-terminal">
-        <h2>Jamily - v1.0</h2>
+        <h2>Jamily - v1.1</h2>
 
         <div class="campo">
             <label>Material:</label>
@@ -258,16 +305,17 @@
             for (let i = 0; i < qtd; i++) {
                 grid.innerHTML += `
                     <div class="etiqueta-card">
-                        <div class="etiqueta-topo">HOSPITAL MUNICIPAL DE VIGIA<br>IDENTIFICAÇÃO DE MATERIAIS</div>
-                        <div class="linha-dados">MATERIAL: <span>${dados.m}</span></div>
-                        <div class="linha-dados">LOTE: <span>${dados.l}</span></div>
-                        <div class="linha-dados">DATA ESTERILIZAÇÃO: <span>${dados.e}</span></div>
-                        <div class="linha-dados">DATA LIMITE DE USO: <span>${dados.v}</span></div>
-                        <div class="linha-dados">RESPONSÁVEL(PREPARO): <span>${dados.r}</span></div>
-                        <div class="linha-dados">MÉTODO DE ESTERILIZAÇÃO: <span>${dados.met}</span></div>
+                        <div class="etiqueta-topo">HOSPITAL MUNICIPAL DE VIGIA</div>
+                        <div class="linha-dados">Material: <span>${dados.m}</span></div>
+                        <div class="linha-dados">Lote: <span>${dados.l}</span></div>
+                        <div class="linha-dados">Data Esterilização: <span>${dados.e}</span></div>
+                        <div class="linha-dados">Data Limite de Uso: <span>${dados.v}</span></div>
+                        <div class="linha-dados">Responsável: <span>${dados.r}</span></div>
+                        <div class="linha-dados">Metodo de Esterilização: <span>${dados.met}</span></div>
                     </div>`;
             }
-            setTimeout(() => { window.print(); }, 300);
+            // Pequeno delay para garantir a renderização antes de abrir o diálogo de impressão
+            setTimeout(() => { window.print(); }, 500);
         }
     </script>
 </body>
