@@ -9,7 +9,7 @@
         :root {
             --accent: #0062ff;
             --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            --glass: rgba(255, 255, 255, 0.95);
+            --glass: rgba(255, 255, 255, 0.96);
             --shadow: 0 20px 50px rgba(0,0,0,0.1);
         }
 
@@ -19,12 +19,13 @@
             font-family: 'Poppins', sans-serif; background: #e0e5ec;
         }
 
+        /* Fundo Animado Sutil */
         .bg-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-gradient);
             z-index: -1; animation: bgPulse 15s ease infinite alternate;
         }
-        @keyframes bgPulse { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(20deg); } }
+        @keyframes bgPulse { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(15deg); } }
 
         .container { position: relative; width: 100vw; height: 100vh; }
 
@@ -32,90 +33,60 @@
             position: absolute; inset: 0; opacity: 0; visibility: hidden;
             display: flex; align-items: center; justify-content: center;
             transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
 
-        .slide.active {
-            opacity: 1; visibility: visible;
-            transform: scale(1);
-        }
+        .slide.active { opacity: 1; visibility: visible; transform: scale(1); }
 
         .card {
             background: var(--glass);
-            width: 92%; height: 88%;
+            width: 92%; height: 90%;
             border-radius: 40px;
             box-shadow: var(--shadow);
             padding: 40px 60px;
             display: flex; flex-direction: column; align-items: center;
             justify-content: center;
             border: 1px solid rgba(255,255,255,0.5);
-            position: relative;
         }
 
         h1 { font-size: 3.5rem; font-weight: 800; color: red; margin: 0; text-align: center; line-height: 1.1; }
-        h2 { font-size: 1.8rem; color: var(--accent); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        h2 { font-size: 1.8rem; color: var(--accent); margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; }
 
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; }
 
+        /* Estilo dos Itens com efeito Neumorphism */
         .item {
-            background: #fff; padding: 20px; border-radius: 20px;
+            background: #fff; padding: 22px; border-radius: 20px;
             box-shadow: 6px 6px 12px #d1d9e6, -6px -6px 12px #ffffff;
             display: flex; align-items: center; gap: 15px;
-            font-size: 1.4rem; font-weight: 500; color: #444;
+            font-size: 1.5rem; font-weight: 500; color: #444;
             opacity: 0; transform: translateX(-20px);
         }
 
         .slide.active .item { animation: slideIn 0.6s forwards; }
         @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
 
-        /* --- AJUSTE PROTOCOLO MANCHESTER --- */
+        /* AJUSTE PROTOCOLO MANCHESTER */
         .manchester-container {
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 12px; /* Espaçamento entre as barras */
-            margin-top: 10px;
+            gap: 12px;
+            margin-top: 5px;
         }
 
         .m-row {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            border-radius: 15px;
-            overflow: hidden;
-            color: white;
-            font-weight: 600;
-            font-size: 1.3rem;
+            width: 100%; display: flex; align-items: center;
+            border-radius: 15px; overflow: hidden; color: white;
+            font-weight: 600; font-size: 1.4rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            opacity: 0;
-            transform: translateY(15px);
+            opacity: 0; transform: translateY(15px);
         }
 
-        .m-row .label {
-            width: 25%;
-            padding: 18px;
-            background: rgba(0,0,0,0.15);
-            text-align: center;
-            text-transform: uppercase;
-            font-weight: 800;
-        }
+        .m-row .label { width: 25%; padding: 16px; background: rgba(0,0,0,0.15); text-align: center; text-transform: uppercase; font-weight: 800; }
+        .m-row .time { width: 20%; padding: 16px; background: rgba(255,255,255,0.1); text-align: center; font-style: italic; }
+        .m-row .desc { flex: 1; padding: 16px; text-align: left; padding-left: 30px; }
 
-        .m-row .time {
-            width: 20%;
-            padding: 18px;
-            background: rgba(255,255,255,0.1);
-            text-align: center;
-            font-style: italic;
-        }
-
-        .m-row .desc {
-            flex: 1;
-            padding: 18px;
-            text-align: left;
-            padding-left: 30px;
-        }
-
-        /* Cores das Barras */
         .bg-red { background: linear-gradient(90deg, #e63946, #b91c1c); }
         .bg-orange { background: linear-gradient(90deg, #f3722c, #d97706); }
         .bg-yellow { background: linear-gradient(90deg, #f9c74f, #f59e0b); color: #333; }
@@ -123,13 +94,14 @@
         .bg-blue { background: linear-gradient(90deg, #277da1, #2563eb); }
 
         .emergency-badge {
-            background: #ff3b30; color: white; padding: 15px 40px;
+            background: #ff3b30; color: white; padding: 15px 45px;
             border-radius: 50px; font-size: 2.2rem; font-weight: 800;
             box-shadow: 0 10px 25px rgba(255, 59, 48, 0.4);
             animation: pulse 2s infinite;
         }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
+        .footer-tag { margin-top: 30px; font-size: 1.2rem; color: #888; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -140,68 +112,72 @@
 
     <div class="slide active">
         <div class="card">
-            <img src="https://stm.vigia.d2ti.com.br/portalPrefeitura/template/vigia/img/logo.png" style="height: 100px; margin-bottom: 20px;">
+            <img src="https://stm.vigia.d2ti.com.br/portalPrefeitura/template/vigia/img/logo.png" style="height: 110px; margin-bottom: 20px;">
             <h1>HOSPITAL MUNICIPAL DE VIGIA</h1>
             <h2>RAIMUNDO VASCONCELOS</h2>
             <div style="margin-top: 40px; display: flex; gap: 30px;">
                 <div class="emergency-badge">🚑 SAMU 192</div>
                 <div class="emergency-badge" style="background: #1c1c1e;">🚓 POLÍCIA 190</div>
             </div>
-            <p style="margin-top: 30px; font-size: 1.4rem; color: #666;">Unidade de Urgência e Emergência 24 Horas</p>
-        </div>
-    </div>
-
-    <div class="slide">
-        <div class="card">
-            <h1>Classificação de Risco</h1>
-            <h2 style="margin-bottom: 20px;">Prioridade por Gravidade Clínica</h2>
-
-            <div class="manchester-container">
-                <div class="m-row bg-red" style="animation-delay: 0.1s">
-                    <div class="label">Emergência</div>
-                    <div class="time">Imediato</div>
-                    <div class="desc">Risco de morte imediato</div>
-                </div>
-                <div class="m-row bg-orange" style="animation-delay: 0.3s">
-                    <div class="label">Muito Urgente</div>
-                    <div class="time">10 min</div>
-                    <div class="desc">Risco severo / Dor intensa</div>
-                </div>
-                <div class="m-row bg-yellow" style="animation-delay: 0.5s">
-                    <div class="label">Urgente</div>
-                    <div class="time">60 min</div>
-                    <div class="desc">Potencial de gravidade</div>
-                </div>
-                <div class="m-row bg-green" style="animation-delay: 0.7s">
-                    <div class="label">Pouco Urgente</div>
-                    <div class="time">120 min</div>
-                    <div class="desc">Baixo risco / Pequenos males</div>
-                </div>
-                <div class="m-row bg-blue" style="animation-delay: 0.9s">
-                    <div class="label">Não Urgente</div>
-                    <div class="time">240 min</div>
-                    <div class="desc">Casos crônicos ou de rotina</div>
-                </div>
-            </div>
+            <p style="margin-top: 35px; font-size: 1.6rem; color: #666;">Pronto Atendimento Ativo 24 Horas</p>
         </div>
     </div>
 
     <div class="slide">
         <div class="card">
             <h1>Quando é Urgência?</h1>
-            <h2>Situações Críticas</h2>
+            <h2>Casos Prioritários</h2>
             <div class="grid">
-                <div class="item" style="animation-delay: 0.2s">🫁 Falta de ar grave</div>
-                <div class="item" style="animation-delay: 0.4s">🧠 Convulsões</div>
-                <div class="item" style="animation-delay: 0.6s">🩸 Hemorragias</div>
-                <div class="item" style="animation-delay: 0.8s">🐍 Animais Peçonhentos</div>
-                <div class="item" style="animation-delay: 1s">🌡️ Febre muito alta</div>
-                <div class="item" style="animation-delay: 1.2s">💔 Dor no peito</div>
+                <div class="item" style="animation-delay: 0.1s">🫁 Falta de ar grave</div>
+                <div class="item" style="animation-delay: 0.2s">🧠 Convulsões / Desmaios</div>
+                <div class="item" style="animation-delay: 0.3s">🩸 Hemorragias / Cortes</div>
+                <div class="item" style="animation-delay: 0.4s">🐍 Animais Peçonhentos</div>
+                <div class="item" style="animation-delay: 0.5s">🌡️ Febre muito alta</div>
+                <div class="item" style="animation-delay: 0.6s">💔 Dor forte no peito</div>
             </div>
         </div>
     </div>
 
     <div class="slide">
+        <div class="card">
+            <h1>Acolhimento ao Paciente</h1>
+            <h2>Passo a Passo</h2>
+            <div class="grid" style="grid-template-columns: 1fr;">
+                <div class="item" style="animation-delay: 0.2s"><b>1. Recepção:</b> Cadastro com documentos e abertura de prontuário.</div>
+                <div class="item" style="animation-delay: 0.4s"><b>2. Triagem:</b> Avaliação técnica pela enfermagem (Manchester).</div>
+                <div class="item" style="animation-delay: 0.6s"><b>3. Consultório:</b> Atendimento médico e definição de conduta clínica.</div>
+                <div class="item" style="animation-delay: 0.8s; background: #fff3cd; border-left: 10px solid #f59e0b;">
+                    ❗ Emergências extremas são direcionadas à <b>Sala Vermelha</b> imediatamente.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="card">
+            <h1>Classificação de Risco</h1>
+            <h2>Prioridade por Gravidade Clínica</h2>
+            <div class="manchester-container">
+                <div class="m-row bg-red" style="animation-delay: 0.1s">
+                    <div class="label">Emergência</div><div class="time">Imediato</div><div class="desc">Risco de morte imediato</div>
+                </div>
+                <div class="m-row bg-orange" style="animation-delay: 0.2s">
+                    <div class="label">Muito Urgente</div><div class="time">10 min</div><div class="desc">Risco severo / Dor intensa</div>
+                </div>
+                <div class="m-row bg-yellow" style="animation-delay: 0.3s">
+                    <div class="label">Urgente</div><div class="time">60 min</div><div class="desc">Potencial de gravidade</div>
+                </div>
+                <div class="m-row bg-green" style="animation-delay: 0.4s">
+                    <div class="label">Pouco Urgente</div><div class="time">120 min</div><div class="desc">Baixo risco / Pequenos males</div>
+                </div>
+                <div class="m-row bg-blue" style="animation-delay: 0.5s">
+                    <div class="label">Não Urgente</div><div class="time">240 min</div><div class="desc">Casos crônicos ou de rotina</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="slide">
         <div class="card">
             <h1>Equipe Multidisciplinar</h1>
             <h2>Profissionais Qualificados</h2>
@@ -218,61 +194,79 @@
 
     <div class="slide">
         <div class="card">
-            <h1>🕒 Visitas e Horários</h1>
+            <h1>Serviços e Exames</h1>
+            <h2>Estrutura Completa</h2>
             <div class="grid">
-                <div class="item" style="flex-direction: column; align-items: start;">
-                    <b style="color: var(--accent)">VISITAS</b>
-                    16:00h às 17:00h
-                </div>
-                <div class="item" style="flex-direction: column; align-items: start;">
-                    <b style="color: var(--accent)">ACOMPANHANTES</b>
-                    Trocas: 06h-08h | 18h-20h
-                </div>
-                <div class="item" style="grid-column: span 2; font-size: 1.1rem; border-left: 8px solid #ffcc00;">
-                    ⚠️ Acompanhante 24h garantido para Crianças, Idosos e Gestantes (Lei vigente).
-                </div>
+                <div class="item">🔬 Laboratório 24h</div>
+                <div class="item">🦴 Raio-X Digital</div>
+                <div class="item">🧠 Tomografia</div>
+                <div class="item">🫀 Eletrocardiograma</div>
+                <div class="item">🩹 Curativos</div>
+                <div class="item">💉 Vacinação</div>
             </div>
-            <p style="margin-top: 30px; font-weight: 700;">Obrigatório: Máscara e Documento com Foto</p>
+            <div class="footer-tag">Gestão Técnico-Administrativa: <b>Instituto Impar</b></div>
         </div>
     </div>
 
+    <div class="slide">
+        <div class="card">
+            <h1>🕒 Horários e Visitas</h1>
+            <div class="grid">
+                <div class="item" style="flex-direction: column; align-items: start;">
+                    <b style="color: var(--accent)">VISITAS GERAIS</b>
+                    16:00h às 17:00h
+                </div>
+                <div class="item" style="flex-direction: column; align-items: start;">
+                    <b style="color: var(--accent)">TROCA DE ACOMPANHANTE</b>
+                    06h-08h | 18h-20h
+                </div>
+                <div class="item" style="grid-column: span 2; font-size: 1.2rem; border-left: 8px solid #059669;">
+                    👥 Direito a acompanhante 24h para: Crianças, Idosos e Gestantes.
+                </div>
+            </div>
+            <div class="emergency-badge" style="background: #333; margin-top: 40px; font-size: 1.3rem; animation: none;">
+                Uso de máscara e documento com foto obrigatórios
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
     const slides = document.querySelectorAll('.slide');
     let current = 0;
-    const timePerSlide = 12000;
+    const timePerSlide = 12000; // 12 segundos por slide
+
+    function animateManchester(slideElement) {
+        const rows = slideElement.querySelectorAll('.m-row');
+        rows.forEach((row, i) => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(15px)';
+            setTimeout(() => {
+                row.style.transition = 'all 0.6s ease-out';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, 150 * (i + 1));
+        });
+    }
 
     function cycle() {
         slides[current].classList.remove('active');
         current = (current + 1) % slides.length;
         slides[current].classList.add('active');
 
-        // Reset e re-ativação das animações do Manchester
-        const rows = slides[current].querySelectorAll('.m-row');
-        rows.forEach((row, i) => {
-            row.style.opacity = '0';
-            row.style.transform = 'translateY(15px)';
-            setTimeout(() => {
-                row.style.transition = 'all 0.6s ease';
-                row.style.opacity = '1';
-                row.style.transform = 'translateY(0)';
-            }, 100 + (i * 200));
-        });
+        // Se for o slide de Manchester, dispara a animação manual
+        if (slides[current].querySelector('.manchester-container')) {
+            animateManchester(slides[current]);
+        }
     }
 
     setInterval(cycle, timePerSlide);
 
-    // Iniciar animação do primeiro slide manualmente no load
+    // Início manual para o primeiro slide caso contenha elementos animados
     window.onload = () => {
-        const rows = slides[0].querySelectorAll('.m-row');
-        rows.forEach((row, i) => {
-            setTimeout(() => {
-                row.style.transition = 'all 0.6s ease';
-                row.style.opacity = '1';
-                row.style.transform = 'translateY(0)';
-            }, 100 + (i * 200));
-        });
+        if (slides[0].querySelector('.manchester-container')) {
+            animateManchester(slides[0]);
+        }
     };
 </script>
 
