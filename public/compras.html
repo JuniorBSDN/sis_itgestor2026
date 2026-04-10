@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kleber v.1</title>
+    <title>Kleber v.1 | Lista de Compras</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
@@ -16,6 +16,7 @@
             --text: #ffffff;
             --gray: #888888;
             --blue: #0070f3;
+            --red: #ff4d4d;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -25,122 +26,125 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: env(safe-area-inset-top) 15px 40px 15px;
+            padding: 20px 15px;
             display: flex;
             justify-content: center;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            margin-top: 20px;
-        }
+        .container { width: 100%; max-width: 500px; }
 
-        /* Header Vercel Style */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
 
         .brand { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.05rem; }
         .version {
-            background: #ffffff; color: #000;
-            padding: 2px 8px; border-radius: 5px;
-            font-size: 0.65rem; margin-left: 8px;
+            background: #fff; color: #000;
+            padding: 2px 6px; border-radius: 4px;
+            font-size: 0.6rem; margin-left: 5px;
         }
 
-        /* Inputs */
+        .user-box {
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--accents-2);
+            padding-bottom: 15px;
+        }
+
+        .user-box label {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .input-user {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        /* Cor do placeholder personalizada */
+        .input-user::placeholder { color: var(--accents-2); opacity: 1; }
+
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin-bottom: 30px;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: var(--accents-1);
+            border-radius: 8px;
+            border: 1px solid var(--accents-2);
         }
 
         input, select {
-            background: var(--accents-1);
+            background: var(--bg);
             border: 1px solid var(--accents-2);
             border-radius: 6px;
-            padding: 14px;
+            padding: 12px;
             color: white;
             font-size: 16px;
-            transition: all 0.2s;
         }
 
-        input:focus { border-color: var(--text); outline: none; }
-
-        .btn-add {
+        .btn-main {
             background: var(--text);
             color: var(--bg);
             border: none;
             padding: 14px;
             border-radius: 6px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
 
-        .btn-add:active { transform: scale(0.98); opacity: 0.8; }
-
-        /* Lista */
         .item-card {
-            background: var(--bg);
             border-bottom: 1px solid var(--accents-2);
-            padding: 16px 0;
+            padding: 15px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .item-info b { display: block; font-size: 1rem; margin-bottom: 4px; }
-        .item-info span { color: var(--gray); font-size: 0.85rem; }
+        .info b { display: block; font-size: 0.9rem; text-transform: uppercase; }
+        .info span { color: var(--gray); font-size: 0.8rem; }
 
-        .btn-del {
-            background: transparent;
-            color: #ff4d4d;
-            border: 1px solid transparent;
-            padding: 8px;
-            cursor: pointer;
-            font-size: 1.2rem;
-        }
+        .item-actions { display: flex; gap: 15px; }
+        .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--gray); }
 
-        /* Footer Fixed */
         .footer {
-            margin-top: 50px;
+            margin-top: 40px;
             text-align: center;
-            border-top: 1px solid var(--accents-2);
-            padding-top: 20px;
         }
 
-        .total-badge { color: var(--gray); margin-bottom: 20px; font-size: 0.9rem; }
-
-        .action-btns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .btn-sec {
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-outline {
             background: transparent;
             border: 1px solid var(--accents-2);
             color: white;
             padding: 12px;
             border-radius: 6px;
-            font-size: 0.9rem;
             cursor: pointer;
         }
 
-        .btn-sec:hover { border-color: var(--text); }
-
-        .clear-list {
+        .btn-danger {
             margin-top: 30px;
-            color: #ff4d4d;
-            font-size: 0.75rem;
-            text-decoration: underline;
+            background: transparent;
+            color: var(--red);
+            border: 1px solid var(--accents-2);
+            padding: 10px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             cursor: pointer;
-            opacity: 0.6;
         }
     </style>
 </head>
@@ -149,12 +153,18 @@
 <div class="container">
     <div class="header">
         <div class="brand">KLEBER <span class="version">V.1</span></div>
-        <div style="color: var(--gray); font-size: 11px;">SETOR DE MANUTENÇÃO</div>
+        <div style="color: var(--gray); font-size: 10px;">Crie sua Lista de compras agora!</div>
+    </div>
+
+    <div class="user-box">
+        <label>Responsável</label>
+        <input type="text" id="userName" class="input-user" placeholder="DIGITE SEU NOME" oninput="saveUser()">
     </div>
 
     <div class="input-group">
-        <input type="text" id="pNome" placeholder="O que você precisa?" autocomplete="off">
-        <div style="display: flex; gap: 10px;">
+        <input type="hidden" id="editIndex" value="-1">
+        <input type="text" id="pNome" placeholder="Descrição do material" autocomplete="off">
+        <div style="display: flex; gap: 8px;">
             <input type="number" id="pQtd" placeholder="Qtd" style="flex: 1;">
             <select id="pMed" style="flex: 1;">
                 <option value="UN">UNIDADE</option>
@@ -163,41 +173,83 @@
                 <option value="PC">PEÇA</option>
             </select>
         </div>
-        <button class="btn-add" onclick="addItem()">ADICIONAR À LISTA</button>
+        <button id="btnSubmit" class="btn-main" onclick="handleSubmit()">ADICIONAR ITEM</button>
     </div>
 
-    <div id="listaContainer">
-        </div>
+    <div id="listaContainer"></div>
 
     <div class="footer">
-        <div class="total-badge">Total: <span id="count">0</span> itens carregados</div>
-        <div class="action-btns">
-            <button class="btn-sec" onclick="exportPDF()">GERAR PDF</button>
-            <button class="btn-sec" onclick="exportExcel()">EXCEL</button>
+        <div class="btn-row">
+            <button class="btn-outline" onclick="exportPDF()">GERAR PDF</button>
+            <button class="btn-outline" onclick="exportExcel()">EXCEL</button>
         </div>
-        <div class="clear-list" onclick="clearList()">LIMPAR TUDO</div>
+        <button class="btn-danger" onclick="clearList()">Limpar Lista Atual</button>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('kleber_data')) || [];
+    let db = JSON.parse(localStorage.getItem('kleber_v151')) || [];
+    document.getElementById('userName').value = localStorage.getItem('kleber_user') || '';
+
     render();
 
-    function addItem() {
+    function saveUser() {
+        localStorage.setItem('kleber_user', document.getElementById('userName').value);
+    }
+
+    function handleSubmit() {
         const n = document.getElementById('pNome');
         const q = document.getElementById('pQtd');
         const m = document.getElementById('pMed');
+        const index = document.getElementById('editIndex').value;
 
         if(!n.value || !q.value) return;
 
-        db.push({ nome: n.value.toUpperCase(), qtd: q.value, med: m.value });
-        save();
+        const item = { nome: n.value.toUpperCase(), qtd: q.value, med: m.value };
+
+        if(index === "-1") {
+            db.push(item);
+        } else {
+            db[index] = item;
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('btnSubmit').innerText = "ADICIONAR ITEM";
+            document.getElementById('btnSubmit').style.background = "#fff";
+        }
+
         n.value = ''; q.value = ''; n.focus();
+        save();
     }
 
     function save() {
-        localStorage.setItem('kleber_data', JSON.stringify(db));
+        localStorage.setItem('kleber_v151', JSON.stringify(db));
         render();
+    }
+
+    function edit(i) {
+        const item = db[i];
+        document.getElementById('pNome').value = item.nome;
+        document.getElementById('pQtd').value = item.qtd;
+        document.getElementById('pMed').value = item.med;
+        document.getElementById('editIndex').value = i;
+        document.getElementById('btnSubmit').innerText = "SALVAR ALTERAÇÃO";
+        document.getElementById('btnSubmit').style.background = "#0070f3";
+        document.getElementById('btnSubmit').style.color = "#fff";
+        window.scrollTo(0,0);
+    }
+
+    function remove(i) {
+        if(confirm("Remover este item?")) {
+            db.splice(i, 1);
+            save();
+        }
+    }
+
+    function clearList() {
+        if(db.length === 0) return;
+        if(confirm("Deseja apagar todos os itens desta lista?")) {
+            db = [];
+            save();
+        }
     }
 
     function render() {
@@ -206,51 +258,60 @@
         db.forEach((it, i) => {
             container.innerHTML += `
                 <div class="item-card">
-                    <div class="item-info">
+                    <div class="info">
                         <b>${it.nome}</b>
                         <span>${it.qtd} ${it.med}</span>
                     </div>
-                    <button class="btn-del" onclick="remove(${i})">✕</button>
+                    <div class="item-actions">
+                        <button class="btn-icon" onclick="edit(${i})">✎</button>
+                        <button class="btn-icon" style="color:var(--red)" onclick="remove(${i})">✕</button>
+                    </div>
                 </div>
             `;
         });
-        document.getElementById('count').innerText = db.length;
-    }
-
-    function remove(i) {
-        db.splice(i, 1);
-        save();
-    }
-
-    function clearList() {
-        if(confirm("Deseja apagar toda a lista?")) {
-            db = [];
-            save();
-        }
     }
 
     function exportExcel() {
         if(db.length === 0) return;
-        const ws = XLSX.utils.json_to_sheet(db);
+        const user = document.getElementById('userName').value || "Não informado";
+        const ws = XLSX.utils.json_to_sheet(db.map(i => ({ "Responsável": user, "Produto": i.nome, "Qtd": i.qtd, "Medida": i.med })));
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Lista");
-        XLSX.writeFile(wb, "Kleber_Lista.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Requisição");
+        XLSX.writeFile(wb, `Lista_Kleber.xlsx`);
     }
 
     function exportPDF() {
         if(db.length === 0) return;
+        const user = document.getElementById('userName').value || "Não informado";
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
+
+        const dataAtual = new Date().toLocaleDateString('pt-BR');
+
         doc.setFontSize(18);
-        doc.text("KLEBER V.1.1 - REQUISIÇÃO T.I.", 14, 20);
+        doc.setFont("helvetica", "bold");
+        doc.text("KLEBER V.1", 14, 18);
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(80);
+        doc.text(`RESPONSÁVEL: ${user.toUpperCase()}`, 14, 25);
+
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0);
+        doc.text("DOCUMENTO: LISTA DE COMPRAS", 14, 35);
+        doc.text(`DATA: ${dataAtual}`, 14, 40);
+
         doc.autoTable({
-            head: [['Descrição', 'Qtd', 'Unidade']],
+            head: [['Descrição do Material', 'Quantidade', 'Und']],
             body: db.map(i => [i.nome, i.qtd, i.med]),
-            startY: 30,
+            startY: 45,
             theme: 'plain',
-            headStyles: { fontStyle: 'bold', borderBottom: 1 }
+            headStyles: { fontStyle: 'bold', borderBottom: 1, textColor: [0, 0, 0] }
         });
-        doc.save("Lista_Kleber.pdf");
+
+        doc.save(`Lista_Kleber.pdf`);
     }
 </script>
 
