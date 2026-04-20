@@ -87,6 +87,21 @@ def gerenciar_rat():
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+@app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
+def atualizar_status_rat(id_doc):
+    try:
+        dados = request.json
+        update_data = {}
+        # Mapeamento consolidado com o HTML
+        if 'status' in dados: update_data['status'] = dados['status']
+        if 'tecnico_responsavel' in dados: update_data['tecnico_responsavel'] = dados['tecnico_responsavel']
+        if 'data_conclusao' in dados: update_data['data_conclusao'] = dados['data_conclusao']
+
+        db.collection('atividades').document(id_doc).update(update_data)
+        return jsonify({"status": "sucesso"}), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
 # --- MÓDULO: RELATOS ---
 @app.route('/api/relatos', methods=['GET', 'POST'])
 def gerenciar_relatos():
