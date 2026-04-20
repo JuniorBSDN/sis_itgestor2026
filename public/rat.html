@@ -1,5 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel RAT Consolidado - Instituto Impar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
+            --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
+            --success: #22c55e; --pending: #fbbf24;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* Estilização de Cartões */
+        .stat-card { background: var(--card); border: 1px solid var(--border); transition: 0.3s; cursor: pointer; }
+        .stat-card.active { border: 2px solid var(--primary); background: rgba(56, 189, 248, 0.1); }
+        
+        .btn-finish { background: var(--primary); color: #0f172a; font-weight: bold; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; color: black; }
+            table { border: 1px solid #000; color: black !important; width: 100%; }
+            th, td { border: 1px solid #000; color: black !important; padding: 8px; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="print-header hidden text-black">
+        <h1 class="text-xl font-bold">INSTITUTO IMPAR - RELATÓRIO T.I.</h1>
+        <p>Gerado em: <span id="data-relatorio"></span></p>
+    </div>
+
+    <header class="flex justify-between items-center bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-6 no-print">
+        <div>
+            <h1 class="text-2xl font-bold text-sky-400">PAINEL RAT</h1>
+            <p class="text-xs opacity-60">Gestão Hospitalar - Vigia de Nazaré</p>
+        </div>
+        <button onclick="prepararImpressao()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+            🖨️ Imprimir Relatório
+        </button>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 no-print">
+        <div id="card-Todos" onclick="setFiltroStatus('Todos')" class="stat-card active p-6 rounded-2xl text-center">
+            <h3 class="text-xs text-slate-400 uppercase">Total Geral</h3>
+            <p id="total-val" class="text-3xl font-bold mt-2">0</p>
+        </div>
+        <div id="card-Pendente" onclick="setFiltroStatus('Pendente')" class="stat-card p-6 rounded-2xl text-center">
+            <h3 class="text-xs text-slate-400 uppercase">Pendentes</h3>
+            <p id="pendente-val" class="text-3xl font-bold mt-2 text-amber-500">0</p>
+        </div>
+        <div id="card-Concluido" onclick="setFiltroStatus('Concluido')" class="stat-card p-6 rounded-2xl text-center">
+            <h3 class="text-xs text-slate-400 uppercase">Concluídos</h3>
+            <p id="concluido-val" class="text-3xl font-bold mt-2 text-emerald-500">0</p>
+        </div>
+    </div>
+
+    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex flex-wrap gap-4 items-center no-print text-sm">
+        <span>Filtrar Período:</span>
+        <select id="selPeriodo" onchange="setFiltroPeriodo(this.value)" class="bg-slate-900 border border-slate-700 p-2 rounded">
+            <option value="todos">Todos os Registros</option>
+            <option value="dia">Hoje</option>
+            <option value="mes">Este Mês</option>
+        </select>
+        <input type="date" onchange="carregarDados(this.value)" class="bg-slate-900 border border-slate-700 p-2 rounded">
+    </div>
+
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-700/50 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="p-4">Data/Hora</th>
+                    <th class="p-4">Solicitante</th>
+                    <th class="p-4">Descrição</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4">Técnico</th>
+                    <th class="p-4 no-print">Ação</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-corpo" class="divide-y divide-slate-700"></tbody>
+        </table>
+    </div>
+</div>
+
 <script>
-    let dadosServidor = []; // Armazena o que vem do Firebase
+    let dadosServidor = [];
     let statusAtual = "Todos";
     let periodoAtual = "todos";
     const API = '/api/helpdesk';
@@ -11,12 +103,12 @@
             const res = await fetch(url);
             const novosDados = await res.json();
             
-            // Só renderiza se os dados forem diferentes ou se for a primeira carga
+            // Só atualiza se houver mudança para evitar o "piscar"
             if (JSON.stringify(novosDados) !== JSON.stringify(dadosServidor)) {
                 dadosServidor = novosDados;
                 renderizar();
             }
-        } catch (e) { console.error("Erro na rede:", e); }
+        } catch (e) { console.error("Erro ao carregar dados."); }
     }
 
     function renderizar() {
@@ -24,87 +116,93 @@
         let htmlFinal = "";
         let p = 0, c = 0;
 
-        // 1. Calcula contadores baseados no servidor
+        // Contagem global baseada nos dados do servidor
         dadosServidor.forEach(item => {
             item.status === 'Pendente' ? p++ : c++;
         });
 
-        // 2. Filtra os dados para exibição
+        // Filtragem para exibição
         const filtrados = dadosServidor.filter(item => {
-            // Filtro de Status (Card)
             const passaStatus = (statusAtual === "Todos" || item.status === statusAtual);
             
-            // Filtro de Período (Select)
             let passaPeriodo = true;
             if (periodoAtual !== "todos") {
                 const hoje = new Date();
                 const [d, m, y] = item.data_registro.split(' ')[0].split('/');
                 const dataItem = new Date(y, m - 1, d);
-                
                 if (periodoAtual === "dia") passaPeriodo = dataItem.toDateString() === hoje.toDateString();
                 if (periodoAtual === "mes") passaPeriodo = dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
             }
-
             return passaStatus && passaPeriodo;
         });
 
-        // 3. Atualiza os cards
+        // Atualiza painel de números
         document.getElementById('total-val').innerText = dadosServidor.length;
         document.getElementById('pendente-val').innerText = p;
         document.getElementById('concluido-val').innerText = c;
 
-        // 4. Gera o HTML da tabela
+        // Constrói linhas da tabela
         filtrados.forEach(item => {
             htmlFinal += `
-                <tr class="hover:bg-slate-700/20 transition-colors">
-                    <td><small>${item.data_registro}</small></td>
-                    <td><b>${item.nome}</b><br><small class="text-sky-500">${item.setor_sala}</small></td>
-                    <td>${item.descricao}</td>
-                    <td style="color: ${item.status === 'Pendente' ? 'var(--pending)' : 'var(--success)'}; font-weight:bold;">${item.status}</td>
-                    <td><small>${item.tecnico_responsavel || '-'}</small></td>
-                    <td class="no-print">
+                <tr class="hover:bg-slate-700/30 transition-colors">
+                    <td class="p-4 text-xs text-slate-500">${item.data_registro}</td>
+                    <td class="p-4 font-semibold text-sm">${item.nome}<br><span class="text-sky-500 text-xs font-normal">${item.setor_sala}</span></td>
+                    <td class="p-4 text-sm text-slate-300 max-w-xs truncate">${item.descricao}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded text-[10px] font-bold ${item.status === 'Pendente' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}">
+                            ${item.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="p-4 text-xs text-slate-400">${item.tecnico_responsavel || '-'}</td>
+                    <td class="p-4 no-print">
                         ${item.status === 'Pendente' ? 
                         `<button class="btn-finish" onclick="concluir('${item.id}')">Concluir</button>` : '✅'}
                     </td>
                 </tr>`;
         });
-
-        // Atualiza o DOM uma única vez (evita o "piscar")
         corpo.innerHTML = htmlFinal;
     }
 
     async function concluir(id) {
-        const tec = prompt("Nome do Técnico Responsável:");
-        if(!tec) return;
-        
+        const tec = prompt("Digite o nome do Técnico Responsável:");
+        if (!tec) return;
+
+        const update = {
+            status: 'Concluido',
+            tecnico_responsavel: tec,
+            data_conclusao: new Date().toLocaleString('pt-BR')
+        };
+
         try {
             await fetch(`${STATUS_API}/${id}`, {
                 method: 'PATCH',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    status: 'Concluido', 
-                    tecnico_responsavel: tec, 
-                    data_conclusao: new Date().toLocaleString('pt-BR')
-                })
+                body: JSON.stringify(update)
             });
-            carregarDados(); // Força atualização imediata
+            carregarDados();
         } catch (e) { alert("Erro ao salvar."); }
     }
 
     function setFiltroStatus(s) {
         statusAtual = s;
-        document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active'));
+        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
         document.getElementById(`card-${s}`).classList.add('active');
         renderizar();
     }
 
-    function filtrarPorPeriodo(p) {
+    function setFiltroPeriodo(p) {
         periodoAtual = p;
         renderizar();
     }
 
-    // Inicialização
+    function prepararImpressao() {
+        document.getElementById('data-relatorio').innerText = new Date().toLocaleString();
+        window.print();
+    }
+
+    // Inicialização automática
     carregarDados();
-    // Aumentamos o intervalo para 10s para dar estabilidade à UI
-    setInterval(carregarDados, 10000); 
+    setInterval(carregarDados, 10000); // Atualiza a cada 10 segundos
 </script>
+</body>
+</html>
