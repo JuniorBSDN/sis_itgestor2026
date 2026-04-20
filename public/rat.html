@@ -45,10 +45,10 @@
 
         .table-container {
             background: var(--card); border-radius: 16px; border: 1px solid var(--border);
-            overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            overflow-x: auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
         th {
             background: rgba(255, 255, 255, 0.03); padding: 15px; text-align: left;
             font-size: 0.75rem; text-transform: uppercase; color: var(--primary);
@@ -67,16 +67,15 @@
         }
         .btn-ui:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Modais */
         .modal {
             display: none; position: fixed; z-index: 100; inset: 0;
             background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
         }
         .modal-content {
             background: var(--card); width: 95%; max-width: 550px;
-            margin: 8vh auto; padding: 30px; border-radius: 20px; 
+            margin: 5vh auto; padding: 30px; border-radius: 20px; 
             border: 1px solid var(--border); position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-height: 90vh; overflow-y: auto;
         }
         .modal-large { max-width: 1000px; }
         
@@ -91,8 +90,8 @@
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; color: black !important; padding: 0; }
-            .modal-content { border: none; width: 100%; max-width: 100%; margin: 0; box-shadow: none; }
-            .status-badge { border: 1px solid #000; color: #000; }
+            .modal-content { border: none; width: 100%; max-width: 100%; margin: 0; box-shadow: none; overflow: visible; }
+            .status-badge { border: 1px solid #000; color: #000; background: none; }
         }
 
         footer { text-align: center; margin-top: 40px; padding: 20px; opacity: 0.6; font-size: 0.8rem; border-top: 1px solid var(--border); }
@@ -103,12 +102,12 @@
 <div class="container no-print">
     <header>
         <div>
-            <h1>RAT - Painel de Atendimentos <span id="sync-indicator" style="font-size: 0.7rem; color: var(--success); margin-left: 10px; transition: opacity 0.3s;">● Live</span></h1>
+            <h1>RAT - Painel de Atendimentos <span id="sync-indicator" style="opacity: 0.3; font-size: 0.7rem; color: var(--success); margin-left: 10px;">● Live</span></h1>
             <p style="margin: 5px 0 0; opacity: 0.7;">Relatório de: <strong id="data-titulo">--/--/----</strong></p>
         </div>
         <div style="display: flex; gap: 10px;">
-            <button class="btn-ui" onclick="abrirModal('modalData')">📅 ALTERAR DATA</button>
-            <button class="btn-ui" style="background: #64748b; color: white;" onclick="window.print()">🖨️ PDF PAINEL</button>
+            <button class="btn-ui" onclick="abrirModal('modalData')">📅 DATA</button>
+            <button class="btn-ui" style="background: #64748b; color: white;" onclick="window.print()">🖨️ PDF</button>
         </div>
     </header>
 
@@ -146,8 +145,8 @@
         <h2 style="margin: 0 0 20px; font-size: 1.2rem; color: var(--primary);">Filtrar por Data</h2>
         <input type="date" id="inputData">
         <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="btn-ui" style="flex: 1;" onclick="aplicarFiltro()">FILTRAR AGORA</button>
-            <button class="btn-ui" style="flex: 1; background: var(--danger); color: white;" onclick="fecharModal('modalData')">CANCELAR</button>
+            <button class="btn-ui" style="flex: 1;" onclick="aplicarFiltro()">FILTRAR</button>
+            <button class="btn-ui" style="flex: 1; background: var(--danger); color: white;" onclick="fecharModal('modalData')">VOLTAR</button>
         </div>
     </div>
 </div>
@@ -159,25 +158,25 @@
         <div id="detalhe-corpo" style="text-align: left; line-height: 1.6; font-size: 0.95rem; margin: 20px 0;"></div>
         
         <div id="area-conclusao" class="no-print" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
-            <label style="display: block; font-size: 0.8rem; color: var(--primary); margin-bottom: 8px;">Nome do Técnico Responsável:</label>
-            <input type="text" id="nome_tecnico" placeholder="Digite seu nome para concluir...">
+            <label style="display: block; font-size: 0.8rem; color: var(--primary); margin-bottom: 8px;">Nome do Técnico:</label>
+            <input type="text" id="nome_tecnico" placeholder="Seu nome...">
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 20px;" class="no-print">
-            <button id="btn-concluir-acao" class="btn-ui" style="flex: 1; background: var(--success); color: white;">CONCLUIR TAREFA</button>
-            <button class="btn-ui" style="flex: 1; background: #64748b; color: white;" onclick="window.print()">🖨️ COMPROVANTE</button>
+            <button id="btn-concluir-acao" class="btn-ui" style="flex: 1; background: var(--success); color: white;">CONCLUIR</button>
+            <button id="btn-print-ticket" class="btn-ui" style="flex: 1; background: #64748b; color: white;">🖨️ TICKET</button>
         </div>
     </div>
 </div>
 
 <div id="modalListagem" class="modal">
-    <div class="modal-content modal-large" style="max-height: 85vh; overflow-y: auto;">
+    <div class="modal-content modal-large">
         <span class="close-btn" onclick="fecharModal('modalListagem')">✕</span>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 id="titulo-lista-geral" style="margin: 0; color: var(--primary);">Histórico de Registros</h2>
-            <button class="btn-ui" onclick="window.print()">🖨️ IMPRIMIR LISTAGEM</button>
+            <h2 id="titulo-lista-geral" style="margin: 0; color: var(--primary);">Histórico</h2>
+            <button class="btn-ui" onclick="window.print()">🖨️ IMPRIMIR TELA</button>
         </div>
-        <div id="corpo-lista-geral"></div>
+        <div id="corpo-lista-geral" style="overflow-x: auto;"></div>
     </div>
 </div>
 
@@ -194,11 +193,9 @@
             const syncIcon = document.getElementById('sync-indicator');
             syncIcon.style.opacity = "1";
 
-            // Busca dados do dia selecionado
             const response = await fetch(`${API_URL}?data=${dataAtual}&_t=${Date.now()}`);
             const dadosDoDia = await response.json();
             
-            // Busca histórico total para contadores e modais
             const resGeral = await fetch(`${API_URL}`);
             todosOsDadosCache = await resGeral.json();
 
@@ -210,7 +207,9 @@
             atualizarContadores();
             setTimeout(() => { syncIcon.style.opacity = "0.3"; }, 500);
             document.getElementById('data-titulo').innerText = dataAtual.split('-').reverse().join('/');
-        } catch (error) { console.error("Erro na sincronização"); }
+        } catch (error) { 
+            console.error("Erro na sincronização:", error); 
+        }
     }
 
     function atualizarContadores() {
@@ -223,8 +222,8 @@
         const tbody = document.getElementById('corpoTabela');
         tbody.innerHTML = '';
 
-        if (atividades.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; opacity:0.5;">Nenhum chamado registrado para esta data.</td></tr>`;
+        if (!atividades || atividades.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; opacity:0.5;">Nenhum chamado hoje.</td></tr>`;
             return;
         }
 
@@ -238,7 +237,7 @@
                 <td><strong>${item.nome}</strong></td>
                 <td>${item.setor_sala}</td>
                 <td>${item.tipo_servico}</td>
-                <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.descricao}</td>
+                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.descricao}</td>
                 <td><span class="status-badge status-${status}">${status}</span></td>
             `;
             tbody.appendChild(tr);
@@ -249,23 +248,26 @@
         const corpo = document.getElementById('detalhe-corpo');
         const btnConcluir = document.getElementById('btn-concluir-acao');
         const areaTecnico = document.getElementById('area-conclusao');
+        const btnPrint = document.getElementById('btn-print-ticket');
         const status = item.status || 'Pendente';
 
         corpo.innerHTML = `
             <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px;">
-                <p><strong>Protocolo:</strong> #${item.id}</p>
+                <p><strong>Protocolo:</strong> #${item.id || 'N/A'}</p>
                 <p><strong>Solicitante:</strong> ${item.nome}</p>
                 <p><strong>Setor/Sala:</strong> ${item.setor_sala}</p>
-                <p><strong>Data de Abertura:</strong> ${item.data_registro}</p>
-                <p><strong>Status Atual:</strong> <span class="status-badge status-${status}">${status}</span></p>
+                <p><strong>Data:</strong> ${item.data_registro}</p>
+                <p><strong>Status:</strong> <span class="status-badge status-${status}">${status}</span></p>
                 ${item.tecnico_responsavel ? `<p><strong>Técnico:</strong> ${item.tecnico_responsavel}</p>` : ''}
-                ${item.data_conclusao ? `<p><strong>Concluído em:</strong> ${item.data_conclusao}</p>` : ''}
+                ${item.data_conclusao ? `<p><strong>Concluído:</strong> ${item.data_conclusao}</p>` : ''}
             </div>
             <div style="margin-top:15px;">
-                <strong>Descrição do Problema:</strong><br>
+                <strong>Descrição:</strong><br>
                 <div style="background:#0f172a; padding:10px; border-radius:5px; margin-top:5px; border-left: 3px solid var(--primary);">${item.descricao}</div>
             </div>
         `;
+
+        btnPrint.onclick = () => imprimirTicket(item.id);
 
         if (status === 'Concluido') {
             areaTecnico.style.display = 'none';
@@ -280,11 +282,12 @@
     }
 
     async function executarConclusao(id) {
-        const tecnico = document.getElementById('nome_tecnico').value.trim();
+        const tecnicoInput = document.getElementById('nome_tecnico');
+        const tecnico = tecnicoInput.value.trim();
         const agora = new Date().toLocaleString('pt-BR');
 
         if (!tecnico) {
-            alert("⚠️ Por favor, identifique-se inserindo seu nome de técnico.");
+            alert("⚠️ Insira o nome do técnico.");
             return;
         }
 
@@ -300,12 +303,11 @@
             });
             
             if(res.ok) {
-                alert(`✅ Atendimento #${id} concluído com sucesso por ${tecnico}!`);
-                document.getElementById('nome_tecnico').value = "";
+                tecnicoInput.value = "";
                 fecharModal('modalDetalhes');
                 buscarDados();
             }
-        } catch (e) { alert("Erro ao salvar conclusão."); }
+        } catch (e) { alert("Erro ao salvar."); }
     }
 
     function verHistorico(filtro) {
@@ -317,12 +319,12 @@
         const corpo = document.getElementById('corpo-lista-geral');
         
         corpo.innerHTML = `
-            <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+            <table style="width:100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background:rgba(56, 189, 248, 0.1); color: var(--primary);">
-                        <th style="padding:12px; text-align:left;">INÍCIO</th>
-                        <th style="padding:12px; text-align:left;">TÉCNICO / TÉRMINO</th>
-                        <th style="padding:12px; text-align:left;">SETOR</th>
+                        <th style="padding:12px;">DATA</th>
+                        <th style="padding:12px;">TÉCNICO / TÉRMINO</th>
+                        <th style="padding:12px;">SETOR</th>
                         <th style="padding:12px; text-align:center;" class="no-print">AÇÃO</th>
                     </tr>
                 </thead>
@@ -332,14 +334,11 @@
                             <td style="padding:12px;">${i.data_registro}</td>
                             <td style="padding:12px;">
                                 <strong>${i.tecnico_responsavel || '---'}</strong><br>
-                                <small style="opacity:0.6">${i.data_conclusao || 'Em andamento'}</small>
+                                <small style="opacity:0.6">${i.data_conclusao || 'Em aberto'}</small>
                             </td>
                             <td style="padding:12px;">${i.setor_sala}</td>
                             <td style="padding:12px; text-align:center;" class="no-print">
-                                <button onclick='imprimirTicket(${JSON.stringify(i)})' 
-                                        style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.7rem;">
-                                    🖨️ Imprimir
-                                </button>
+                                <button onclick="imprimirTicket('${i.id}')" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:5px 10px; border-radius:6px; cursor:pointer;">🖨️</button>
                             </td>
                         </tr>
                     `).join('')}
@@ -349,22 +348,25 @@
         abrirModal('modalListagem');
     }
 
-    function imprimirTicket(item) {
+    function imprimirTicket(id) {
+        const item = todosOsDadosCache.find(x => x.id == id);
+        if(!item) return;
+
         const win = window.open('', '', 'width=700,height=500');
         win.document.write(`
             <html>
                 <head><title>RAT - Comprovante</title></head>
                 <style>
-                    body { font-family: sans-serif; padding: 30px; color: #333; }
+                    body { font-family: sans-serif; padding: 20px; color: #333; }
                     .box { border: 2px solid #000; padding: 20px; border-radius: 10px; }
                     .header { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-                    .footer { text-align: center; margin-top: 30px; font-size: 0.7rem; color: #666; }
+                    .footer { text-align: center; margin-top: 30px; font-size: 0.7rem; color: #666; border-top: 1px solid #eee; padding-top: 10px; }
                 </style>
                 <body>
                     <div class="box">
                         <div class="header">
-                            <h3>COMPROVANTE DE ATENDIMENTO TÉCNICO</h3>
-                            <p>Protocolo RAT #${item.id}</p>
+                            <h2>COMPROVANTE DE ATENDIMENTO</h2>
+                            <p>RAT #${item.id}</p>
                         </div>
                         <p><strong>Solicitante:</strong> ${item.nome}</p>
                         <p><strong>Setor:</strong> ${item.setor_sala}</p>
@@ -373,7 +375,7 @@
                         <hr>
                         <p><strong>Abertura:</strong> ${item.data_registro}</p>
                         <p><strong>Conclusão:</strong> ${item.data_conclusao || '---'}</p>
-                        <p><strong>Técnico Responsável:</strong> ${item.tecnico_responsavel || '---'}</p>
+                        <p><strong>Técnico:</strong> ${item.tecnico_responsavel || '---'}</p>
                         <div class="footer">Desenvolvido pelo Setor de Tecnologia da Informação (T.I.) — Instituto Impar</div>
                     </div>
                 </body>
@@ -396,7 +398,6 @@
         }
     }
 
-    // Inicialização e Loop de Tempo Real
     buscarDados();
     setInterval(buscarDados, 3000); 
 </script>
