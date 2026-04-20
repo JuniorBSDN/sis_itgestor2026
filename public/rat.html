@@ -1,140 +1,94 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel RAT Consolidado - Instituto Impar</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
-            --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
-            --success: #22c55e; --pending: #fbbf24;
-        }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; }
-        
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--border); cursor: pointer; text-align: center; }
-        .stat-card.active { border: 2px solid var(--primary); background: rgba(56, 189, 248, 0.1); }
-        .stat-card p { font-size: 2rem; font-weight: 700; margin: 10px 0 0; }
-
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; align-items: center; }
-        button, select, input { background: #1e293b; color: white; border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
-        .btn-finish { background: var(--primary); color: #0f172a; font-weight: bold; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; }
-
-        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 16px; overflow: hidden; }
-        th { background: rgba(255,255,255,0.05); padding: 15px; text-align: left; color: #94a3b8; font-size: 0.8rem; }
-        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-
-        @media print {
-            .no-print, header, .controls, .stats, .btn-finish { display: none !important; }
-            body { background: white; color: black; }
-            table { border: 1px solid #000; width: 100%; }
-            th, td { border: 1px solid #000; color: black !important; }
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <header class="no-print">
-        <div>
-            <h1 style="color: var(--primary); margin:0;">PAINEL RAT</h1>
-            <p style="font-size: 0.8rem; opacity: 0.6;">Instituto Impar - T.I.</p>
-        </div>
-        <button style="background: var(--success); color: #000; font-weight: bold;" onclick="window.print()">🖨️ Imprimir Relatório</button>
-    </header>
-
-    <div class="stats no-print">
-        <div class="stat-card active" id="card-Todos" onclick="setFiltroStatus('Todos')">
-            <h3>TOTAL</h3><p id="total-val">0</p>
-        </div>
-        <div class="stat-card" id="card-Pendente" onclick="setFiltroStatus('Pendente')">
-            <h3>PENDENTES</h3><p id="pendente-val" style="color: var(--pending);">0</p>
-        </div>
-        <div class="stat-card" id="card-Concluido" onclick="setFiltroStatus('Concluido')">
-            <h3>CONCLUÍDOS</h3><p id="concluido-val" style="color: var(--success);">0</p>
-        </div>
-    </div>
-
-    <div class="controls no-print">
-        <span>Filtrar:</span>
-        <select onchange="filtrarPorPeriodo(this.value)">
-            <option value="todos">Todos</option>
-            <option value="dia">Hoje</option>
-            <option value="mes">Este Mês</option>
-        </select>
-        <input type="date" onchange="carregarDados(this.value)">
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>DATA/HORA</th>
-                <th>SOLICITANTE</th>
-                <th>DESCRIÇÃO</th>
-                <th>STATUS</th>
-                <th>TÉCNICO</th>
-                <th class="no-print">AÇÃO</th>
-            </tr>
-        </thead>
-        <tbody id="tabela-corpo"></tbody>
-    </table>
-</div>
-
 <script>
-    let dadosCache = [];
+    let dadosServidor = []; // Armazena o que vem do Firebase
     let statusAtual = "Todos";
+    let periodoAtual = "todos";
     const API = '/api/helpdesk';
     const STATUS_API = '/api/status_rat';
 
     async function carregarDados(data = "") {
-        const url = data ? `${API}?data=${data}` : API;
-        const res = await fetch(url);
-        dadosCache = await res.json();
-        renderizar();
+        try {
+            const url = data ? `${API}?data=${data}` : API;
+            const res = await fetch(url);
+            const novosDados = await res.json();
+            
+            // Só renderiza se os dados forem diferentes ou se for a primeira carga
+            if (JSON.stringify(novosDados) !== JSON.stringify(dadosServidor)) {
+                dadosServidor = novosDados;
+                renderizar();
+            }
+        } catch (e) { console.error("Erro na rede:", e); }
     }
 
     function renderizar() {
         const corpo = document.getElementById('tabela-corpo');
-        corpo.innerHTML = "";
+        let htmlFinal = "";
         let p = 0, c = 0;
 
-        const filtrados = dadosCache.filter(item => {
+        // 1. Calcula contadores baseados no servidor
+        dadosServidor.forEach(item => {
             item.status === 'Pendente' ? p++ : c++;
-            return statusAtual === "Todos" || item.status === statusAtual;
         });
 
-        document.getElementById('total-val').innerText = dadosCache.length;
+        // 2. Filtra os dados para exibição
+        const filtrados = dadosServidor.filter(item => {
+            // Filtro de Status (Card)
+            const passaStatus = (statusAtual === "Todos" || item.status === statusAtual);
+            
+            // Filtro de Período (Select)
+            let passaPeriodo = true;
+            if (periodoAtual !== "todos") {
+                const hoje = new Date();
+                const [d, m, y] = item.data_registro.split(' ')[0].split('/');
+                const dataItem = new Date(y, m - 1, d);
+                
+                if (periodoAtual === "dia") passaPeriodo = dataItem.toDateString() === hoje.toDateString();
+                if (periodoAtual === "mes") passaPeriodo = dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
+            }
+
+            return passaStatus && passaPeriodo;
+        });
+
+        // 3. Atualiza os cards
+        document.getElementById('total-val').innerText = dadosServidor.length;
         document.getElementById('pendente-val').innerText = p;
         document.getElementById('concluido-val').innerText = c;
 
+        // 4. Gera o HTML da tabela
         filtrados.forEach(item => {
-            corpo.innerHTML += `
-                <tr>
-                    <td>${item.data_registro}</td>
-                    <td><b>${item.nome}</b><br><small>${item.setor_sala}</small></td>
+            htmlFinal += `
+                <tr class="hover:bg-slate-700/20 transition-colors">
+                    <td><small>${item.data_registro}</small></td>
+                    <td><b>${item.nome}</b><br><small class="text-sky-500">${item.setor_sala}</small></td>
                     <td>${item.descricao}</td>
-                    <td style="color: ${item.status === 'Pendente' ? 'var(--pending)' : 'var(--success)'}">${item.status}</td>
-                    <td>${item.tecnico_responsavel || '-'}</td>
+                    <td style="color: ${item.status === 'Pendente' ? 'var(--pending)' : 'var(--success)'}; font-weight:bold;">${item.status}</td>
+                    <td><small>${item.tecnico_responsavel || '-'}</small></td>
                     <td class="no-print">
-                        ${item.status === 'Pendente' ? `<button class="btn-finish" onclick="concluir('${item.id}')">Concluir</button>` : '✅'}
+                        ${item.status === 'Pendente' ? 
+                        `<button class="btn-finish" onclick="concluir('${item.id}')">Concluir</button>` : '✅'}
                     </td>
                 </tr>`;
         });
+
+        // Atualiza o DOM uma única vez (evita o "piscar")
+        corpo.innerHTML = htmlFinal;
     }
 
     async function concluir(id) {
-        const tec = prompt("Nome do Técnico:");
+        const tec = prompt("Nome do Técnico Responsável:");
         if(!tec) return;
-        await fetch(`${STATUS_API}/${id}`, {
-            method: 'PATCH',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({status: 'Concluido', tecnico_responsavel: tec, data_conclusao: new Date().toLocaleString()})
-        });
-        carregarDados();
+        
+        try {
+            await fetch(`${STATUS_API}/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    status: 'Concluido', 
+                    tecnico_responsavel: tec, 
+                    data_conclusao: new Date().toLocaleString('pt-BR')
+                })
+            });
+            carregarDados(); // Força atualização imediata
+        } catch (e) { alert("Erro ao salvar."); }
     }
 
     function setFiltroStatus(s) {
@@ -144,8 +98,13 @@
         renderizar();
     }
 
+    function filtrarPorPeriodo(p) {
+        periodoAtual = p;
+        renderizar();
+    }
+
+    // Inicialização
     carregarDados();
-    setInterval(carregarDados, 10000);
+    // Aumentamos o intervalo para 10s para dar estabilidade à UI
+    setInterval(carregarDados, 10000); 
 </script>
-</body>
-</html>
