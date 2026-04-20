@@ -8,107 +8,94 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #38bdf8;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f1f5f9;
-            --border: rgba(255, 255, 255, 0.1);
+            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
+            --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
         }
-        body { 
-            background-color: var(--bg); 
-            color: var(--text); 
-            font-family: 'Inter', sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-        }
-        .stat-card { 
-            background: var(--card); 
-            border: 1px solid var(--border); 
-            transition: all 0.3s ease; 
-            cursor: pointer; 
-        }
-        .stat-card.active { 
-            border-color: var(--primary); 
-            background: rgba(56, 189, 248, 0.1); 
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-        }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); transition: all 0.3s ease; cursor: pointer; }
+        .stat-card.active { border-color: var(--primary); background: rgba(56, 189, 248, 0.1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+        
         @media print {
             .no-print { display: none !important; }
-            body { background: white; color: black; padding: 0; }
-            .container { max-width: 100%; }
-            table { border: 1px solid #000; width: 100%; }
+            body { background: white !important; color: black !important; padding: 0; }
+            .container { max-width: 100% !important; margin: 0; }
+            table { border: 1px solid #000; width: 100%; border-collapse: collapse; }
             th, td { border: 1px solid #000; color: black !important; padding: 8px; font-size: 10pt; }
-            .print-only { display: block !important; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
         }
     </style>
 </head>
 <body class="antialiased">
 
 <div class="container max-w-6xl mx-auto">
-    <div class="hidden print-only text-center mb-6">
-        <h1 class="text-2xl font-bold">INSTITUTO IMPAR - RELATÓRIO DE ATIVIDADES (RAT)</h1>
-        <p>Setor de Tecnologia da Informação — Vigia de Nazaré/PA</p>
-        <p class="text-sm mt-2">Documento gerado em: <span id="print-timestamp"></span></p>
+    <div class="hidden print-header text-black">
+        <h1 class="text-2xl font-bold">INSTITUTO IMPAR - RELATÓRIO DE ATIVIDADES TI</h1>
+        <p>Vigia de Nazaré/PA - Data: <span id="print-date"></span></p>
+        <hr class="my-4 border-black">
     </div>
 
     <header class="flex justify-between items-center bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-8 no-print shadow-xl">
         <div>
             <h1 class="text-2xl font-bold text-sky-400 tracking-tight">PAINEL RAT</h1>
-            <p class="text-xs text-slate-400 font-medium">Gestão de Chamados e Infraestrutura</p>
+            <p class="text-xs text-slate-400 font-medium">Gestão de Infraestrutura e Chamados</p>
         </div>
-        <div class="flex gap-3">
-            <button onclick="prepararImpressao()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2">
-                🖨️ Gerar Relatório
-            </button>
-        </div>
+        <button onclick="prepararImpressao()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2">
+            🖨️ Imprimir Relatório
+        </button>
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 no-print">
         <div id="card-Todos" onclick="setFiltroStatus('Todos')" class="stat-card active p-6 rounded-2xl text-center">
-            <h3 class="text-xs text-slate-400 uppercase font-bold tracking-wider">Total de Chamados</h3>
+            <h3 class="text-xs text-slate-400 uppercase font-bold">Total Geral</h3>
             <p id="total-val" class="text-4xl font-bold mt-2">0</p>
         </div>
         <div id="card-Pendente" onclick="setFiltroStatus('Pendente')" class="stat-card p-6 rounded-2xl text-center">
-            <h3 class="text-xs text-slate-400 uppercase font-bold tracking-wider">Pendentes</h3>
+            <h3 class="text-xs text-slate-400 uppercase font-bold text-amber-500">Pendentes</h3>
             <p id="pendente-val" class="text-4xl font-bold mt-2 text-amber-500">0</p>
         </div>
         <div id="card-Concluido" onclick="setFiltroStatus('Concluido')" class="stat-card p-6 rounded-2xl text-center">
-            <h3 class="text-xs text-slate-400 uppercase font-bold tracking-wider">Concluídos</h3>
+            <h3 class="text-xs text-slate-400 uppercase font-bold text-emerald-500">Concluídos</h3>
             <p id="concluido-val" class="text-4xl font-bold mt-2 text-emerald-500">0</p>
         </div>
     </div>
 
     <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex flex-wrap gap-4 items-center no-print text-sm">
-        <span class="font-semibold text-slate-400">Filtrar por Período:</span>
-        <select id="selPeriodo" onchange="setFiltroPeriodo(this.value)" class="bg-slate-900 border border-slate-700 text-white p-2 rounded-lg outline-none focus:border-sky-500">
-            <option value="todos">Todos os Registros</option>
-            <option value="dia">Hoje</option>
-            <option value="semana">Últimos 7 dias</option>
-            <option value="mes">Este Mês</option>
-        </select>
-        <input type="date" id="inputData" onchange="buscarPorData(this.value)" class="bg-slate-900 border border-slate-700 text-white p-2 rounded-lg outline-none focus:border-sky-500">
-        <button onclick="carregarDados()" class="ml-auto text-sky-400 hover:text-white transition-colors">🔄 Atualizar</button>
+        <div class="flex items-center gap-2">
+            <span class="text-slate-400 font-semibold">Período:</span>
+            <select id="selPeriodo" onchange="setFiltroPeriodo(this.value)" class="bg-slate-900 border border-slate-700 text-white p-2 rounded-lg outline-none focus:border-sky-500">
+                <option value="todos">Todos os Registros</option>
+                <option value="dia">Hoje</option>
+                <option value="semana">Últimos 7 dias</option>
+                <option value="mes">Este Mês</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-slate-400 font-semibold">Data Manual:</span>
+            <input type="date" id="inputData" onchange="carregarDados(this.value)" class="bg-slate-900 border border-slate-700 text-white p-2 rounded-lg outline-none focus:border-sky-500">
+        </div>
+        <button onclick="carregarDados()" class="ml-auto text-sky-400 hover:text-white transition-all flex items-center gap-1">
+            <span>🔄</span> Sincronizar
+        </button>
     </div>
 
     <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-700/50 text-slate-400 text-xs uppercase font-bold">
-                    <tr>
-                        <th class="p-4 border-b border-slate-700">Data/Hora</th>
-                        <th class="p-4 border-b border-slate-700">Solicitante / Setor</th>
-                        <th class="p-4 border-b border-slate-700">Descrição do Problema</th>
-                        <th class="p-4 border-b border-slate-700">Status</th>
-                        <th class="p-4 border-b border-slate-700">Técnico</th>
-                        <th class="p-4 border-b border-slate-700 no-print text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-corpo" class="divide-y divide-slate-700">
-                    </tbody>
-            </table>
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-700/50 text-slate-400 text-xs uppercase font-bold">
+                <tr>
+                    <th class="p-4 border-b border-slate-700">Data/Hora</th>
+                    <th class="p-4 border-b border-slate-700">Solicitante</th>
+                    <th class="p-4 border-b border-slate-700">Descrição</th>
+                    <th class="p-4 border-b border-slate-700 text-center">Status</th>
+                    <th class="p-4 border-b border-slate-700">Técnico</th>
+                    <th class="p-4 border-b border-slate-700 no-print text-center">Ação</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-corpo" class="divide-y divide-slate-700">
+                </tbody>
+        </table>
+        <div id="empty-state" class="p-12 text-center text-slate-500 hidden">
+            Nenhum chamado encontrado para os filtros selecionados.
         </div>
-        <div id="loading-state" class="p-10 text-center text-slate-500 hidden">Carregando dados...</div>
-        <div id="empty-state" class="p-10 text-center text-slate-500 hidden">Nenhum registro encontrado para este filtro.</div>
     </div>
 
     <footer class="mt-8 text-center text-[10px] text-slate-600 uppercase tracking-widest no-print">
@@ -117,9 +104,9 @@
 </div>
 
 <script>
-    let dadosServidor = [];
-    let statusFiltro = "Todos";
-    let periodoFiltro = "todos";
+    let dadosCache = [];
+    let statusAtual = "Todos";
+    let periodoAtual = "todos";
     
     const API = '/api/helpdesk';
     const STATUS_API = '/api/status_rat';
@@ -130,90 +117,80 @@
             const res = await fetch(url);
             const novosDados = await res.json();
             
-            // Só atualiza o DOM se houver mudança nos dados para evitar o efeito de "piscar"
-            if (JSON.stringify(novosDados) !== JSON.stringify(dadosServidor)) {
-                dadosServidor = novosDados;
+            // Lógica Anti-Piscar: só renderiza se houver mudança real
+            if (JSON.stringify(novosDados) !== JSON.stringify(dadosCache)) {
+                dadosCache = novosDados;
                 renderizar();
             }
-        } catch (e) {
-            console.error("Erro ao carregar dados:", e);
-        }
+        } catch (e) { console.error("Erro na carga:", e); }
     }
 
     function renderizar() {
         const corpo = document.getElementById('tabela-corpo');
-        const emptyState = document.getElementById('empty-state');
-        let htmlFinal = "";
-        let countPendente = 0;
-        let countConcluido = 0;
+        const empty = document.getElementById('empty-state');
+        let html = "";
+        let p = 0, c = 0;
 
-        // Atualiza contadores globais baseados no servidor
-        dadosServidor.forEach(item => {
-            item.status === 'Pendente' ? countPendente++ : countConcluido++;
-        });
+        // Atualiza contadores globais
+        dadosCache.forEach(i => i.status === 'Pendente' ? p++ : c++);
+        document.getElementById('total-val').innerText = dadosCache.length;
+        document.getElementById('pendente-val').innerText = p;
+        document.getElementById('concluido-val').innerText = c;
 
-        // Aplica os filtros de interface (Status e Período)
-        const filtrados = dadosServidor.filter(item => {
-            const matchStatus = (statusFiltro === "Todos" || item.status === statusFiltro);
+        // Filtra para exibição
+        const filtrados = dadosCache.filter(item => {
+            const matchStatus = (statusAtual === "Todos" || item.status === statusAtual);
             
             let matchPeriodo = true;
-            if (periodoFiltro !== "todos") {
+            if (periodoAtual !== "todos") {
                 const hoje = new Date();
-                const [dataParte] = item.data_registro.split(' ');
-                const [d, m, y] = dataParte.split('/');
+                const [d, m, y] = item.data_registro.split(' ')[0].split('/');
                 const dataItem = new Date(y, m - 1, d);
-
-                if (periodoFiltro === "dia") matchPeriodo = dataItem.toDateString() === hoje.toDateString();
-                if (periodoFiltro === "semana") matchPeriodo = (hoje - dataItem) / (1000 * 3600 * 24) <= 7;
-                if (periodoFiltro === "mes") matchPeriodo = dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
+                if (periodoAtual === "dia") matchPeriodo = dataItem.toDateString() === hoje.toDateString();
+                if (periodoAtual === "semana") matchPeriodo = (hoje - dataItem) / (1000 * 3600 * 24) <= 7;
+                if (periodoAtual === "mes") matchPeriodo = dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
             }
             return matchStatus && matchPeriodo;
         });
 
-        // Atualiza números nos cards
-        document.getElementById('total-val').innerText = dadosServidor.length;
-        document.getElementById('pendente-val').innerText = countPendente;
-        document.getElementById('concluido-val').innerText = countConcluido;
-
         if (filtrados.length === 0) {
-            emptyState.classList.remove('hidden');
+            empty.classList.remove('hidden');
             corpo.innerHTML = "";
             return;
         } else {
-            emptyState.classList.add('hidden');
+            empty.classList.add('hidden');
         }
 
         filtrados.forEach(item => {
             const corStatus = item.status === 'Pendente' ? 'text-amber-500' : 'text-emerald-500';
             const bgStatus = item.status === 'Pendente' ? 'bg-amber-500/10' : 'bg-emerald-500/10';
 
-            htmlFinal += `
+            html += `
                 <tr class="hover:bg-slate-700/30 transition-colors">
                     <td class="p-4 text-xs text-slate-500 font-mono">${item.data_registro}</td>
-                    <td class="p-4 font-semibold text-sm">
-                        ${item.nome}
-                        <br><span class="text-sky-500 text-xs font-normal">${item.setor_sala}</span>
+                    <td class="p-4 text-sm">
+                        <b class="text-slate-200">${item.nome}</b><br>
+                        <span class="text-sky-500 text-[11px] font-medium">${item.setor_sala}</span>
                     </td>
-                    <td class="p-4 text-sm text-slate-300">${item.descricao}</td>
-                    <td class="p-4">
+                    <td class="p-4 text-sm text-slate-300 max-w-xs truncate" title="${item.descricao}">${item.descricao}</td>
+                    <td class="p-4 text-center">
                         <span class="px-2 py-1 rounded text-[10px] font-bold ${bgStatus} ${corStatus}">
                             ${item.status.toUpperCase()}
                         </span>
                     </td>
-                    <td class="p-4 text-xs text-slate-400 italic">${item.tecnico_responsavel || 'Aguardando...'}</td>
+                    <td class="p-4 text-xs text-slate-400 italic">${item.tecnico_responsavel || 'Aguardando'}</td>
                     <td class="p-4 no-print text-center">
                         ${item.status === 'Pendente' ? 
-                        `<button onclick="concluirChamado('${item.id}')" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all">Concluir</button>` : 
-                        '<span class="text-emerald-500 text-xl">✅</span>'}
+                        `<button onclick="concluir('${item.id}')" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all">Finalizar</button>` : 
+                        '<span class="text-emerald-500 text-lg">✅</span>'}
                     </td>
                 </tr>`;
         });
-
-        corpo.innerHTML = htmlFinal;
+        corpo.innerHTML = html;
     }
 
-    async function concluirChamado(id) {
-        const tecnico = prompt("Nome do Técnico Responsável pela execução:");
+    async function concluir(id) {
+        const tecnico = prompt("Digite o nome do Técnico que executou o serviço:");
         if (!tecnico) return;
 
         try {
@@ -226,44 +203,29 @@
                     data_conclusao: new Date().toLocaleString('pt-BR')
                 })
             });
-            
-            if (res.ok) {
-                carregarDados();
-            } else {
-                alert("Erro ao atualizar status. Tente novamente.");
-            }
-        } catch (e) {
-            alert("Falha na conexão com o servidor.");
-        }
+            if (res.ok) carregarDados();
+        } catch (e) { alert("Erro ao salvar."); }
     }
 
     function setFiltroStatus(s) {
-        statusFiltro = s;
-        document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active'));
+        statusAtual = s;
+        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
         document.getElementById(`card-${s}`).classList.add('active');
         renderizar();
     }
 
     function setFiltroPeriodo(p) {
-        periodoFiltro = p;
+        periodoAtual = p;
         renderizar();
     }
 
-    function buscarPorData(val) {
-        if (!val) carregarDados();
-        else carregarDados(val);
-    }
-
     function prepararImpressao() {
-        document.getElementById('print-timestamp').innerText = new Date().toLocaleString('pt-BR');
+        document.getElementById('print-date').innerText = new Date().toLocaleString();
         window.print();
     }
 
-    // Início Automático
     carregarDados();
-    // Atualização inteligente a cada 15 segundos
-    setInterval(carregarDados, 15000);
-
+    setInterval(carregarDados, 10000); // Atualiza a cada 10 segundos
 </script>
 </body>
 </html>
