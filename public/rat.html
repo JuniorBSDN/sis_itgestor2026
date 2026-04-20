@@ -4,304 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel RAT - Tempo Real</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary: #38bdf8;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f1f5f9;
-            --border: rgba(255, 255, 255, 0.1);
-            --success: #22c55e;
-            --pending: #fbbf24;
-            --danger: #ef4444;
-        }
-
-        * { box-sizing: border-box; }
-        body {
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
-            margin: 0; padding: 20px; min-height: 100vh;
-        }
-
-        .container { max-width: 1200px; margin: 0 auto; }
-
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
-        }
-
-        h1 { font-size: 1.5rem; margin: 0; color: var(--primary); }
-
-        .stats-bar { display: flex; gap: 15px; margin-bottom: 25px; }
-        .stat-card {
-            background: var(--card); padding: 20px; border-radius: 12px;
-            border: 1px solid var(--border); flex: 1; text-align: center;
-            cursor: pointer; transition: 0.2s;
-        }
-        .stat-card:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); }
-        .stat-value { display: block; font-size: 1.8rem; font-weight: 700; margin-top: 5px; }
-
-        .table-container {
-            background: var(--card); border-radius: 16px; border: 1px solid var(--border);
-            overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        table { width: 100%; border-collapse: collapse; }
-        th {
-            background: rgba(255, 255, 255, 0.03); padding: 15px; text-align: left;
-            font-size: 0.75rem; text-transform: uppercase; color: var(--primary);
-        }
-        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        tr.row-link:hover { background: rgba(56, 189, 248, 0.05); cursor: pointer; }
-
-        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .status-Pendente { background: rgba(251, 191, 36, 0.1); color: var(--pending); border: 1px solid var(--pending); }
-        .status-Concluido { background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid var(--success); }
-
-        .btn-ui {
-            background: var(--primary); color: #0f172a; border: none;
-            padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;
-        }
-
-        .modal {
-            display: none; position: fixed; z-index: 100; inset: 0;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
-        }
-        .modal-content {
-            background: var(--card); width: 95%; max-width: 500px;
-            margin: 10vh auto; padding: 30px; border-radius: 20px; border: 1px solid var(--border);
-            max-height: 80vh; overflow-y: auto; position: relative;
-        }
-        .modal-large { max-width: 900px; }
-        .close-btn { position: absolute; right: 20px; top: 20px; cursor: pointer; opacity: 0.5; }
-
-        input, select {
-            width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 8px;
-        }
-
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; color: black !important; }
-            .modal-content { border: none; width: 100%; max-width: 100%; margin: 0; box-shadow: none; }
-        }
-
-        footer { text-align: center; margin-top: 40px; opacity: 0.6; font-size: 0.8rem; border-top: 1px solid var(--border); padding-top: 20px; }
+        body { background: #0f172a; color: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .card { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); }
+        .status-pendente { color: #fbbf24; }
+        .status-concluido { color: #22c55e; }
     </style>
 </head>
-<body>
-
-<div class="container no-print">
-    <header>
-        <div>
-            <h1>RAT - Painel de Atendimentos <span id="sync-indicator" style="font-size: 0.7rem; color: var(--success); margin-left: 10px;">● Live</span></h1>
-            <p style="margin: 5px 0 0; opacity: 0.7;">Relatório de: <strong id="data-titulo">--/--/----</strong></p>
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-ui" onclick="abrirModal('modalData')">📅 DATA</button>
-            <button class="btn-ui" style="background: #64748b; color: white;" onclick="window.print()">🖨️ PDF</button>
-        </div>
-    </header>
-
-    <div class="stats-bar">
-        <div class="stat-card" onclick="verHistorico('TOTAL')">Total <span class="stat-value" id="count-total">0</span></div>
-        <div class="stat-card" onclick="verHistorico('PENDENTE')" style="color:var(--pending)">Pendentes <span class="stat-value" id="count-pendente">0</span></div>
-        <div class="stat-card" onclick="verHistorico('CONCLUIDO')" style="color:var(--success)">Concluídos <span class="stat-value" id="count-concluido">0</span></div>
-    </div>
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Hora</th>
-                    <th>Solicitante</th>
-                    <th>Setor</th>
-                    <th>Tipo</th>
-                    <th>Descrição</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="corpoTabela">
-                <tr><td colspan="6" style="text-align: center; padding: 40px; opacity: 0.5;">Sincronizando...</td></tr>
-            </tbody>
-        </table>
-    </div>
-
-    <footer>Desenvolvido pelo Setor de Tecnologia da Informação (T.I.) — Instituto Impar</footer>
-</div>
-
-<div id="modalDetalhes" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="fecharModal('modalDetalhes')">✕</span>
-        <h2 style="color: var(--primary); margin-top: 0;">Detalhes do RAT</h2>
-        <div id="detalhe-corpo" style="margin: 20px 0; line-height: 1.6;"></div>
-        
-        <div id="area-conclusao" class="no-print">
-            <label style="font-size: 0.8rem; color: var(--primary);">Técnico Responsável:</label>
-            <input type="text" id="nome_tecnico" placeholder="Seu nome...">
-            <button class="btn-ui" style="width: 100%; margin-top: 15px; background: var(--success); color: white;" id="btn-salvar-conclusao">CONCLUIR ATENDIMENTO</button>
-        </div>
-        <button class="btn-ui no-print" style="width: 100%; margin-top: 10px; background: #64748b; color: white;" id="btn-imprimir-ticket">🖨️ IMPRIMIR TICKET</button>
-    </div>
-</div>
-
-<div id="modalData" class="modal">
-    <div class="modal-content">
-        <h2 style="margin: 0;">Filtrar por Data</h2>
-        <input type="date" id="inputData">
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="btn-ui" style="flex: 1;" onclick="aplicarFiltro()">FILTRAR</button>
-            <button class="btn-ui" style="flex: 1; background: var(--danger); color: white;" onclick="fecharModal('modalData')">CANCELAR</button>
-        </div>
-    </div>
-</div>
-
-<div id="modalHistorico" class="modal">
-    <div class="modal-content modal-large">
-        <span class="close-btn" onclick="fecharModal('modalHistorico')">✕</span>
-        <h2 id="titulo-hist" style="color: var(--primary);">Histórico</h2>
-        <div id="corpo-hist" style="margin-top: 20px;"></div>
-    </div>
-</div>
-
-<script>
-    const API_URL = '/api/helpdesk';
-    const STATUS_URL = '/api/status_rat';
-    
-    let dataAtual = new Date().toISOString().split('T')[0];
-    let ultimoDadosJSON = "";
-    let todosDadosCache = [];
-
-    async function buscarDados() {
-        try {
-            const syncIcon = document.getElementById('sync-indicator');
-            syncIcon.style.opacity = "1";
-
-            const response = await fetch(`${API_URL}?data=${dataAtual}&_t=${Date.now()}`);
-            const dadosDia = await response.json();
-            
-            const resGeral = await fetch(`${API_URL}`);
-            todosDadosCache = await resGeral.json();
-
-            if (JSON.stringify(dadosDia) !== ultimoDadosJSON) {
-                renderizarTabela(dadosDia);
-                ultimoDadosJSON = JSON.stringify(dadosDia);
-            }
-
-            atualizarContadores();
-            setTimeout(() => { syncIcon.style.opacity = "0.3"; }, 500);
-            document.getElementById('data-titulo').innerText = dataAtual.split('-').reverse().join('/');
-        } catch (e) { console.error("Erro sincronização"); }
-    }
-
-    function renderizarTabela(atividades) {
-        const tbody = document.getElementById('corpoTabela');
-        tbody.innerHTML = '';
-        atividades.forEach(item => {
-            const status = item.status || 'Pendente';
-            const tr = document.createElement('tr');
-            tr.className = 'row-link';
-            tr.onclick = () => abrirDetalhes(item);
-            tr.innerHTML = `
-                <td>${item.data_registro || '---'}</td>
-                <td><strong>${item.nome}</strong></td>
-                <td>${item.setor_sala}</td>
-                <td>${item.tipo_servico}</td>
-                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.descricao}</td>
-                <td><span class="status-badge status-${status}">${status}</span></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function abrirDetalhes(item) {
-        const corpo = document.getElementById('detalhe-corpo');
-        const status = item.status || 'Pendente';
-        corpo.innerHTML = `
-            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px;">
-                <p><strong>Protocolo:</strong> #${item.id}</p>
-                <p><strong>Solicitante:</strong> ${item.nome} (${item.setor_sala})</p>
-                <p><strong>Tipo:</strong> ${item.tipo_servico}</p>
-                <p><strong>Abertura:</strong> ${item.data_registro}</p>
-                <p><strong>Status:</strong> <span class="status-badge status-${status}">${status}</span></p>
-                ${item.tecnico_responsavel ? `<p><strong>Técnico:</strong> ${item.tecnico_responsavel}</p>` : ''}
+<body class="p-4">
+    <div class="max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-8 bg-slate-800 p-6 rounded-2xl shadow-xl">
+            <div>
+                <h1 class="text-2xl font-bold text-sky-400">PAINEL DE ATIVIDADES (RAT)</h1>
+                <p class="text-slate-400 text-sm">Monitoramento em Tempo Real - Instituto Impar</p>
             </div>
-            <div style="margin-top:15px;"><strong>Descrição:</strong><br>${item.descricao}</div>
-        `;
+            <div class="flex gap-4">
+                <button onclick="abrirFiltro()" class="bg-slate-700 px-4 py-2 rounded-lg hover:bg-slate-600">Filtrar Data</button>
+            </div>
+        </header>
 
-        document.getElementById('area-conclusao').style.display = status === 'Concluido' ? 'none' : 'block';
-        document.getElementById('btn-salvar-conclusao').onclick = () => salvarConclusao(item.id);
-        document.getElementById('btn-imprimir-ticket').onclick = () => imprimirTicket(item);
-        
-        abrirModal('modalDetalhes');
-    }
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card p-6 rounded-xl text-center">
+                <p class="text-slate-400">Total de Chamados</p>
+                <h2 id="count-total" class="text-3xl font-bold">0</h2>
+            </div>
+            <div class="card p-6 rounded-xl text-center">
+                <p class="text-amber-400">Pendentes</p>
+                <h2 id="count-pendente" class="text-3xl font-bold text-amber-400">0</h2>
+            </div>
+            <div class="card p-6 rounded-xl text-center">
+                <p class="text-emerald-400">Concluídos</p>
+                <h2 id="count-concluido" class="text-3xl font-bold text-emerald-400">0</h2>
+            </div>
+        </div>
 
-    async function salvarConclusao(id) {
-        const tecnico = document.getElementById('nome_tecnico').value.trim();
-        if(!tecnico) return alert("Informe seu nome!");
-
-        try {
-            await fetch(`${STATUS_URL}/${id}`, {
-                method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    status: 'Concluido',
-                    tecnico_responsavel: tecnico,
-                    data_conclusao: new Date().toLocaleString('pt-BR')
-                })
-            });
-            fecharModal('modalDetalhes');
-            buscarDados();
-        } catch (e) { alert("Erro ao salvar"); }
-    }
-
-    function atualizarContadores() {
-        document.getElementById('count-total').innerText = todosDadosCache.length;
-        document.getElementById('count-pendente').innerText = todosDadosCache.filter(i => (i.status || 'Pendente') === 'Pendente').length;
-        document.getElementById('count-concluido').innerText = todosDadosCache.filter(i => i.status === 'Concluido').length;
-    }
-
-    function verHistorico(filtro) {
-        const filtrados = filtro === 'TOTAL' ? todosDadosCache : todosDadosCache.filter(i => (i.status || 'Pendente') === (filtro === 'PENDENTE' ? 'Pendente' : 'Concluido'));
-        document.getElementById('titulo-hist').innerText = `Histórico: ${filtro}`;
-        const corpo = document.getElementById('corpo-hist');
-        corpo.innerHTML = `
-            <table style="width:100%">
-                <thead style="color:var(--primary)"><tr><th>DATA</th><th>TÉCNICO</th><th>SETOR</th></tr></thead>
-                <tbody>
-                    ${filtrados.map(i => `<tr><td>${i.data_registro}</td><td>${i.tecnico_responsavel || '---'}</td><td>${i.setor_sala}</td></tr>`).join('')}
-                </tbody>
+        <div class="card rounded-2xl overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-slate-700 text-slate-300 text-sm">
+                    <tr>
+                        <th class="p-4">Data/Hora</th>
+                        <th class="p-4">Solicitante/Setor</th>
+                        <th class="p-4">Descrição</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4 text-center">Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-corpo"></tbody>
             </table>
-        `;
-        abrirModal('modalHistorico');
-    }
+        </div>
+    </div>
 
-    function imprimirTicket(item) {
-        const win = window.open('', '', 'width=600,height=400');
-        win.document.write(`<html><body style="font-family:sans-serif; padding:20px; border:1px solid #000;">
-            <h2 style="text-align:center">COMPROVANTE RAT #${item.id}</h2>
-            <p><strong>Solicitante:</strong> ${item.nome}</p>
-            <p><strong>Setor:</strong> ${item.setor_sala}</p>
-            <p><strong>Descrição:</strong> ${item.descricao}</p>
-            <hr><p><strong>Técnico:</strong> ${item.tecnico_responsavel || 'Em andamento'}</p>
-            <p style="font-size:0.7rem; text-align:center">T.I. - Instituto Impar</p>
-        </body></html>`);
-        win.print();
-    }
+    <script>
+        const API_URL = '/api/helpdesk';
+        const STATUS_URL = '/api/status_rat';
+        let ultimoDadosJSON = "";
 
-    function aplicarFiltro() {
-        dataAtual = document.getElementById('inputData').value || dataAtual;
-        ultimoDadosJSON = "";
+        async function buscarDados() {
+            try {
+                const res = await fetch(API_URL);
+                const atividades = await res.json();
+                const stringDados = JSON.stringify(atividades);
+
+                if (stringDados === ultimoDadosJSON) return;
+                ultimoDadosJSON = stringDados;
+
+                renderizarTabela(atividades);
+            } catch (e) { console.error("Erro ao carregar:", e); }
+        }
+
+        function renderizarTabela(dados) {
+            const tbody = document.getElementById('tabela-corpo');
+            tbody.innerHTML = "";
+            let p = 0, c = 0;
+
+            dados.forEach(item => {
+                if (item.status === 'Pendente') p++; else c++;
+                
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-700 hover:bg-slate-800/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 text-sm text-slate-400">${item.data_registro}</td>
+                    <td class="p-4">
+                        <span class="font-bold">${item.nome}</span><br>
+                        <span class="text-xs text-sky-400">${item.setor_sala}</span>
+                    </td>
+                    <td class="p-4 text-sm max-w-xs truncate">${item.descricao}</td>
+                    <td class="p-4">
+                        <span class="${item.status === 'Pendente' ? 'status-pendente' : 'status-concluido'} font-bold">
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td class="p-4 text-center">
+                        ${item.status === 'Pendente' ? 
+                            `<button onclick="finalizarChamado('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs">Concluir</button>` : 
+                            `<span class="text-xs text-slate-500 italic">Feito por: ${item.tecnico_responsavel || 'TI'}</span>`
+                        }
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('count-total').innerText = dados.length;
+            document.getElementById('count-pendente').innerText = p;
+            document.getElementById('count-concluido').innerText = c;
+        }
+
+        async function finalizarChamado(id) {
+            const tecnico = prompt("Nome do Técnico Responsável:");
+            if (!tecnico) return;
+
+            const agora = new Date().toLocaleString('pt-BR');
+            try {
+                const res = await fetch(`${STATUS_URL}/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: 'Concluido',
+                        tecnico_responsavel: tecnico,
+                        data_conclusao: agora
+                    })
+                });
+                if (res.ok) buscarDados();
+            } catch (e) { alert("Erro ao salvar"); }
+        }
+
+        setInterval(buscarDados, 3000);
         buscarDados();
-        fecharModal('modalData');
-    }
-
-    function abrirModal(id) { document.getElementById(id).style.display = 'block'; }
-    function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    buscarDados();
-    setInterval(buscarDados, 1000);
-</script>
+    </script>
 </body>
 </html>
