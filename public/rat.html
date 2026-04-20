@@ -17,6 +17,7 @@
 
         header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; }
 
+        /* Cartões Estatísticos Clicáveis */
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
         .stat-card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--border); cursor: pointer; text-align: center; transition: 0.3s; }
         .stat-card:hover { border-color: var(--primary); transform: scale(1.02); }
@@ -27,16 +28,15 @@
         .controls { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; align-items: center; }
         select, input, button { background: #1e293b; color: white; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; cursor: pointer; }
         .btn-print { background: var(--success); color: #0f172a; font-weight: bold; border: none; }
-        .btn-concluir { background: var(--primary); color: #0f172a; font-weight: bold; border: none; padding: 5px 10px; font-size: 0.75rem; border-radius: 4px; }
 
         table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 16px; overflow: hidden; }
         th { background: rgba(255,255,255,0.05); padding: 15px; text-align: left; color: #94a3b8; font-size: 0.8rem; }
         td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 
+        /* Impressão */
         @media print {
-            .no-print, header, .controls, .stats, select, button, .btn-concluir { display: none !important; }
-            body { background: white; color: black; padding: 0; }
-            .container { max-width: 100%; }
+            .no-print, header, .controls, .stats, select, button { display: none !important; }
+            body { background: white; color: black; }
             table { border: 1px solid #000; width: 100%; }
             th, td { border: 1px solid #000; color: black !important; padding: 8px; }
             .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
@@ -73,13 +73,13 @@
 
     <div class="controls no-print">
         <span>Relatório por Período:</span>
-        <select id="filtroPeriodo" onchange="setFiltroPeriodo(this.value)">
-            <option value="todos">Todos os Registros</option>
+        <select id="filtroPeriodo" onchange="filtrarPorPeriodo(this.value)">
+            <option value="todos">Todos os Registos</option>
             <option value="dia">Hoje</option>
             <option value="semana">Últimos 7 dias</option>
             <option value="mes">Este Mês</option>
         </select>
-        <input type="date" id="dataManual" onchange="carregarDados(this.value)">
+        <input type="date" id="dataManual" onchange="buscarPorData(this.value)">
     </div>
 
     <table>
@@ -90,7 +90,6 @@
                 <th>DESCRIÇÃO</th>
                 <th>STATUS</th>
                 <th>TÉCNICO</th>
-                <th class="no-print">AÇÃO</th>
             </tr>
         </thead>
         <tbody id="tabela-corpo"></tbody>
@@ -102,89 +101,42 @@
 </div>
 
 <script>
-    let dadosServidor = [];
+    let todasAtividades = [];
     let filtroStatus = "Todos";
-    let filtroPeriodo = "todos";
     const API = '/api/helpdesk';
-    const STATUS_API = '/api/status_rat';
 
     async function carregarDados(data = "") {
-        try {
-            const url = data ? `${API}?data=${data}` : API;
-            const res = await fetch(url);
-            const novosDados = await res.json();
-            
-            // Só atualiza se houver mudança real (evita o "piscar" dos dados)
-            if (JSON.stringify(novosDados) !== JSON.stringify(dadosServidor)) {
-                dadosServidor = novosDados;
-                renderizar();
-            }
-        } catch (e) { console.error("Erro ao carregar:", e); }
+        const url = data ? `${API}?data=${data}` : API;
+        const res = await fetch(url);
+        todasAtividades = await res.json();
+        renderizar();
     }
 
     function renderizar() {
         const corpo = document.getElementById('tabela-corpo');
-        let html = "";
-        let p = 0, c = 0;
+        corpo.innerHTML = "";
 
-        // Contadores baseados no dado bruto
-        dadosServidor.forEach(item => item.status === 'Pendente' ? p++ : c++);
-        document.getElementById('total-val').innerText = dadosServidor.length;
+        let p = 0, c = 0;
+        const filtrados = todasAtividades.filter(item => {
+            if (item.status === 'Pendente') p++; else c++;
+            return filtroStatus === "Todos" || item.status === filtroStatus;
+        });
+
+        document.getElementById('total-val').innerText = todasAtividades.length;
         document.getElementById('pendente-val').innerText = p;
         document.getElementById('concluido-val').innerText = c;
 
-        // Filtragem Combinada (Status + Período)
-        const filtrados = dadosServidor.filter(item => {
-            const matchStatus = (filtroStatus === "Todos" || item.status === filtroStatus);
-            
-            let matchPeriodo = true;
-            if (filtroPeriodo !== "todos") {
-                const hoje = new Date();
-                const [dataStr] = item.data_registro.split(' ');
-                const [d, m, y] = dataStr.split('/');
-                const dataItem = new Date(y, m - 1, d);
-
-                if (filtroPeriodo === "dia") matchPeriodo = dataItem.toDateString() === hoje.toDateString();
-                if (filtroPeriodo === "semana") matchPeriodo = (hoje - dataItem) / (1000 * 3600 * 24) <= 7;
-                if (filtroPeriodo === "mes") matchPeriodo = dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
-            }
-            return matchStatus && matchPeriodo;
-        });
-
         filtrados.forEach(item => {
-            html += `
+            corpo.innerHTML += `
                 <tr>
-                    <td><small>${item.data_registro}</small></td>
+                    <td>${item.data_registro}</td>
                     <td><b>${item.nome}</b><br><small>${item.setor_sala}</small></td>
                     <td>${item.descricao}</td>
-                    <td style="color: ${item.status === 'Pendente' ? 'var(--pending)' : 'var(--success)'}; font-weight:bold;">${item.status}</td>
+                    <td style="color: ${item.status === 'Pendente' ? 'var(--pending)' : 'var(--success)'}">${item.status}</td>
                     <td>${item.tecnico_responsavel || '-'}</td>
-                    <td class="no-print">
-                        ${item.status === 'Pendente' ? 
-                        `<button class="btn-concluir" onclick="concluirChamado('${item.id}')">Concluir</button>` : '✅'}
-                    </td>
                 </tr>
             `;
         });
-        corpo.innerHTML = html || '<tr><td colspan="6" style="text-align:center; padding:20px; opacity:0.5;">Nenhum registro encontrado.</td></tr>';
-    }
-
-    async function concluirChamado(id) {
-        const tecnico = prompt("Nome do Técnico Responsável:");
-        if (!tecnico) return;
-
-        try {
-            await fetch(`${STATUS_API}/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    status: 'Concluido',
-                    tecnico_responsavel: tecnico,
-                    data_conclusao: new Date().toLocaleString('pt-BR')
-                })
-            });
-            carregarDados();
-        } catch (e) { alert("Erro ao atualizar status."); }
     }
 
     function setFiltroStatus(status) {
@@ -194,8 +146,20 @@
         renderizar();
     }
 
-    function setFiltroPeriodo(periodo) {
-        filtroPeriodo = periodo;
+    function filtrarPorPeriodo(periodo) {
+        const hoje = new Date();
+        if (periodo === "todos") return carregarDados();
+
+        const filtrados = todasAtividades.filter(item => {
+            const [data] = item.data_registro.split(' ');
+            const [d, m, y] = data.split('/');
+            const dataItem = new Date(y, m - 1, d);
+
+            if (periodo === "dia") return dataItem.toDateString() === hoje.toDateString();
+            if (periodo === "semana") return (hoje - dataItem) / (1000 * 3600 * 24) <= 7;
+            if (periodo === "mes") return dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
+        });
+        todasAtividades = filtrados;
         renderizar();
     }
 
@@ -206,9 +170,8 @@
         window.print();
     }
 
-    // Inicialização
     carregarDados();
-    setInterval(carregarDados, 10000); // Sincroniza com o banco a cada 10s
+    setInterval(carregarDados, 10000); // Atualiza a cada 10s
 </script>
 </body>
 </html>
