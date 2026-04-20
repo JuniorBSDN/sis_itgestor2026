@@ -11,75 +11,62 @@
             --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
             --success: #22c55e; --pending: #fbbf24;
         }
-        * { box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
-
         header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; }
-
-        /* Cartões Estatísticos Clicáveis */
+        
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--border); cursor: pointer; text-align: center; transition: 0.3s; }
-        .stat-card:hover { border-color: var(--primary); transform: scale(1.02); }
-        .stat-card.active { background: rgba(56, 189, 248, 0.1); border: 2px solid var(--primary); }
-        .stat-card h3 { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; margin: 0; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--border); cursor: pointer; text-align: center; }
+        .stat-card.active { border: 2px solid var(--primary); background: rgba(56, 189, 248, 0.1); }
         .stat-card p { font-size: 2rem; font-weight: 700; margin: 10px 0 0; }
 
         .controls { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; align-items: center; }
-        select, input, button { background: #1e293b; color: white; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; cursor: pointer; }
-        .btn-print { background: var(--success); color: #0f172a; font-weight: bold; border: none; }
+        button, select, input { background: #1e293b; color: white; border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+        .btn-finish { background: var(--primary); color: #0f172a; font-weight: bold; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; }
 
         table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 16px; overflow: hidden; }
         th { background: rgba(255,255,255,0.05); padding: 15px; text-align: left; color: #94a3b8; font-size: 0.8rem; }
         td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 
-        /* Impressão */
         @media print {
-            .no-print, header, .controls, .stats, select, button { display: none !important; }
+            .no-print, header, .controls, .stats, .btn-finish { display: none !important; }
             body { background: white; color: black; }
             table { border: 1px solid #000; width: 100%; }
-            th, td { border: 1px solid #000; color: black !important; padding: 8px; }
-            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+            th, td { border: 1px solid #000; color: black !important; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="print-header" style="display:none; color: black;">
-        <h2>INSTITUTO IMPAR - RELATÓRIO DE ATIVIDADES TI</h2>
-        <p>Gerado em: <span id="print-date"></span></p>
-    </div>
-
     <header class="no-print">
         <div>
             <h1 style="color: var(--primary); margin:0;">PAINEL RAT</h1>
-            <p style="font-size: 0.8rem; opacity: 0.6;">Vigia de Nazaré/PA</p>
+            <p style="font-size: 0.8rem; opacity: 0.6;">Instituto Impar - T.I.</p>
         </div>
-        <button class="btn-print" onclick="prepararImpressao()">🖨️ Imprimir Relatório</button>
+        <button style="background: var(--success); color: #000; font-weight: bold;" onclick="window.print()">🖨️ Imprimir Relatório</button>
     </header>
 
     <div class="stats no-print">
         <div class="stat-card active" id="card-Todos" onclick="setFiltroStatus('Todos')">
-            <h3>Total</h3><p id="total-val">0</p>
+            <h3>TOTAL</h3><p id="total-val">0</p>
         </div>
         <div class="stat-card" id="card-Pendente" onclick="setFiltroStatus('Pendente')">
-            <h3>Pendentes</h3><p id="pendente-val" style="color: var(--pending);">0</p>
+            <h3>PENDENTES</h3><p id="pendente-val" style="color: var(--pending);">0</p>
         </div>
         <div class="stat-card" id="card-Concluido" onclick="setFiltroStatus('Concluido')">
-            <h3>Concluídos</h3><p id="concluido-val" style="color: var(--success);">0</p>
+            <h3>CONCLUÍDOS</h3><p id="concluido-val" style="color: var(--success);">0</p>
         </div>
     </div>
 
     <div class="controls no-print">
-        <span>Relatório por Período:</span>
-        <select id="filtroPeriodo" onchange="filtrarPorPeriodo(this.value)">
-            <option value="todos">Todos os Registos</option>
+        <span>Filtrar:</span>
+        <select onchange="filtrarPorPeriodo(this.value)">
+            <option value="todos">Todos</option>
             <option value="dia">Hoje</option>
-            <option value="semana">Últimos 7 dias</option>
             <option value="mes">Este Mês</option>
         </select>
-        <input type="date" id="dataManual" onchange="buscarPorData(this.value)">
+        <input type="date" onchange="carregarDados(this.value)">
     </div>
 
     <table>
@@ -90,39 +77,37 @@
                 <th>DESCRIÇÃO</th>
                 <th>STATUS</th>
                 <th>TÉCNICO</th>
+                <th class="no-print">AÇÃO</th>
             </tr>
         </thead>
         <tbody id="tabela-corpo"></tbody>
     </table>
-
-    <footer style="margin-top: 30px; text-align: center; font-size: 0.7rem; opacity: 0.4;">
-        Desenvolvido pelo Setor de Tecnologia da Informação (T.I.) — Instituto Impar
-    </footer>
 </div>
 
 <script>
-    let todasAtividades = [];
-    let filtroStatus = "Todos";
+    let dadosCache = [];
+    let statusAtual = "Todos";
     const API = '/api/helpdesk';
+    const STATUS_API = '/api/status_rat';
 
     async function carregarDados(data = "") {
         const url = data ? `${API}?data=${data}` : API;
         const res = await fetch(url);
-        todasAtividades = await res.json();
+        dadosCache = await res.json();
         renderizar();
     }
 
     function renderizar() {
         const corpo = document.getElementById('tabela-corpo');
         corpo.innerHTML = "";
-
         let p = 0, c = 0;
-        const filtrados = todasAtividades.filter(item => {
-            if (item.status === 'Pendente') p++; else c++;
-            return filtroStatus === "Todos" || item.status === filtroStatus;
+
+        const filtrados = dadosCache.filter(item => {
+            item.status === 'Pendente' ? p++ : c++;
+            return statusAtual === "Todos" || item.status === statusAtual;
         });
 
-        document.getElementById('total-val').innerText = todasAtividades.length;
+        document.getElementById('total-val').innerText = dadosCache.length;
         document.getElementById('pendente-val').innerText = p;
         document.getElementById('concluido-val').innerText = c;
 
@@ -134,44 +119,33 @@
                     <td>${item.descricao}</td>
                     <td style="color: ${item.status === 'Pendente' ? 'var(--pending)' : 'var(--success)'}">${item.status}</td>
                     <td>${item.tecnico_responsavel || '-'}</td>
-                </tr>
-            `;
+                    <td class="no-print">
+                        ${item.status === 'Pendente' ? `<button class="btn-finish" onclick="concluir('${item.id}')">Concluir</button>` : '✅'}
+                    </td>
+                </tr>`;
         });
     }
 
-    function setFiltroStatus(status) {
-        filtroStatus = status;
+    async function concluir(id) {
+        const tec = prompt("Nome do Técnico:");
+        if(!tec) return;
+        await fetch(`${STATUS_API}/${id}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({status: 'Concluido', tecnico_responsavel: tec, data_conclusao: new Date().toLocaleString()})
+        });
+        carregarDados();
+    }
+
+    function setFiltroStatus(s) {
+        statusAtual = s;
         document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active'));
-        document.getElementById(`card-${status}`).classList.add('active');
+        document.getElementById(`card-${s}`).classList.add('active');
         renderizar();
-    }
-
-    function filtrarPorPeriodo(periodo) {
-        const hoje = new Date();
-        if (periodo === "todos") return carregarDados();
-
-        const filtrados = todasAtividades.filter(item => {
-            const [data] = item.data_registro.split(' ');
-            const [d, m, y] = data.split('/');
-            const dataItem = new Date(y, m - 1, d);
-
-            if (periodo === "dia") return dataItem.toDateString() === hoje.toDateString();
-            if (periodo === "semana") return (hoje - dataItem) / (1000 * 3600 * 24) <= 7;
-            if (periodo === "mes") return dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
-        });
-        todasAtividades = filtrados;
-        renderizar();
-    }
-
-    function buscarPorData(val) { carregarDados(val); }
-
-    function prepararImpressao() {
-        document.getElementById('print-date').innerText = new Date().toLocaleString();
-        window.print();
     }
 
     carregarDados();
-    setInterval(carregarDados, 10000); // Atualiza a cada 10s
+    setInterval(carregarDados, 10000);
 </script>
 </body>
 </html>
