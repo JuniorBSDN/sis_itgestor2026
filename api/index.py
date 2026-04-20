@@ -85,21 +85,12 @@ def gerenciar_rat():
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 # ROTA DE ATUALIZAÇÃO CONSOLIDADA (STATUS + TÉCNICO + DATA)
+# --- ROTA: ATUALIZAR STATUS (FINALIZAR) ---
 @app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
 def atualizar_status_rat(id_doc):
     try:
-        dados = request.json
-        update_data = {}
-        
-        # Mapeia dinamicamente os campos para evitar erros se algum estiver faltando
-        if 'status' in dados: update_data['status'] = dados['status']
-        if 'tecnico_responsavel' in dados: update_data['tecnico_responsavel'] = dados['tecnico_responsavel']
-        if 'data_conclusao' in dados: update_data['data_conclusao'] = dados['data_conclusao']
-
-        if not update_data:
-            return jsonify({"status": "erro", "mensagem": "Nenhum dado enviado"}), 400
-
-        db.collection('atividades').document(id_doc).update(update_data)
+        dados = request.json # Recebe: status, tecnico_responsavel, data_conclusao
+        db.collection('atividades').document(id_doc).update(dados)
         return jsonify({"status": "sucesso"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
