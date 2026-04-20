@@ -8,201 +8,262 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
-            --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
-            --success: #22c55e; --pending: #fbbf24;
+            --primary: #38bdf8;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: rgba(255, 255, 255, 0.1);
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        
-        /* Estilização de Cartões */
-        .stat-card { background: var(--card); border: 1px solid var(--border); transition: 0.3s; cursor: pointer; }
-        .stat-card.active { border: 2px solid var(--primary); background: rgba(56, 189, 248, 0.1); }
-        
-        .btn-finish { background: var(--primary); color: #0f172a; font-weight: bold; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; }
-        
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .stat-card { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            transition: all 0.3s ease; 
+            cursor: pointer; 
+        }
+        .stat-card.active { 
+            border-color: var(--primary); 
+            background: rgba(56, 189, 248, 0.1); 
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
         @media print {
             .no-print { display: none !important; }
-            body { background: white; color: black; }
-            table { border: 1px solid #000; color: black !important; width: 100%; }
-            th, td { border: 1px solid #000; color: black !important; padding: 8px; }
-            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+            body { background: white; color: black; padding: 0; }
+            .container { max-width: 100%; }
+            table { border: 1px solid #000; width: 100%; }
+            th, td { border: 1px solid #000; color: black !important; padding: 8px; font-size: 10pt; }
+            .print-only { display: block !important; }
         }
     </style>
 </head>
-<body>
+<body class="antialiased">
 
-<div class="container">
-    <div class="print-header hidden text-black">
-        <h1 class="text-xl font-bold">INSTITUTO IMPAR - RELATÓRIO T.I.</h1>
-        <p>Gerado em: <span id="data-relatorio"></span></p>
+<div class="container max-w-6xl mx-auto">
+    <div class="hidden print-only text-center mb-6">
+        <h1 class="text-2xl font-bold">INSTITUTO IMPAR - RELATÓRIO DE ATIVIDADES (RAT)</h1>
+        <p>Setor de Tecnologia da Informação — Vigia de Nazaré/PA</p>
+        <p class="text-sm mt-2">Documento gerado em: <span id="print-timestamp"></span></p>
     </div>
 
-    <header class="flex justify-between items-center bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-6 no-print">
+    <header class="flex justify-between items-center bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-8 no-print shadow-xl">
         <div>
-            <h1 class="text-2xl font-bold text-sky-400">PAINEL RAT</h1>
-            <p class="text-xs opacity-60">Gestão Hospitalar - Vigia de Nazaré</p>
+            <h1 class="text-2xl font-bold text-sky-400 tracking-tight">PAINEL RAT</h1>
+            <p class="text-xs text-slate-400 font-medium">Gestão de Chamados e Infraestrutura</p>
         </div>
-        <button onclick="prepararImpressao()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
-            🖨️ Imprimir Relatório
-        </button>
+        <div class="flex gap-3">
+            <button onclick="prepararImpressao()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2">
+                🖨️ Gerar Relatório
+            </button>
+        </div>
     </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 no-print">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 no-print">
         <div id="card-Todos" onclick="setFiltroStatus('Todos')" class="stat-card active p-6 rounded-2xl text-center">
-            <h3 class="text-xs text-slate-400 uppercase">Total Geral</h3>
-            <p id="total-val" class="text-3xl font-bold mt-2">0</p>
+            <h3 class="text-xs text-slate-400 uppercase font-bold tracking-wider">Total de Chamados</h3>
+            <p id="total-val" class="text-4xl font-bold mt-2">0</p>
         </div>
         <div id="card-Pendente" onclick="setFiltroStatus('Pendente')" class="stat-card p-6 rounded-2xl text-center">
-            <h3 class="text-xs text-slate-400 uppercase">Pendentes</h3>
-            <p id="pendente-val" class="text-3xl font-bold mt-2 text-amber-500">0</p>
+            <h3 class="text-xs text-slate-400 uppercase font-bold tracking-wider">Pendentes</h3>
+            <p id="pendente-val" class="text-4xl font-bold mt-2 text-amber-500">0</p>
         </div>
         <div id="card-Concluido" onclick="setFiltroStatus('Concluido')" class="stat-card p-6 rounded-2xl text-center">
-            <h3 class="text-xs text-slate-400 uppercase">Concluídos</h3>
-            <p id="concluido-val" class="text-3xl font-bold mt-2 text-emerald-500">0</p>
+            <h3 class="text-xs text-slate-400 uppercase font-bold tracking-wider">Concluídos</h3>
+            <p id="concluido-val" class="text-4xl font-bold mt-2 text-emerald-500">0</p>
         </div>
     </div>
 
     <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex flex-wrap gap-4 items-center no-print text-sm">
-        <span>Filtrar Período:</span>
-        <select id="selPeriodo" onchange="setFiltroPeriodo(this.value)" class="bg-slate-900 border border-slate-700 p-2 rounded">
+        <span class="font-semibold text-slate-400">Filtrar por Período:</span>
+        <select id="selPeriodo" onchange="setFiltroPeriodo(this.value)" class="bg-slate-900 border border-slate-700 text-white p-2 rounded-lg outline-none focus:border-sky-500">
             <option value="todos">Todos os Registros</option>
             <option value="dia">Hoje</option>
+            <option value="semana">Últimos 7 dias</option>
             <option value="mes">Este Mês</option>
         </select>
-        <input type="date" onchange="carregarDados(this.value)" class="bg-slate-900 border border-slate-700 p-2 rounded">
+        <input type="date" id="inputData" onchange="buscarPorData(this.value)" class="bg-slate-900 border border-slate-700 text-white p-2 rounded-lg outline-none focus:border-sky-500">
+        <button onclick="carregarDados()" class="ml-auto text-sky-400 hover:text-white transition-colors">🔄 Atualizar</button>
     </div>
 
     <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-700/50 text-slate-400 text-xs uppercase">
-                <tr>
-                    <th class="p-4">Data/Hora</th>
-                    <th class="p-4">Solicitante</th>
-                    <th class="p-4">Descrição</th>
-                    <th class="p-4">Status</th>
-                    <th class="p-4">Técnico</th>
-                    <th class="p-4 no-print">Ação</th>
-                </tr>
-            </thead>
-            <tbody id="tabela-corpo" class="divide-y divide-slate-700"></tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-700/50 text-slate-400 text-xs uppercase font-bold">
+                    <tr>
+                        <th class="p-4 border-b border-slate-700">Data/Hora</th>
+                        <th class="p-4 border-b border-slate-700">Solicitante / Setor</th>
+                        <th class="p-4 border-b border-slate-700">Descrição do Problema</th>
+                        <th class="p-4 border-b border-slate-700">Status</th>
+                        <th class="p-4 border-b border-slate-700">Técnico</th>
+                        <th class="p-4 border-b border-slate-700 no-print text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-corpo" class="divide-y divide-slate-700">
+                    </tbody>
+            </table>
+        </div>
+        <div id="loading-state" class="p-10 text-center text-slate-500 hidden">Carregando dados...</div>
+        <div id="empty-state" class="p-10 text-center text-slate-500 hidden">Nenhum registro encontrado para este filtro.</div>
     </div>
+
+    <footer class="mt-8 text-center text-[10px] text-slate-600 uppercase tracking-widest no-print">
+        Desenvolvido pelo Setor de Tecnologia da Informação (T.I.) — Instituto Impar
+    </footer>
 </div>
 
 <script>
     let dadosServidor = [];
-    let statusAtual = "Todos";
-    let periodoAtual = "todos";
+    let statusFiltro = "Todos";
+    let periodoFiltro = "todos";
+    
     const API = '/api/helpdesk';
     const STATUS_API = '/api/status_rat';
 
-    async function carregarDados(data = "") {
+    async function carregarDados(dataManual = "") {
         try {
-            const url = data ? `${API}?data=${data}` : API;
+            const url = dataManual ? `${API}?data=${dataManual}` : API;
             const res = await fetch(url);
             const novosDados = await res.json();
             
-            // Só atualiza se houver mudança para evitar o "piscar"
+            // Só atualiza o DOM se houver mudança nos dados para evitar o efeito de "piscar"
             if (JSON.stringify(novosDados) !== JSON.stringify(dadosServidor)) {
                 dadosServidor = novosDados;
                 renderizar();
             }
-        } catch (e) { console.error("Erro ao carregar dados."); }
+        } catch (e) {
+            console.error("Erro ao carregar dados:", e);
+        }
     }
 
     function renderizar() {
         const corpo = document.getElementById('tabela-corpo');
+        const emptyState = document.getElementById('empty-state');
         let htmlFinal = "";
-        let p = 0, c = 0;
+        let countPendente = 0;
+        let countConcluido = 0;
 
-        // Contagem global baseada nos dados do servidor
+        // Atualiza contadores globais baseados no servidor
         dadosServidor.forEach(item => {
-            item.status === 'Pendente' ? p++ : c++;
+            item.status === 'Pendente' ? countPendente++ : countConcluido++;
         });
 
-        // Filtragem para exibição
+        // Aplica os filtros de interface (Status e Período)
         const filtrados = dadosServidor.filter(item => {
-            const passaStatus = (statusAtual === "Todos" || item.status === statusAtual);
+            const matchStatus = (statusFiltro === "Todos" || item.status === statusFiltro);
             
-            let passaPeriodo = true;
-            if (periodoAtual !== "todos") {
+            let matchPeriodo = true;
+            if (periodoFiltro !== "todos") {
                 const hoje = new Date();
-                const [d, m, y] = item.data_registro.split(' ')[0].split('/');
+                const [dataParte] = item.data_registro.split(' ');
+                const [d, m, y] = dataParte.split('/');
                 const dataItem = new Date(y, m - 1, d);
-                if (periodoAtual === "dia") passaPeriodo = dataItem.toDateString() === hoje.toDateString();
-                if (periodoAtual === "mes") passaPeriodo = dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
+
+                if (periodoFiltro === "dia") matchPeriodo = dataItem.toDateString() === hoje.toDateString();
+                if (periodoFiltro === "semana") matchPeriodo = (hoje - dataItem) / (1000 * 3600 * 24) <= 7;
+                if (periodoFiltro === "mes") matchPeriodo = dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
             }
-            return passaStatus && passaPeriodo;
+            return matchStatus && matchPeriodo;
         });
 
-        // Atualiza painel de números
+        // Atualiza números nos cards
         document.getElementById('total-val').innerText = dadosServidor.length;
-        document.getElementById('pendente-val').innerText = p;
-        document.getElementById('concluido-val').innerText = c;
+        document.getElementById('pendente-val').innerText = countPendente;
+        document.getElementById('concluido-val').innerText = countConcluido;
 
-        // Constrói linhas da tabela
+        if (filtrados.length === 0) {
+            emptyState.classList.remove('hidden');
+            corpo.innerHTML = "";
+            return;
+        } else {
+            emptyState.classList.add('hidden');
+        }
+
         filtrados.forEach(item => {
+            const corStatus = item.status === 'Pendente' ? 'text-amber-500' : 'text-emerald-500';
+            const bgStatus = item.status === 'Pendente' ? 'bg-amber-500/10' : 'bg-emerald-500/10';
+
             htmlFinal += `
                 <tr class="hover:bg-slate-700/30 transition-colors">
-                    <td class="p-4 text-xs text-slate-500">${item.data_registro}</td>
-                    <td class="p-4 font-semibold text-sm">${item.nome}<br><span class="text-sky-500 text-xs font-normal">${item.setor_sala}</span></td>
-                    <td class="p-4 text-sm text-slate-300 max-w-xs truncate">${item.descricao}</td>
+                    <td class="p-4 text-xs text-slate-500 font-mono">${item.data_registro}</td>
+                    <td class="p-4 font-semibold text-sm">
+                        ${item.nome}
+                        <br><span class="text-sky-500 text-xs font-normal">${item.setor_sala}</span>
+                    </td>
+                    <td class="p-4 text-sm text-slate-300">${item.descricao}</td>
                     <td class="p-4">
-                        <span class="px-2 py-1 rounded text-[10px] font-bold ${item.status === 'Pendente' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}">
+                        <span class="px-2 py-1 rounded text-[10px] font-bold ${bgStatus} ${corStatus}">
                             ${item.status.toUpperCase()}
                         </span>
                     </td>
-                    <td class="p-4 text-xs text-slate-400">${item.tecnico_responsavel || '-'}</td>
-                    <td class="p-4 no-print">
+                    <td class="p-4 text-xs text-slate-400 italic">${item.tecnico_responsavel || 'Aguardando...'}</td>
+                    <td class="p-4 no-print text-center">
                         ${item.status === 'Pendente' ? 
-                        `<button class="btn-finish" onclick="concluir('${item.id}')">Concluir</button>` : '✅'}
+                        `<button onclick="concluirChamado('${item.id}')" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all">Concluir</button>` : 
+                        '<span class="text-emerald-500 text-xl">✅</span>'}
                     </td>
                 </tr>`;
         });
+
         corpo.innerHTML = htmlFinal;
     }
 
-    async function concluir(id) {
-        const tec = prompt("Digite o nome do Técnico Responsável:");
-        if (!tec) return;
-
-        const update = {
-            status: 'Concluido',
-            tecnico_responsavel: tec,
-            data_conclusao: new Date().toLocaleString('pt-BR')
-        };
+    async function concluirChamado(id) {
+        const tecnico = prompt("Nome do Técnico Responsável pela execução:");
+        if (!tecnico) return;
 
         try {
-            await fetch(`${STATUS_API}/${id}`, {
+            const res = await fetch(`${STATUS_API}/${id}`, {
                 method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(update)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: 'Concluido',
+                    tecnico_responsavel: tecnico,
+                    data_conclusao: new Date().toLocaleString('pt-BR')
+                })
             });
-            carregarDados();
-        } catch (e) { alert("Erro ao salvar."); }
+            
+            if (res.ok) {
+                carregarDados();
+            } else {
+                alert("Erro ao atualizar status. Tente novamente.");
+            }
+        } catch (e) {
+            alert("Falha na conexão com o servidor.");
+        }
     }
 
     function setFiltroStatus(s) {
-        statusAtual = s;
-        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+        statusFiltro = s;
+        document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active'));
         document.getElementById(`card-${s}`).classList.add('active');
         renderizar();
     }
 
     function setFiltroPeriodo(p) {
-        periodoAtual = p;
+        periodoFiltro = p;
         renderizar();
     }
 
+    function buscarPorData(val) {
+        if (!val) carregarDados();
+        else carregarDados(val);
+    }
+
     function prepararImpressao() {
-        document.getElementById('data-relatorio').innerText = new Date().toLocaleString();
+        document.getElementById('print-timestamp').innerText = new Date().toLocaleString('pt-BR');
         window.print();
     }
 
-    // Inicialização automática
+    // Início Automático
     carregarDados();
-    setInterval(carregarDados, 10000); // Atualiza a cada 10 segundos
+    // Atualização inteligente a cada 15 segundos
+    setInterval(carregarDados, 15000);
+
 </script>
 </body>
 </html>
