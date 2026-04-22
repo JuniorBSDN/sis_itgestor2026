@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel RAT - Instituto Impar</title>
+    <title>Dashboard RAT - Instituto Impar</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -26,18 +26,18 @@
         .stat-card {
             background: var(--card); padding: 15px; border-radius: 12px;
             border: 1px solid var(--border); flex: 1; text-align: center;
-            cursor: pointer; transition: all 0.2s;
+            cursor: pointer; transition: 0.2s;
         }
         .stat-card:hover { border-color: var(--primary); background: rgba(255,255,255,0.05); }
-        .stat-card.active { border: 2px solid var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
-        .stat-value { display: block; font-size: 1.8rem; font-weight: 700; }
+        .stat-card.active { border: 2px solid var(--primary); }
+        .stat-value { display: block; font-size: 1.8rem; font-weight: 700; margin-top: 5px; }
 
         .table-container {
             background: var(--card); border-radius: 16px; border: 1px solid var(--border);
             overflow: hidden; box-shadow: 0 10px 15px rgba(0,0,0,0.3);
         }
         table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(255,255,255,0.03); padding: 15px; text-align: left; font-size: 0.75rem; color: var(--primary); }
+        th { background: rgba(255,255,255,0.03); padding: 15px; text-align: left; font-size: 0.75rem; color: var(--primary); text-transform: uppercase; }
         td { padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 
         .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
@@ -46,12 +46,12 @@
 
         .btn-ui {
             background: var(--primary); color: #0f172a; border: none;
-            padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;
+            padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;
         }
 
         @media print {
             .no-print { display: none !important; }
-            body { background: white; color: black; }
+            body { background: white; color: black; padding: 0; }
             .table-container { border: 1px solid #000; }
             th, td { color: black !important; border-bottom: 1px solid #000; }
         }
@@ -62,24 +62,24 @@
 <div class="container">
     <header class="no-print">
         <div>
-            <h1 style="margin:0; color: var(--primary);">RAT - GESTÃO DE TI</h1>
-            <p style="margin:5px 0 0; opacity:0.7;">Relatório: <strong id="data-titulo">--/--/----</strong></p>
+            <h1 style="margin:0; color:var(--primary);">PAINEL RAT - TI</h1>
+            <p style="margin:5px 0 0; opacity:0.7;">Vigia de Nazaré/PA - <strong id="data-titulo">--/--/----</strong></p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <span id="sync-icon" style="color:var(--success); font-size:0.7rem;">● LIVE</span>
-            <input type="date" id="inputData" onchange="mudarData(this.value)" style="background:var(--card); color:white; border:1px solid var(--border); padding:8px; border-radius:8px;">
+            <input type="date" id="filtroData" onchange="mudarData(this.value)" style="background:var(--card); color:white; border:1px solid var(--border); padding:8px; border-radius:8px;">
             <button class="btn-ui" onclick="window.print()">🖨️ PDF</button>
         </div>
     </header>
 
     <div class="stats-bar no-print">
-        <div class="stat-card active" id="card-Todos" onclick="filtrarStatus('Todos')">
-            <span style="opacity:0.7">Total</span> <span class="stat-value" id="count-total">0</span>
+        <div class="stat-card active" id="card-Todos" onclick="setFiltro('Todos')">
+            <span>Geral</span> <span class="stat-value" id="count-total">0</span>
         </div>
-        <div class="stat-card" id="card-Pendente" onclick="filtrarStatus('Pendente')">
+        <div class="stat-card" id="card-Pendente" onclick="setFiltro('Pendente')">
             <span style="color:var(--pending)">Pendentes</span> <span class="stat-value" id="count-pendente" style="color:var(--pending)">0</span>
         </div>
-        <div class="stat-card" id="card-Concluido" onclick="filtrarStatus('Concluido')">
+        <div class="stat-card" id="card-Concluido" onclick="setFiltro('Concluido')">
             <span style="color:var(--success)">Concluídos</span> <span class="stat-value" id="count-concluido" style="color:var(--success)">0</span>
         </div>
     </div>
@@ -88,72 +88,73 @@
         <table>
             <thead>
                 <tr>
-                    <th>Hora</th>
+                    <th>Data/Hora</th>
                     <th>Solicitante / Setor</th>
-                    <th>Descrição do Problema</th>
-                    <th>Técnico</th>
+                    <th>Descrição do Chamado</th>
+                    <th>Técnico Responsável</th>
                     <th>Status</th>
-                    <th class="no-print">Ação</th>
+                    <th class="no-print">Ações</th>
                 </tr>
             </thead>
-            <tbody id="tabelaBody">
-                <tr><td colspan="6" style="text-align:center; padding:50px;">Carregando chamados...</td></tr>
+            <tbody id="tabelaCorpo">
+                <tr><td colspan="6" style="text-align:center; padding:50px; opacity:0.5;">Sincronizando com Firestore...</td></tr>
             </tbody>
         </table>
     </div>
 
     <footer class="no-print" style="margin-top:30px; text-align:center; font-size:0.7rem; opacity:0.4;">
-        Setor de Tecnologia da Informação — Vigia de Nazaré/PA
+        Desenvolvido pelo Setor de Tecnologia da Informação — Instituto Impar
     </footer>
 </div>
 
 <script>
     let dataAtual = new Date().toISOString().split('T')[0];
-    let filtroAtivo = "Todos";
-    let cacheDados = "";
+    let filtroStatus = "Todos";
+    let cacheJSON = "";
 
-    async function buscarChamados() {
+    async function atualizarDados() {
         try {
-            const res = await fetch(`/api/helpdesk?data=${dataAtual}&_=${Date.now()}`);
-            const chamados = await res.json();
+            const res = await fetch(`/api/helpdesk?data=${dataAtual}&_t=${Date.now()}`);
+            const dados = await res.json();
             
-            // Só renderiza se houver mudança real nos dados
-            if (JSON.stringify(chamados) !== cacheDados) {
-                renderizar(chamados);
-                cacheDados = JSON.stringify(chamados);
+            // Evita re-renderização se nada mudou
+            if (JSON.stringify(dados) !== cacheJSON) {
+                renderizar(dados);
+                cacheJSON = JSON.stringify(dados);
             }
             
             document.getElementById('data-titulo').innerText = dataAtual.split('-').reverse().join('/');
             document.getElementById('sync-icon').style.opacity = "1";
-            setTimeout(() => document.getElementById('sync-icon').style.opacity = "0.2", 500);
-        } catch (e) { console.error("Erro na sincronização."); }
+            setTimeout(() => document.getElementById('sync-icon').style.opacity = "0.3", 500);
+        } catch (e) { console.error("Erro na atualização"); }
     }
 
     function renderizar(dados) {
-        const tbody = document.getElementById('tabelaBody');
+        const tbody = document.getElementById('tabelaCorpo');
         let p = 0, c = 0;
         
+        // Contagem de estatísticas
         dados.forEach(i => i.status === 'Pendente' ? p++ : c++);
         document.getElementById('count-total').innerText = dados.length;
         document.getElementById('count-pendente').innerText = p;
         document.getElementById('count-concluido').innerText = c;
 
-        const filtrados = dados.filter(i => filtroAtivo === "Todos" || i.status === filtroAtivo);
+        const filtrados = dados.filter(i => filtroStatus === "Todos" || i.status === filtroStatus);
 
         if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; opacity:0.5;">Nenhum chamado para os critérios selecionados.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px;">Nenhum chamado encontrado.</td></tr>`;
             return;
         }
 
         tbody.innerHTML = filtrados.map(item => `
             <tr>
-                <td><small>${item.data_registro.split(' ')[1]}</small></td>
+                <td><small>${item.data_registro}</small></td>
                 <td><strong>${item.nome}</strong><br><small style="opacity:0.6">${item.setor_sala}</small></td>
                 <td style="max-width:400px; white-space:normal;">${item.descricao}</td>
-                <td>${item.tecnico_responsavel || '---'}</td>
+                <td>${item.tecnico_responsavel || '<em style="opacity:0.5">Aguardando...</em>'}</td>
                 <td><span class="status-badge status-${item.status}">${item.status}</span></td>
                 <td class="no-print">
-                    <select onchange="atualizarStatus('${item.id}', this.value)" style="background:#0f172a; color:white; border:1px solid var(--border); border-radius:4px;">
+                    <select onchange="mudarStatus('${item.id}', this.value)" style="background:#0f172a; color:white; border:1px solid var(--border); border-radius:4px;">
                         <option value="Pendente" ${item.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
                         <option value="Concluido" ${item.status === 'Concluido' ? 'selected' : ''}>Concluído</option>
                     </select>
@@ -162,12 +163,12 @@
         `).join('');
     }
 
-    async function atualizarStatus(id, novoStatus) {
+    async function mudarStatus(id, novoStatus) {
         let payload = { status: novoStatus };
         
         if (novoStatus === 'Concluido') {
-            const tecnico = prompt("Nome do Técnico que realizou o atendimento:");
-            if (!tecnico) { buscarChamados(); return; }
+            const tecnico = prompt("Digite o nome do Técnico Responsável:");
+            if (!tecnico) { atualizarDados(); return; }
             payload.tecnico_responsavel = tecnico;
             payload.data_conclusao = new Date().toLocaleString('pt-BR');
         }
@@ -178,28 +179,27 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            cacheDados = ""; // Força atualização
-            buscarChamados();
-        } catch (e) { alert("Erro ao salvar."); }
+            cacheJSON = ""; // Força atualização imediata
+            atualizarDados();
+        } catch (e) { alert("Erro ao salvar no banco de dados."); }
     }
 
-    function filtrarStatus(status) {
-        filtroAtivo = status;
-        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+    function setFiltro(status) {
+        filtroStatus = status;
+        document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active'));
         document.getElementById(`card-${status}`).classList.add('active');
-        cacheDados = ""; 
-        buscarChamados();
+        renderizar(JSON.parse(cacheJSON));
     }
 
     function mudarData(nova) {
         dataAtual = nova;
-        cacheDados = "";
-        buscarChamados();
+        cacheJSON = "";
+        atualizarDados();
     }
 
-    // Inicia e define intervalo de 2 segundos (tempo real suave)
-    buscarChamados();
-    setInterval(buscarChamados, 2000);
+    // Polling de 2 segundos para Tempo Real
+    setInterval(atualizarDados, 2000);
+    atualizarDados();
 </script>
 </body>
 </html>
