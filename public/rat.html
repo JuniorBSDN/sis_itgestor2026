@@ -2,204 +2,126 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard RAT - Instituto Impar</title>
+    <title>Painel RAT - HVN</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
-            --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
-            --success: #22c55e; --pending: #fbbf24; --danger: #ef4444;
-        }
-        * { box-sizing: border-box; }
-        body {
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            color: var(--text); font-family: 'Inter', sans-serif;
-            margin: 0; padding: 20px; min-height: 100vh;
-        }
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: rgba(255,255,255,0.1); --success: #22c55e; --pending: #fbbf24; }
+        body { background: radial-gradient(circle at top right, #1e293b, #0f172a); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
-        }
-        .stats-bar { display: flex; gap: 15px; margin-bottom: 25px; }
-        .stat-card {
-            background: var(--card); padding: 15px; border-radius: 12px;
-            border: 1px solid var(--border); flex: 1; text-align: center;
-            cursor: pointer; transition: 0.2s;
-        }
-        .stat-card:hover { border-color: var(--primary); background: rgba(255,255,255,0.05); }
-        .stat-card.active { border: 2px solid var(--primary); }
-        .stat-value { display: block; font-size: 1.8rem; font-weight: 700; margin-top: 5px; }
-
-        .table-container {
-            background: var(--card); border-radius: 16px; border: 1px solid var(--border);
-            overflow: hidden; box-shadow: 0 10px 15px rgba(0,0,0,0.3);
-        }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 20px; }
+        .stats { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); flex: 1; padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; cursor: pointer; }
+        .stat-card.active { border-color: var(--primary); }
+        .table-container { background: var(--card); border-radius: 15px; border: 1px solid var(--border); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(255,255,255,0.03); padding: 15px; text-align: left; font-size: 0.75rem; color: var(--primary); text-transform: uppercase; }
+        th { background: rgba(255,255,255,0.03); padding: 15px; color: var(--primary); font-size: 0.75rem; text-transform: uppercase; text-align: left; }
         td { padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
-        .status-Pendente { background: rgba(251,191,36,0.1); color: var(--pending); border: 1px solid var(--pending); }
-        .status-Concluido { background: rgba(34,197,94,0.1); color: var(--success); border: 1px solid var(--success); }
-
-        .btn-ui {
-            background: var(--primary); color: #0f172a; border: none;
-            padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;
-        }
-
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white; color: black; padding: 0; }
-            .table-container { border: 1px solid #000; }
-            th, td { color: black !important; border-bottom: 1px solid #000; }
-        }
+        .status-Pendente { color: var(--pending); }
+        .status-Concluido { color: var(--success); }
+        select, input { background: #0f172a; color: white; border: 1px solid var(--border); padding: 5px; border-radius: 5px; }
+        @media print { .no-print { display: none !important; } body { background: white; color: black; } }
     </style>
 </head>
 <body>
-
 <div class="container">
     <header class="no-print">
-        <div>
-            <h1 style="margin:0; color:var(--primary);">PAINEL RAT - TI</h1>
-            <p style="margin:5px 0 0; opacity:0.7;">Vigia de Nazaré/PA - <strong id="data-titulo">--/--/----</strong></p>
-        </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-            <span id="sync-icon" style="color:var(--success); font-size:0.7rem;">● LIVE</span>
-            <input type="date" id="filtroData" onchange="mudarData(this.value)" style="background:var(--card); color:white; border:1px solid var(--border); padding:8px; border-radius:8px;">
-            <button class="btn-ui" onclick="window.print()">🖨️ PDF</button>
+        <h1>RAT - RELATÓRIO DE ATIVIDADES</h1>
+        <div style="display: flex; gap: 10px;">
+            <input type="date" id="filtroData" onchange="atualizarData(this.value)">
+            <button onclick="window.print()" style="cursor:pointer; padding: 10px;">🖨️ Imprimir</button>
         </div>
     </header>
 
-    <div class="stats-bar no-print">
-        <div class="stat-card active" id="card-Todos" onclick="setFiltro('Todos')">
-            <span>Geral</span> <span class="stat-value" id="count-total">0</span>
-        </div>
-        <div class="stat-card" id="card-Pendente" onclick="setFiltro('Pendente')">
-            <span style="color:var(--pending)">Pendentes</span> <span class="stat-value" id="count-pendente" style="color:var(--pending)">0</span>
-        </div>
-        <div class="stat-card" id="card-Concluido" onclick="setFiltro('Concluido')">
-            <span style="color:var(--success)">Concluídos</span> <span class="stat-value" id="count-concluido" style="color:var(--success)">0</span>
-        </div>
+    <div class="stats no-print">
+        <div class="stat-card active" id="card-Todos" onclick="setFiltro('Todos')">Geral <h2 id="total">0</h2></div>
+        <div class="stat-card" id="card-Pendente" onclick="setFiltro('Pendente')">Pendentes <h2 id="pendentes" style="color:var(--pending)">0</h2></div>
+        <div class="stat-card" id="card-Concluido" onclick="setFiltro('Concluido')">Concluídos <h2 id="concluidos" style="color:var(--success)">0</h2></div>
     </div>
 
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th>Data/Hora</th>
+                    <th>Hora</th>
                     <th>Solicitante / Setor</th>
-                    <th>Descrição do Chamado</th>
-                    <th>Técnico Responsável</th>
+                    <th>Descrição</th>
+                    <th>Técnico</th>
                     <th>Status</th>
                     <th class="no-print">Ações</th>
                 </tr>
             </thead>
-            <tbody id="tabelaCorpo">
-                <tr><td colspan="6" style="text-align:center; padding:50px; opacity:0.5;">Sincronizando com Firestore...</td></tr>
-            </tbody>
+            <tbody id="tabela"></tbody>
         </table>
     </div>
-
-    <footer class="no-print" style="margin-top:30px; text-align:center; font-size:0.7rem; opacity:0.4;">
-        Desenvolvido pelo Setor de Tecnologia da Informação — Instituto Impar
-    </footer>
 </div>
 
 <script>
     let dataAtual = new Date().toISOString().split('T')[0];
-    let filtroStatus = "Todos";
-    let cacheJSON = "";
+    let filtro = "Todos";
+    let cache = "";
 
-    async function atualizarDados() {
+    async function load() {
         try {
-            const res = await fetch(`/api/helpdesk?data=${dataAtual}&_t=${Date.now()}`);
-            const dados = await res.json();
-            
-            // Evita re-renderização se nada mudou
-            if (JSON.stringify(dados) !== cacheJSON) {
-                renderizar(dados);
-                cacheJSON = JSON.stringify(dados);
-            }
-            
-            document.getElementById('data-titulo').innerText = dataAtual.split('-').reverse().join('/');
-            document.getElementById('sync-icon').style.opacity = "1";
-            setTimeout(() => document.getElementById('sync-icon').style.opacity = "0.3", 500);
-        } catch (e) { console.error("Erro na atualização"); }
+            const r = await fetch(`/api/helpdesk?data=${dataAtual}&_=${Date.now()}`);
+            const d = await r.json();
+            if (JSON.stringify(d) === cache) return;
+            cache = JSON.stringify(d);
+            render(d);
+        } catch (e) {}
     }
 
-    function renderizar(dados) {
-        const tbody = document.getElementById('tabelaCorpo');
+    function render(dados) {
+        const tb = document.getElementById('tabela');
         let p = 0, c = 0;
-        
-        // Contagem de estatísticas
         dados.forEach(i => i.status === 'Pendente' ? p++ : c++);
-        document.getElementById('count-total').innerText = dados.length;
-        document.getElementById('count-pendente').innerText = p;
-        document.getElementById('count-concluido').innerText = c;
+        document.getElementById('total').innerText = dados.length;
+        document.getElementById('pendentes').innerText = p;
+        document.getElementById('concluidos').innerText = c;
 
-        const filtrados = dados.filter(i => filtroStatus === "Todos" || i.status === filtroStatus);
-
-        if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px;">Nenhum chamado encontrado.</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = filtrados.map(item => `
+        tb.innerHTML = dados.filter(i => filtro === 'Todos' || i.status === filtro).map(i => `
             <tr>
-                <td><small>${item.data_registro}</small></td>
-                <td><strong>${item.nome}</strong><br><small style="opacity:0.6">${item.setor_sala}</small></td>
-                <td style="max-width:400px; white-space:normal;">${item.descricao}</td>
-                <td>${item.tecnico_responsavel || '<em style="opacity:0.5">Aguardando...</em>'}</td>
-                <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+                <td>${i.data_registro.split(' ')[1]}</td>
+                <td><strong>${i.nome}</strong><br>${i.setor_sala}</td>
+                <td>${i.descricao}</td>
+                <td>${i.tecnico_responsavel || '---'}</td>
+                <td class="status-${i.status}">${i.status}</td>
                 <td class="no-print">
-                    <select onchange="mudarStatus('${item.id}', this.value)" style="background:#0f172a; color:white; border:1px solid var(--border); border-radius:4px;">
-                        <option value="Pendente" ${item.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                        <option value="Concluido" ${item.status === 'Concluido' ? 'selected' : ''}>Concluído</option>
+                    <select onchange="update('${i.id}', this.value)">
+                        <option value="Pendente" ${i.status === 'Pendente'?'selected':''}>Pendente</option>
+                        <option value="Concluido" ${i.status === 'Concluido'?'selected':''}>Concluido</option>
                     </select>
                 </td>
             </tr>
         `).join('');
     }
 
-    async function mudarStatus(id, novoStatus) {
-        let payload = { status: novoStatus };
-        
-        if (novoStatus === 'Concluido') {
-            const tecnico = prompt("Digite o nome do Técnico Responsável:");
-            if (!tecnico) { atualizarDados(); return; }
-            payload.tecnico_responsavel = tecnico;
-            payload.data_conclusao = new Date().toLocaleString('pt-BR');
+    async function update(id, st) {
+        let body = { status: st };
+        if (st === 'Concluido') {
+            const t = prompt("Técnico:");
+            if (!t) return load();
+            body.tecnico_responsavel = t;
+            body.data_conclusao = new Date().toLocaleString();
         }
-
-        try {
-            await fetch(`/api/status_rat/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            cacheJSON = ""; // Força atualização imediata
-            atualizarDados();
-        } catch (e) { alert("Erro ao salvar no banco de dados."); }
+        await fetch(`/api/status_rat/${id}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        cache = ""; load();
     }
 
-    function setFiltro(status) {
-        filtroStatus = status;
-        document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active'));
-        document.getElementById(`card-${status}`).classList.add('active');
-        renderizar(JSON.parse(cacheJSON));
+    function setFiltro(f) { 
+        filtro = f; 
+        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+        document.getElementById('card-'+f).classList.add('active');
+        cache = ""; load(); 
     }
+    
+    function atualizarData(v) { dataAtual = v; cache = ""; load(); }
 
-    function mudarData(nova) {
-        dataAtual = nova;
-        cacheJSON = "";
-        atualizarDados();
-    }
-
-    // Polling de 2 segundos para Tempo Real
-    setInterval(atualizarDados, 2000);
-    atualizarDados();
+    setInterval(load, 2000);
+    load();
 </script>
 </body>
 </html>
