@@ -46,7 +46,6 @@ def excluir_ativo(id_ativo):
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-# --- MÓDULO: HELPDESK (RAT) - CORREÇÃO SEM ÍNDICE ---
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
 def gerenciar_rat():
     if request.method == 'POST':
@@ -55,7 +54,6 @@ def gerenciar_rat():
             agora = datetime.now()
             dados['status'] = dados.get('status', 'Pendente')
             dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
-            # Campo para o filtro por dia
             dados['data_busca'] = agora.strftime("%Y-%m-%d")
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
@@ -65,24 +63,17 @@ def gerenciar_rat():
     elif request.method == 'GET':
         try:
             data_filtro = request.args.get('data')
-            # Busca simples: Apenas filtro (não exige índice composto)
-            if data_filtro:
-                query = db.collection('atividades').where('data_busca', '==', data_filtro)
-            else:
-                query = db.collection('atividades').limit(50)
+            ref = db.collection('atividades')
+            query = ref.where('data_busca', '==', data_filtro) if data_filtro else ref.limit(100)
             
             docs = query.stream()
-            
-            # Converte documentos para lista e inclui o ID
             atividades = []
             for doc in docs:
                 item = doc.to_dict()
-                item['id'] = doc.id
+                item['id'] = doc.id  # ESSENCIAL: Garante que o Front tenha o ID para atualizar
                 atividades.append(item)
-
-            # ORDENAÇÃO MANUAL: Substitui o 'order_by' do Firebase para evitar erro de índice
+            
             atividades.sort(key=lambda x: x.get('data_registro', ''), reverse=True)
-
             return jsonify(atividades), 200
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
@@ -91,13 +82,8 @@ def gerenciar_rat():
 def atualizar_status_rat(id_doc):
     try:
         dados = request.json
-        update_data = {}
-        # Mapeamento consolidado com o HTML
-        if 'status' in dados: update_data['status'] = dados['status']
-        if 'tecnico_responsavel' in dados: update_data['tecnico_responsavel'] = dados['tecnico_responsavel']
-        if 'data_conclusao' in dados: update_data['data_conclusao'] = dados['data_conclusao']
-
-        db.collection('atividades').document(id_doc).update(update_data)
+        # Atualiza qualquer campo enviado (status, tecnico_responsavel, data_conclusao)
+        db.collection('atividades').document(id_doc).update(dados)
         return jsonify({"status": "sucesso"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
