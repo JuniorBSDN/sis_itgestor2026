@@ -136,7 +136,7 @@
 <script>
     const API_URL = '/api/helpdesk';
     const STATUS_URL = '/api/status_rat';
-
+    
     let dataAtual = new Date().toISOString().split('T')[0];
     let ultimoDadosJSON = ""; // Para evitar re-renderização desnecessária a cada 1 segundo
 
@@ -147,7 +147,7 @@
 
             const response = await fetch(`${API_URL}?data=${dataAtual}&_t=${Date.now()}`);
             if (!response.ok) throw new Error();
-
+            
             const dados = await response.json();
             const stringDados = JSON.stringify(dados);
 
@@ -214,7 +214,7 @@
 
     function abrirModal() { document.getElementById('modalData').style.display = 'block'; }
     function fecharModal() { document.getElementById('modalData').style.display = 'none'; }
-
+    
     function aplicarFiltro() {
         const novaData = document.getElementById('inputData').value;
         if (novaData) {
@@ -227,7 +227,7 @@
 
     // Configuração do Tempo Real (1 segundo)
     buscarDados();
-    setInterval(() => buscarDados(true), 1000);
+    setInterval(() => buscarDados(true), 1000); 
 </script>
 </body>
 </html>
