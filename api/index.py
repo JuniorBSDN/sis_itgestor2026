@@ -1,84 +1,94 @@
-import customtkinter as ctk
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import firebase_admin
+from firebase_admin import credentials, firestore
 from datetime import datetime
+import os
+import json
+
+app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
+CORS(app)
+
+# Inicialização do Firebase
+if not firebase_admin._apps:
+    cred_json = os.environ.get("FIREBASE_CREDENTIALS")
+    if cred_json:
+        cred = credentials.Certificate(json.loads(cred_json))
+        firebase_admin.initialize_app(cred)
+
+db = firestore.client()
 
 
-class App(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-
-        self.title("Sistema de Senhas")
-        self.after(0, lambda: self.state('zoomed'))
-
-        self.contadores = {"Normal": 0, "Prioridade": 0, "Preferencial": 0}
-        self.descricao_servico = "Atendimento Geral"
-
-        # Grid Principal
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-
-        # Header
-        self.label_titulo = ctk.CTkLabel(self, text="TOQUE PARA RETIRAR SUA SENHA",
-                                         font=ctk.CTkFont(size=32, weight="bold"))
-        self.label_titulo.grid(row=0, column=0, padx=20, pady=(60, 20))  # pady maior no topo
-
-        # Frame Centralizador
-        self.frame_container = ctk.CTkFrame(self, fg_color="transparent")
-        self.frame_container.grid(row=1, column=0, sticky="n")  # "n" alinha o grupo ao topo do espaço central
-
-        self.frame_container.grid_columnconfigure(0, weight=1)
-        # Removido o rowconfigure(weight=1) para os botões não se espalharem
-
-        # Configurações dos botões
-        largura_fixa = 400
-        altura_fixa = 100
-        fonte_botao = ctk.CTkFont(size=20, weight="bold")
-        espacamento_vertical = 10  # Altere este valor para aproximar mais ou menos
-
-        self.btn_normal = ctk.CTkButton(self.frame_container, text="ATENDIMENTO NORMAL",
-                                        width=largura_fixa, height=altura_fixa, font=fonte_botao,
-                                        command=lambda: self.gerar_senha("Normal"))
-        self.btn_normal.grid(row=0, column=0, pady=espacamento_vertical)
-
-        self.btn_prioridade = ctk.CTkButton(self.frame_container, text="PRIORIDADE",
-                                            fg_color="#e67e22", hover_color="#d35400",
-                                            width=largura_fixa, height=altura_fixa, font=fonte_botao,
-                                            command=lambda: self.gerar_senha("Prioridade"))
-        self.btn_prioridade.grid(row=1, column=0, pady=espacamento_vertical)
-
-        self.btn_preferencial = ctk.CTkButton(self.frame_container, text="PREFERENCIAL",
-                                              fg_color="#2ecc71", hover_color="#27ae60",
-                                              width=largura_fixa, height=altura_fixa, font=fonte_botao,
-                                              command=lambda: self.gerar_senha("Preferencial"))
-        self.btn_preferencial.grid(row=2, column=0, pady=espacamento_vertical)
-
-        # Botão de Configuração
-        self.btn_config = ctk.CTkButton(self, text="⚙", width=50,
-                                        command=self.abrir_modal_config)
-        self.btn_config.grid(row=2, column=0, padx=20, pady=20, sticky="se")
-
-    def abrir_modal_config(self):
-        modal = ctk.CTkToplevel(self)
-        modal.title("Configuração")
-        modal.geometry("400x200")
-        modal.attributes("-topmost", True)
-
-        ctk.CTkLabel(modal, text="Descrição do Serviço:").pack(pady=10)
-        entry = ctk.CTkEntry(modal, width=250)
-        entry.insert(0, self.descricao_servico)
-        entry.pack(pady=10)
-
-        def salvar():
-            self.descricao_servico = entry.get()
-            modal.destroy()
-
-        ctk.CTkButton(modal, text="Confirmar", command=salvar).pack(pady=10)
-
-    def gerar_senha(self, tipo):
-        self.contadores[tipo] += 1
-        senha = f"{tipo[0].upper()}-{self.contadores[tipo]:03d}"
-        print(f"Imprimindo: {senha} | {self.descricao_servico}")
+# --- MÓDULO: ATIVOS ---
+@app.route('/api/ativos', methods=['GET', 'POST'])
+def gerenciar_ativos():
+    return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+@app.route('/api/ativos/<id_ativo>', methods=['DELETE'])
+def excluir_ativo(id_ativo):
+    return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
+# --- MÓDULO: HELPDESK (RAT) - CORREÇÃO SEM ÍNDICE ---
+@app.route('/api/helpdesk', methods=['GET', 'POST'])
+def gerenciar_rat():
+    if request.method == 'POST':
+        try:
+            dados = request.json
+            agora = datetime.now()
+            dados['status'] = dados.get('status', 'Pendente')
+            dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
+            # Campo para o filtro por dia
+            dados['data_busca'] = agora.strftime("%Y-%m-%d")
+            db.collection('atividades').add(dados)
+            return jsonify({"status": "sucesso"}), 201
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+    elif request.method == 'GET':
+        try:
+            data_filtro = request.args.get('data')
+            # Busca simples: Apenas filtro (não exige índice composto)
+            if data_filtro:
+                query = db.collection('atividades').where('data_busca', '==', data_filtro)
+            else:
+                query = db.collection('atividades').limit(50)
+
+            docs = query.stream()
+
+            # Converte documentos para lista e inclui o ID
+            atividades = []
+            for doc in docs:
+                item = doc.to_dict()
+                item['id'] = doc.id
+                atividades.append(item)
+
+            # ORDENAÇÃO MANUAL: Substitui o 'order_by' do Firebase para evitar erro de índice
+            atividades.sort(key=lambda x: x.get('data_registro', ''), reverse=True)
+
+            return jsonify(atividades), 200
+        except Exception as e:
+            return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
+# --- MÓDULO: RELATOS ---
+@app.route('/api/relatos', methods=['GET', 'POST'])
+def gerenciar_relatos():
+    return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
+# --- ATUALIZAÇÃO DE STATUS ---
+@app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
+def atualizar_status_rat(id_doc):
+    return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
+@app.route('/')
+def home():
+    return "API Central de TI rodando!"
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
