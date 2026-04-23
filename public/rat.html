@@ -1,55 +1,67 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel RAT - HVN</title>
+    <title>Painel RAT - Tempo Real</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
-            --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
-            --success: #22c55e; --pending: #fbbf24; --danger: #ef4444;
+            --primary: #38bdf8;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #22c55e;
+            --pending: #fbbf24;
+            --danger: #ef4444;
         }
 
         * { box-sizing: border-box; }
         body {
             background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            color: var(--text); font-family: 'Inter', sans-serif;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
             margin: 0; padding: 20px; min-height: 100vh;
         }
 
-        .container { max-width: 1300px; margin: auto; }
+        .container { max-width: 1200px; margin: 0 auto; }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px; border-bottom: 1px solid var(--border);
-            padding-bottom: 15px;
+            margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
         }
 
-        .stats-bar { display: flex; gap: 15px; margin-bottom: 20px; }
+        h1 { font-size: 1.5rem; margin: 0; color: var(--primary); }
+
+        .stats-bar { display: flex; gap: 15px; margin-bottom: 25px; }
         .stat-card {
             background: var(--card); padding: 20px; border-radius: 12px;
-            flex: 1; text-align: center; cursor: pointer;
-            border: 1px solid var(--border); transition: 0.3s;
+            border: 1px solid var(--border); flex: 1; text-align: center;
         }
-        .stat-card.ativo { border: 2px solid var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
-        .stat-card h3 { margin: 0; font-size: 0.9rem; opacity: 0.7; text-transform: uppercase; }
-        .stat-card span { display: block; font-size: 1.8rem; font-weight: 700; margin-top: 5px; }
+        .stat-value { display: block; font-size: 1.8rem; font-weight: 700; margin-top: 5px; }
 
         .table-container {
-            background: var(--card); border-radius: 16px;
-            border: 1px solid var(--border); overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            background: var(--card); border-radius: 16px; border: 1px solid var(--border);
+            overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(255,255,255,0.03); padding: 15px; text-align: left; font-size: 0.75rem; color: var(--primary); text-transform: uppercase; }
-        td { padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        th {
+            background: rgba(255, 255, 255, 0.03); padding: 15px; text-align: left;
+            font-size: 0.75rem; text-transform: uppercase; color: var(--primary);
+        }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid; }
-        .status-Pendente { background: rgba(251, 191, 36, 0.1); color: var(--pending); }
-        .status-Concluido { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .status-Pendente { background: rgba(251, 191, 36, 0.1); color: var(--pending); border: 1px solid var(--pending); }
+        .status-Concluido { background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid var(--success); }
+
+        select {
+            background: #0f172a; color: white; border: 1px solid var(--border);
+            padding: 5px; border-radius: 6px; cursor: pointer;
+        }
 
         .btn-ui {
             background: var(--primary); color: #0f172a; border: none;
@@ -57,53 +69,38 @@
         }
 
         .modal {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.8); z-index: 100;
-            backdrop-filter: blur(4px);
+            display: none; position: fixed; z-index: 100; inset: 0;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
         }
         .modal-content {
-            background: var(--card); padding: 25px; width: 350px;
-            margin: 15vh auto; border-radius: 15px; border: 1px solid var(--border);
-        }
-        .modal-content h3 { margin-top: 0; color: var(--primary); }
-        .modal-content input, .modal-content select {
-            width: 100%; background: #0f172a; border: 1px solid var(--border);
-            color: white; padding: 10px; margin-bottom: 15px; border-radius: 6px;
+            background: var(--card); width: 90%; max-width: 400px;
+            margin: 15vh auto; padding: 30px; border-radius: 20px; border: 1px solid var(--primary); text-align: center;
         }
 
-        @media print {
-            .no-print, .btn-ui, .stats-bar { display: none !important; }
-            body { background: white; color: black; padding: 0; }
-            .table-container { border: 1px solid #000; box-shadow: none; }
-            th, td { border-bottom: 1px solid #000; color: black !important; }
+        input[type="date"] {
+            width: 100%; padding: 12px; margin: 20px 0; background: #0f172a;
+            border: 1px solid var(--border); color: white; border-radius: 8px;
         }
     </style>
 </head>
-
 <body>
 
 <div class="container">
     <header>
         <div>
-            <h1 style="margin:0;">RAT - Painel <span id="sync-indicator" style="color:var(--success); transition: 0.5s;">●</span></h1>
-            <p style="margin:5px 0 0; opacity:0.7;">Filtro: <strong id="txt-filtro">Hoje</strong></p>
+            <h1>RAT - Painel de Atendimentos <span id="sync-indicator" style="font-size: 0.7rem; color: var(--success); margin-left: 10px;">● Live</span></h1>
+            <p style="margin: 5px 0 0; opacity: 0.7;">Relatório de: <strong id="data-titulo">--/--/----</strong></p>
         </div>
-        <div class="no-print" style="display:flex; gap:10px;">
-            <button class="btn-ui" onclick="abrirModal()">📅 Período</button>
-            <button class="btn-ui" style="background:#64748b; color:white;" onclick="window.print()">🖨️ PDF</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-ui" onclick="abrirModal()">📅 ALTERAR DATA</button>
+            <button class="btn-ui" style="background: #64748b; color: white;" onclick="window.print()">🖨️ PDF</button>
         </div>
     </header>
 
-    <div class="stats-bar no-print">
-        <div class="stat-card ativo" id="card-todos" onclick="setFiltro('todos')">
-            <h3>Total</h3> <span id="count-total">0</span>
-        </div>
-        <div class="stat-card" id="card-pendente" onclick="setFiltro('pendente')">
-            <h3 style="color:var(--pending)">Pendentes</h3> <span id="count-pendente" style="color:var(--pending)">0</span>
-        </div>
-        <div class="stat-card" id="card-concluido" onclick="setFiltro('concluido')">
-            <h3 style="color:var(--success)">Concluídos</h3> <span id="count-concluido" style="color:var(--success)">0</span>
-        </div>
+    <div class="stats-bar">
+        <div class="stat-card">Total <span class="stat-value" id="count-total">0</span></div>
+        <div class="stat-card" style="color:var(--pending)">Pendentes <span class="stat-value" id="count-pendente">0</span></div>
+        <div class="stat-card" style="color:var(--success)">Concluídos <span class="stat-value" id="count-concluido">0</span></div>
     </div>
 
     <div class="table-container">
@@ -116,40 +113,23 @@
                     <th>Tipo</th>
                     <th>Descrição</th>
                     <th>Status</th>
-                    <th class="no-print">Ação</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
-            <tbody id="corpoTabela"></tbody>
+            <tbody id="corpoTabela">
+                <tr><td colspan="7" style="text-align: center; padding: 40px; opacity: 0.5;">Iniciando sincronização...</td></tr>
+            </tbody>
         </table>
     </div>
 </div>
 
 <div id="modalData" class="modal">
     <div class="modal-content">
-        <h3>Filtrar Período</h3>
-        <label style="font-size: 0.8rem; opacity: 0.7;">Visualização:</label>
-        <select id="tipoFiltro">
-            <option value="dia">Apenas o Dia Selecionado</option>
-            <option value="mes">Todo o Mês Selecionado</option>
-            <option value="ano">Todo o Ano Selecionado</option>
-        </select>
-        <label style="font-size: 0.8rem; opacity: 0.7;">Data de Referência:</label>
+        <h2 style="margin: 0; font-size: 1.2rem;">Filtrar Atendimentos</h2>
         <input type="date" id="inputData">
-        <div style="display:flex; gap:10px;">
-            <button class="btn-ui" style="flex:1" onclick="aplicarFiltro()">Aplicar</button>
-            <button class="btn-ui" style="flex:1; background:#ef4444; color:white;" onclick="fecharModal()">Sair</button>
-        </div>
-    </div>
-</div>
-
-<div id="modalTecnico" class="modal">
-    <div class="modal-content">
-        <h3>Finalizar Chamado</h3>
-        <p style="font-size: 0.85rem; opacity: 0.8;">Informe o técnico que realizou o atendimento:</p>
-        <input id="nomeTecnico" placeholder="Nome do técnico" autofocus>
-        <div style="display:flex; gap:10px;">
-            <button class="btn-ui" style="flex:1" onclick="confirmarConclusao()">Confirmar</button>
-            <button class="btn-ui" style="flex:1; background:#64748b; color:white;" onclick="fecharModalTecnico()">Voltar</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-ui" style="flex: 1;" onclick="aplicarFiltro()">FILTRAR</button>
+            <button class="btn-ui" style="flex: 1; background: var(--danger); color: white;" onclick="fecharModal()">FECHAR</button>
         </div>
     </div>
 </div>
@@ -158,115 +138,83 @@
     const API_URL = '/api/helpdesk';
     const STATUS_URL = '/api/status_rat';
 
-    let filtroStatus = 'todos';
-    let tipoFiltro = 'dia';
-    let dataReferencia = new Date(); // Inicia com hoje
-    let idConclusao = null;
-    let cacheDados = "";
+    let dataAtual = new Date().toISOString().split('T')[0];
+    let ultimoDadosJSON = ""; // Para evitar re-renderização desnecessária a cada 1 segundo
 
-    // Seta data de hoje no input do modal por padrão
-    document.getElementById('inputData').value = new Date().toISOString().split('T')[0];
-
-    function setFiltro(tipo) {
-        filtroStatus = tipo;
-        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('ativo'));
-        document.getElementById('card-' + tipo).classList.add('ativo');
-        buscarDados();
-    }
-
-    function abrirModal() { document.getElementById('modalData').style.display = 'block'; }
-    function fecharModal() { document.getElementById('modalData').style.display = 'none'; }
-
-    function aplicarFiltro() {
-        tipoFiltro = document.getElementById('tipoFiltro').value;
-        const input = document.getElementById('inputData').value;
-        if (!input) return alert("Selecione uma data");
-        
-        dataReferencia = new Date(input + "T00:00:00");
-        document.getElementById('txt-filtro').innerText = input.split('-').reverse().join('/');
-        fecharModal();
-        buscarDados();
-    }
-
-    async function buscarDados() {
+    async function buscarDados(silencioso = false) {
         try {
-            const res = await fetch(`${API_URL}?_t=${Date.now()}`);
-            const dados = await res.json();
-            
+            const syncIcon = document.getElementById('sync-indicator');
+            syncIcon.style.opacity = "1";
+
+            const response = await fetch(`${API_URL}?data=${dataAtual}&_t=${Date.now()}`);
+            if (!response.ok) throw new Error();
+
+            const dados = await response.json();
             const stringDados = JSON.stringify(dados);
-            if (stringDados !== cacheDados) {
-                renderizar(dados);
-                cacheDados = stringDados;
+
+            // Só atualiza o HTML se os dados mudarem de verdade
+            if (stringDados !== ultimoDadosJSON) {
+                renderizarTabela(dados);
+                ultimoDadosJSON = stringDados;
             }
 
-            const sync = document.getElementById('sync-indicator');
-            sync.style.opacity = "1";
-            setTimeout(() => sync.style.opacity = "0.2", 500);
-        } catch (e) { console.error("Erro ao buscar dados"); }
+            setTimeout(() => { syncIcon.style.opacity = "0.3"; }, 500);
+            document.getElementById('data-titulo').innerText = dataAtual.split('-').reverse().join('/');
+
+        } catch (error) {
+            console.error("Falha na sincronização");
+        }
     }
 
-    function renderizar(lista) {
+    function renderizarTabela(atividades) {
         const tbody = document.getElementById('corpoTabela');
-        tbody.innerHTML = '';
-
-        // 1. Filtragem por Período (Data)
-        const listaFiltradaData = lista.filter(item => {
-            if (!item.data_registro) return false;
-            // Converte "23/04/2026 10:00:00" para Date
-            const [dataPart] = item.data_registro.split(' ');
-            const [d, m, y] = dataPart.split('/').map(Number);
-            const dataItem = new Date(y, m - 1, d);
-
-            if (tipoFiltro === 'dia') return dataItem.toDateString() === dataReferencia.toDateString();
-            if (tipoFiltro === 'mes') return dataItem.getMonth() === dataReferencia.getMonth() && dataItem.getFullYear() === dataReferencia.getFullYear();
-            if (tipoFiltro === 'ano') return dataItem.getFullYear() === dataReferencia.getFullYear();
-            return true;
-        });
-
         let p = 0, c = 0;
-        
-        // 2. Contagem e Filtragem por Status
-        listaFiltradaData.forEach(item => {
-            const status = item.status || 'Pendente';
-            status === 'Pendente' ? p++ : c++;
 
-            if (filtroStatus === 'pendente' && status !== 'Pendente') return;
-            if (filtroStatus === 'concluido' && status !== 'Concluido') return;
+        if (atividades.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; opacity:0.5;">Nenhum chamado para este dia.</td></tr>`;
+        } else {
+            tbody.innerHTML = '';
+            atividades.forEach(item => {
+                const status = item.status || 'Pendente';
+                status === 'Pendente' ? p++ : c++;
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><small>${item.data_registro}</small></td>
-                <td><strong>${item.nome}</strong></td>
-                <td>${item.setor_sala}</td>
-                <td><small>${item.tipo_servico || 'N/A'}</small></td>
-                <td style="max-width:300px; white-space:normal;">${item.descricao}</td>
-                <td>
-                    <span class="status-badge status-${status}">${status}</span>
-                    ${status === 'Concluido' && item.tecnico_responsavel ? `<br><small style="opacity:0.6">Téc: ${item.tecnico_responsavel}</small>` : ''}
-                </td>
-                <td class="no-print">
-                    <select onchange="alterarStatus('${item.id}', this.value)" style="background:#1e293b; color:white; border:1px solid var(--border); border-radius:4px;">
-                        <option value="Pendente" ${status === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                        <option value="Concluido" ${status === 'Concluido' ? 'selected' : ''}>Concluído</option>
-                    </select>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.data_registro || '---'}</td>
+                    <td><strong>${item.nome || '---'}</strong></td>
+                    <td>${item.setor_sala || '---'}</td>
+                    <td>${item.tipo_servico || '---'}</td>
+                    <td style="white-space:normal; min-width:250px;">${item.descricao || ''}</td>
+                    <td>
+                        <span class="status-badge status-${status}">${status}</span>
+                        ${status === 'Concluido' && item.tecnico_responsavel ?
+        `               <br><small style="display:block; margin-top:5px; opacity:0.7;">Téc: ${item.tecnico_responsavel}</small>` : ''}
+                    </td>
+                    <td>
+                        <select onchange="alterarStatus('${item.id}', this.value)">
+                            <option value="Pendente" ${status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                            <option value="Concluido" ${status === 'Concluido' ? 'selected' : ''}>Concluído</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
-        document.getElementById('count-total').innerText = listaFiltradaData.length;
+        document.getElementById('count-total').innerText = atividades.length;
         document.getElementById('count-pendente').innerText = p;
         document.getElementById('count-concluido').innerText = c;
     }
 
-    // Substitua sua função alterarStatus por esta:
-async function alterarStatus(id, novoStatus) {
+    async function alterarStatus(id, novoStatus) {
     let payload = { status: novoStatus };
 
+    // Se o status selecionado for Concluído, pede o nome do técnico
     if (novoStatus === 'Concluido') {
-        const tecnico = prompt("Informe o nome do técnico responsável:");
-        if (!tecnico) {
-            buscarDados(true); // Reseta o select se cancelar
+        const tecnico = prompt("Informe o nome do técnico que executou a tarefa:");
+        if (!tecnico || tecnico.trim() === "") {
+            alert("É necessário informar o técnico para concluir.");
+            buscarDados(true); // Reseta a tabela para o valor anterior
             return;
         }
         payload.tecnico_responsavel = tecnico;
@@ -278,49 +226,29 @@ async function alterarStatus(id, novoStatus) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        ultimoDadosJSON = ""; // Força atualização da tela
+        ultimoDadosJSON = ""; // Força a atualização da tela no próximo ciclo
         buscarDados(true);
-    } catch (e) { alert("Erro ao salvar status"); }
+    } catch (e) {
+        alert("Erro ao salvar status");
+    }
 }
 
+    function abrirModal() { document.getElementById('modalData').style.display = 'block'; }
+    function fecharModal() { document.getElementById('modalData').style.display = 'none'; }
 
-
-    async function salvar(id, status, tecnico = null) {
-        let payload = { status };
-        if (tecnico) {
-            payload.tecnico_responsavel = tecnico;
-            payload.data_conclusao = new Date().toLocaleString('pt-BR');
-        }
-
-        try {
-            await fetch(`${STATUS_URL}/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            cacheDados = ""; // Limpa cache para forçar recarregamento
+    function aplicarFiltro() {
+        const novaData = document.getElementById('inputData').value;
+        if (novaData) {
+            dataAtual = novaData;
+            ultimoDadosJSON = ""; // Força atualização
             buscarDados();
-        } catch (e) { alert('Erro ao salvar no banco'); }
+            fecharModal();
+        }
     }
 
-    function confirmarConclusao() {
-        const t = document.getElementById('nomeTecnico').value.trim();
-        if (!t) return alert('Por favor, informe o nome do técnico');
-        salvar(idConclusao, 'Concluido', t);
-        fecharModalTecnico();
-    }
-
-    function fecharModalTecnico() {
-        document.getElementById('modalTecnico').style.display = 'none';
-        document.getElementById('nomeTecnico').value = '';
-        idConclusao = null;
-        buscarDados(); // Resetar visual em caso de cancelamento
-    }
-
-    // Inicialização
+    // Configuração do Tempo Real (1 segundo)
     buscarDados();
-    setInterval(buscarDados, 3000); // Polling a cada 3 segundos
+    setInterval(() => buscarDados(true), 1000);
 </script>
-
 </body>
 </html>
