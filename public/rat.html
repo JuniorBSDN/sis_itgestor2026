@@ -259,15 +259,31 @@
         document.getElementById('count-concluido').innerText = c;
     }
 
-    function alterarStatus(id, status) {
-        if (status === 'Concluido') {
-            idConclusao = id;
-            document.getElementById('modalTecnico').style.display = 'block';
-            document.getElementById('nomeTecnico').focus();
+    // Substitua sua função alterarStatus por esta:
+async function alterarStatus(id, novoStatus) {
+    let payload = { status: novoStatus };
+
+    if (novoStatus === 'Concluido') {
+        const tecnico = prompt("Informe o nome do técnico responsável:");
+        if (!tecnico) {
+            buscarDados(true); // Reseta o select se cancelar
             return;
         }
-        salvar(id, 'Pendente');
+        payload.tecnico_responsavel = tecnico;
     }
+
+    try {
+        await fetch(`${STATUS_URL}/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        ultimoDadosJSON = ""; // Força atualização da tela
+        buscarDados(true);
+    } catch (e) { alert("Erro ao salvar status"); }
+}
+
+
 
     async function salvar(id, status, tecnico = null) {
         let payload = { status };
