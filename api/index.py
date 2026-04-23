@@ -87,21 +87,6 @@ def gerenciar_rat():
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-@app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
-def atualizar_status_rat(id_doc):
-    try:
-        dados = request.json
-        update_data = {}
-        # Mapeamento consolidado com o HTML
-        if 'status' in dados: update_data['status'] = dados['status']
-        if 'tecnico_responsavel' in dados: update_data['tecnico_responsavel'] = dados['tecnico_responsavel']
-        if 'data_conclusao' in dados: update_data['data_conclusao'] = dados['data_conclusao']
-
-        db.collection('atividades').document(id_doc).update(update_data)
-        return jsonify({"status": "sucesso"}), 200
-    except Exception as e:
-        return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
 # --- MÓDULO: RELATOS ---
 @app.route('/api/relatos', methods=['GET', 'POST'])
 def gerenciar_relatos():
@@ -181,74 +166,6 @@ def acoes_residuos(id_doc):
             
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
-
-#----MECANISMO QUE GERA SENHAS
-# --- MÓDULO: FLUXO DE PACIENTES (SENHAS) ---
-
-@app.route('/api/fila', methods=['GET', 'POST'])
-def gerenciar_fila():
-    if request.method == 'POST':
-        try:
-            dados = request.json
-            agora = datetime.now()
-            
-            # Formatação da Senha (Ex: M-001)
-            # Você pode enviar a senha pronta do Totem ou gerar aqui
-            dados['status'] = 'aguardando'
-            dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
-            dados['timestamp'] = firestore.SERVER_TIMESTAMP # Para ordenação precisa
-            
-            db.collection('fila').add(dados)
-            return jsonify({"status": "sucesso"}), 201
-        except Exception as e:
-            return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
-    elif request.method == 'GET':
-        try:
-            # Busca pacientes aguardando para o Widget do Médico
-            docs = db.collection('fila').where('status', '==', 'aguardando').order_by('timestamp').stream()
-            fila = [doc.to_dict() for doc in docs]
-            return jsonify(fila), 200
-        except Exception as e:
-            return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
-@app.route('/api/chamar_proximo', methods=['PATCH'])
-def chamar_proximo():
-    try:
-        # 1. Pega o paciente mais antigo que está aguardando
-        query = db.collection('fila').where('status', '==', 'aguardando').order_by('timestamp').limit(1).get()
-        
-        if not query:
-            return jsonify({"status": "vazio", "mensagem": "Ninguém na fila"}), 200
-        
-        doc = query[0]
-        dados_chamada = {
-            "status": "chamado",
-            "data_chamada": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-            "chamada_timestamp": firestore.SERVER_TIMESTAMP # Isso dispara a TV e o Rodapé
-        }
-        
-        db.collection('fila').document(doc.id).update(dados_chamada)
-        
-        return jsonify({
-            "status": "sucesso", 
-            "senha": doc.to_dict().get('senha')
-        }), 200
-    except Exception as e:
-        return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
-@app.route('/api/ultima_chamada', methods=['GET'])
-def ultima_chamada():
-    try:
-        # Endpoint para a TV ou Rodapé consultar via Polling (se não usar Listener)
-        query = db.collection('fila').where('status', '==', 'chamado').order_by('chamada_timestamp', direction=firestore.Query.DESCENDING).limit(1).get()
-        if query:
-            return jsonify(query[0].to_dict()), 200
-        return jsonify({}), 204
-    except Exception as e:
-        return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
 
 
 
