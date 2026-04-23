@@ -54,10 +54,10 @@ def gerenciar_rat():
         try:
             dados = request.json
             agora = datetime.now()
-            # Garante formato DD/MM/YYYY para o front-end filtrar
-            dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
+            # Garante que campos essenciais existam
             dados['status'] = dados.get('status', 'Pendente')
             dados['tecnico_responsavel'] = None
+            dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
             
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
@@ -73,7 +73,7 @@ def gerenciar_rat():
                 item['id'] = doc.id
                 atividades.append(item)
             
-            # Ordenação manual (mais recente primeiro)
+            # Ordenação: Mais recentes no topo
             atividades.sort(key=lambda x: x.get('data_registro', ''), reverse=True)
             return jsonify(atividades), 200
         except Exception as e:
