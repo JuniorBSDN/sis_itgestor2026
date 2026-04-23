@@ -79,12 +79,12 @@
     const API_URL = '/api/helpdesk';
     const STATUS_URL = '/api/status_rat';
     
-    let dataFiltroISO = new Date().toISOString().split('T')[0];
+    let dataFiltroISO = new Date().toISOString().split('T')[0]; // Pega hoje: "2026-04-23"
     let ultimoDadosJSON = "";
 
     async function buscarDados(forcar = false) {
         try {
-            const res = await fetch(`${API_URL}?t=${Date.now()}`);
+            const res = await fetch(`${API_URL}?cache=${Date.now()}`);
             const atividades = await res.json();
             const dadosString = JSON.stringify(atividades);
 
@@ -92,7 +92,7 @@
                 ultimoDadosJSON = dadosString;
                 renderizar(atividades);
             }
-        } catch (e) { console.error("Erro API"); }
+        } catch (e) { console.error("Erro na API"); }
     }
 
     function renderizar(lista) {
@@ -100,13 +100,25 @@
         tbody.innerHTML = '';
         let p = 0, c = 0;
 
-        // FILTRO CRUCIAL: Normaliza a data do Firebase (DD/MM/YYYY) para comparar com o Filtro (YYYY-MM-DD)
+        // FILTRO À PROVA DE FALHAS
         const filtrados = lista.filter(item => {
-            if (!item.data_registro) return false;
-            const partes = item.data_registro.split(' ')[0].split('/');
-            const itemISO = `${partes[2]}-${partes[1]}-${partes[0]}`;
-            return itemISO === dataFiltroISO;
+            // 1. Se tiver o campo data_busca (novo formato), usa ele
+            if (item.data_busca) return item.data_busca === dataFiltroISO;
+
+            // 2. Se não tiver (formato antigo), tenta converter "23/04/2026" para "2026-04-23"
+            if (item.data_registro) {
+                const partes = item.data_registro.split(' ')[0].split('/');
+                if (partes.length === 3) {
+                    const itemISO = `${partes[2]}-${partes[1]}-${partes[0]}`;
+                    return itemISO === dataFiltroISO;
+                }
+            }
+            return false;
         });
+
+        if (filtrados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:50px; opacity:0.5;">Nenhum atendimento encontrado para esta data.</td></tr>';
+        }
 
         filtrados.forEach(item => {
             const status = item.status || 'Pendente';
@@ -126,7 +138,7 @@
                 <td class="no-print">
                     <select onchange="alterarStatus('${item.id}', this.value)">
                         <option value="Pendente" ${status === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                        <option value="Concluido" ${status === 'Concluido' ? 'selected' : ''}>Concluido</option>
+                        <option value="Concluido" ${status === 'Concluido' ? 'selected' : ''}>Concluído</option>
                     </select>
                 </td>
             `;
@@ -140,13 +152,11 @@
 
     async function alterarStatus(id, novoStatus) {
         let payload = { status: novoStatus };
-
         if (novoStatus === 'Concluido') {
-            const tecnico = prompt("Quem é o técnico responsável?");
+            const tecnico = prompt("Nome do técnico responsável:");
             if (!tecnico) { buscarDados(true); return; }
             payload.tecnico_responsavel = tecnico;
         }
-
         try {
             await fetch(`${STATUS_URL}/${id}`, {
                 method: 'PATCH',
@@ -154,21 +164,22 @@
                 body: JSON.stringify(payload)
             });
             buscarDados(true);
-        } catch (e) { alert("Erro ao atualizar"); }
+        } catch (e) { alert("Erro ao atualizar status"); }
     }
 
     function aplicarFiltro() {
         const novaData = document.getElementById('inputData').value;
         if (novaData) {
             dataFiltroISO = novaData;
-            document.getElementById('modalData').style.display = 'none';
             buscarDados(true);
+            document.getElementById('modalData').style.display = 'none';
         }
     }
 
+    // Inicializa
     document.getElementById('inputData').value = dataFiltroISO;
     buscarDados();
-    setInterval(buscarDados, 2000);
+    setInterval(buscarDados, 3000); 
 </script>
 
 </body>
