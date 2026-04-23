@@ -114,27 +114,25 @@ def gerenciar_relatos():
     return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 
-# --- ATUALIZAÇÃO DE STATUS ---
 @app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
 def atualizar_status_rat(id_doc):
     try:
         dados = request.json
+        update_data = {}
 
-        status = dados.get('status')
-        tecnico = dados.get('tecnico', None)
-
-        update_data = {
-            "status": status
-        }
-
-        # Só adiciona técnico se vier preenchido
-        if tecnico:
-            update_data["tecnico"] = tecnico
+        # Mapeia os campos que vem do HTML
+        if 'status' in dados: 
+            update_data['status'] = dados['status']
+        
+        # Se for concluído, adicionamos o técnico e a data
+        if dados.get('status') == 'Concluido':
+            update_data['tecnico_responsavel'] = dados.get('tecnico_responsavel', 'Técnico Externo')
+            update_data['data_conclusao'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        elif dados.get('status') == 'Pendente':
+            update_data['tecnico_responsavel'] = None # Limpa se reabrir
 
         db.collection('atividades').document(id_doc).update(update_data)
-
         return jsonify({"status": "sucesso"}), 200
-
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 @app.route('/')
