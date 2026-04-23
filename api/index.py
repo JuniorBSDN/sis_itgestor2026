@@ -32,6 +32,40 @@ def excluir_ativo(id_ativo):
 
 
 # --- MÓDULO: HELPDESK (RAT) - CORREÇÃO SEM ÍNDICE ---
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import firebase_admin
+from firebase_admin import credentials, firestore
+from datetime import datetime
+import os
+import json
+
+app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
+CORS(app)
+
+# Inicialização do Firebase
+if not firebase_admin._apps:
+    cred_json = os.environ.get("FIREBASE_CREDENTIALS")
+    if cred_json:
+        cred = credentials.Certificate(json.loads(cred_json))
+        firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+
+# --- MÓDULO: ATIVOS ---
+@app.route('/api/ativos', methods=['GET', 'POST'])
+def gerenciar_ativos():
+    return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
+@app.route('/api/ativos/<id_ativo>', methods=['DELETE'])
+def excluir_ativo(id_ativo):
+    return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
+# --- MÓDULO: HELPDESK (RAT) - CORREÇÃO SEM ÍNDICE ---
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
 def gerenciar_rat():
     if request.method == 'POST':
@@ -103,6 +137,14 @@ def atualizar_status_rat(id_doc):
 
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+@app.route('/')
+def home():
+    return "API Central de TI rodando!"
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
 @app.route('/')
 def home():
     return "API Central de TI rodando!"
