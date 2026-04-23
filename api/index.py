@@ -48,18 +48,17 @@ def excluir_ativo(id_ativo):
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
-# --- MÓDULO: HELPDESK (RAT) - CORREÇÃO SEM ÍNDICE ---
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
 def gerenciar_rat():
     if request.method == 'POST':
         try:
             dados = request.json
             agora = datetime.now()
-            dados['status'] = dados.get('status', 'Pendente')
+            # Garante formato DD/MM/YYYY para o front-end filtrar
             dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
-            # Campo para o filtro por dia
-            dados['data_busca'] = agora.strftime("%Y-%m-%d")
+            dados['status'] = dados.get('status', 'Pendente')
+            dados['tecnico_responsavel'] = None
+            
             db.collection('atividades').add(dados)
             return jsonify({"status": "sucesso"}), 201
         except Exception as e:
@@ -67,45 +66,39 @@ def gerenciar_rat():
 
     elif request.method == 'GET':
         try:
-            data_filtro = request.args.get('data')
-            # Busca simples: Apenas filtro (não exige índice composto)
-            if data_filtro:
-                query = db.collection('atividades').where('data_busca', '==', data_filtro)
-            else:
-                query = db.collection('atividades').limit(50)
-
-            docs = query.stream()
-
-            # Converte documentos para lista e inclui o ID
+            docs = db.collection('atividades').stream()
             atividades = []
             for doc in docs:
                 item = doc.to_dict()
                 item['id'] = doc.id
                 atividades.append(item)
-
-            # ORDENAÇÃO MANUAL: Substitui o 'order_by' do Firebase para evitar erro de índice
+            
+            # Ordenação manual (mais recente primeiro)
             atividades.sort(key=lambda x: x.get('data_registro', ''), reverse=True)
-
             return jsonify(atividades), 200
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
 
 @app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
 def atualizar_status_rat(id_doc):
     try:
         dados = request.json
         update_data = {}
-        # Mapeamento consolidado com o HTML
-        if 'status' in dados: update_data['status'] = dados['status']
-        if 'tecnico_responsavel' in dados: update_data['tecnico_responsavel'] = dados['tecnico_responsavel']
-        if 'data_conclusao' in dados: update_data['data_conclusao'] = dados['data_conclusao']
+
+        if 'status' in dados:
+            update_data['status'] = dados['status']
+        
+        if dados.get('status') == 'Concluido':
+            update_data['tecnico_responsavel'] = dados.get('tecnico_responsavel', 'Técnico TI')
+            update_data['data_conclusao'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        elif dados.get('status') == 'Pendente':
+            update_data['tecnico_responsavel'] = None
+            update_data['data_conclusao'] = None
 
         db.collection('atividades').document(id_doc).update(update_data)
         return jsonify({"status": "sucesso"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
 
 # --- MÓDULO: RELATOS ---
 @app.route('/api/relatos', methods=['GET', 'POST'])
