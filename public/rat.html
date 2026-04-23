@@ -9,82 +9,45 @@
         :root {
             --primary: #38bdf8; --bg: #0f172a; --card: #1e293b;
             --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1);
-            --success: #22c55e; --pending: #fbbf24; --danger: #ef4444;
+            --success: #22c55e; --pending: #fbbf24;
         }
-
-        * { box-sizing: border-box; }
         body {
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            color: var(--text); font-family: 'Inter', sans-serif;
-            margin: 0; padding: 20px; min-height: 100vh;
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
+            margin: 0; padding: 20px;
         }
-
         .container { max-width: 1300px; margin: auto; }
-
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px; border-bottom: 1px solid var(--border);
-            padding-bottom: 15px;
-        }
-
-        .stats-bar { display: flex; gap: 15px; margin-bottom: 20px; }
-        .stat-card {
-            background: var(--card); padding: 20px; border-radius: 12px;
-            flex: 1; text-align: center; border: 1px solid var(--border);
-        }
-        .stat-card h3 { margin: 0; font-size: 0.8rem; opacity: 0.7; text-transform: uppercase; }
-        .stat-card span { display: block; font-size: 1.8rem; font-weight: 700; margin-top: 5px; }
-
-        .table-container {
-            background: var(--card); border-radius: 16px;
-            border: 1px solid var(--border); overflow: hidden;
-        }
-
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .stats { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 10px; flex: 1; text-align: center; border: 1px solid var(--border); }
+        .table-container { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(255,255,255,0.03); padding: 15px; text-align: left; font-size: 0.75rem; color: var(--primary); text-transform: uppercase; }
-        td { padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .status-Pendente { background: rgba(251, 191, 36, 0.1); color: var(--pending); }
-        .status-Concluido { background: rgba(34, 197, 94, 0.1); color: var(--success); }
-
-        .btn-ui {
-            background: var(--primary); color: #0f172a; border: none;
-            padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;
-        }
-
-        .modal {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.8); z-index: 100; backdrop-filter: blur(4px);
-        }
-        .modal-content {
-            background: var(--card); padding: 25px; width: 350px;
-            margin: 15vh auto; border-radius: 15px; border: 1px solid var(--border);
-        }
-
-        select { background: #0f172a; color: white; border: 1px solid var(--border); padding: 5px; border-radius: 4px; }
-        
-        @media print { .no-print { display: none !important; } }
+        th { background: rgba(255,255,255,0.05); padding: 12px; text-align: left; color: var(--primary); font-size: 0.8rem; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .status-Pendente { background: rgba(251,191,36,0.2); color: var(--pending); }
+        .status-Concluido { background: rgba(34,197,94,0.2); color: var(--success); }
+        .btn { background: var(--primary); color: #000; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; }
+        .modal-content { background: var(--card); padding: 20px; width: 300px; margin: 100px auto; border-radius: 10px; }
+        select { background: #0f172a; color: #fff; border: 1px solid var(--border); padding: 4px; border-radius: 4px; }
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <div>
-            <h1 style="margin:0;">RAT - Painel <span id="sync-indicator" style="color:var(--success); transition: 0.5s;">●</span></h1>
-            <p style="margin:5px 0 0; opacity:0.7;">Filtro: <strong id="txt-filtro">Hoje</strong></p>
-        </div>
+        <h1>RAT <small style="font-size: 0.5em; opacity: 0.5;">Hospital Municipal</small></h1>
         <div class="no-print">
-            <button class="btn-ui" onclick="abrirModal()">📅 Filtrar Data</button>
-            <button class="btn-ui" style="background:#64748b; color:white;" onclick="window.print()">🖨️ PDF</button>
+            <button class="btn" onclick="document.getElementById('modalData').style.display='block'">📅 Filtrar Data</button>
+            <button class="btn" onclick="window.print()" style="background:#94a3b8">🖨️ PDF</button>
         </div>
     </header>
 
-    <div class="stats-bar no-print">
-        <div class="stat-card"><h3>Total</h3><span id="count-total">0</span></div>
-        <div class="stat-card"><h3>Pendentes</h3><span id="count-pendente" style="color:var(--pending)">0</span></div>
-        <div class="stat-card"><h3>Concluídos</h3><span id="count-concluido" style="color:var(--success)">0</span></div>
+    <div class="stats no-print">
+        <div class="stat-card">Total: <span id="count-total">0</span></div>
+        <div class="stat-card">Pendentes: <span id="count-pendente" style="color:var(--pending)">0</span></div>
+        <div class="stat-card">Concluídos: <span id="count-concluido" style="color:var(--success)">0</span></div>
     </div>
 
     <div class="table-container">
@@ -94,10 +57,9 @@
                     <th>Data/Hora</th>
                     <th>Solicitante</th>
                     <th>Setor</th>
-                    <th>Tipo</th>
                     <th>Descrição</th>
-                    <th>Status</th>
-                    <th class="no-print">Ação</th>
+                    <th>Status / Técnico</th>
+                    <th class="no-print">Ações</th>
                 </tr>
             </thead>
             <tbody id="corpoTabela"></tbody>
@@ -107,12 +69,9 @@
 
 <div id="modalData" class="modal">
     <div class="modal-content">
-        <h3>Filtrar por Data</h3>
-        <input type="date" id="inputData" style="width:100%; padding:10px; margin: 15px 0; background:#0f172a; color:white; border:1px solid var(--border);">
-        <div style="display:flex; gap:10px;">
-            <button class="btn-ui" style="flex:1" onclick="aplicarFiltro()">Aplicar</button>
-            <button class="btn-ui" style="flex:1; background:#ef4444; color:white;" onclick="fecharModal()">Sair</button>
-        </div>
+        <h3>Filtrar Data</h3>
+        <input type="date" id="inputData" style="width:100%; margin: 10px 0; padding: 5px;">
+        <button class="btn" onclick="aplicarFiltro()" style="width:100%">Aplicar</button>
     </div>
 </div>
 
@@ -120,25 +79,20 @@
     const API_URL = '/api/helpdesk';
     const STATUS_URL = '/api/status_rat';
     
-    // Inicia com a data de hoje no formato YYYY-MM-DD
     let dataFiltroISO = new Date().toISOString().split('T')[0];
     let ultimoDadosJSON = "";
 
     async function buscarDados(forcar = false) {
         try {
-            const res = await fetch(`${API_URL}?cache=${Date.now()}`);
+            const res = await fetch(`${API_URL}?t=${Date.now()}`);
             const atividades = await res.json();
-            
-            const dadosNovosJSON = JSON.stringify(atividades);
-            if (dadosNovosJSON !== ultimoDadosJSON || forcar) {
-                ultimoDadosJSON = dadosNovosJSON;
+            const dadosString = JSON.stringify(atividades);
+
+            if (dadosString !== ultimoDadosJSON || forcar) {
+                ultimoDadosJSON = dadosString;
                 renderizar(atividades);
             }
-            
-            const sync = document.getElementById('sync-indicator');
-            sync.style.opacity = "1";
-            setTimeout(() => sync.style.opacity = "0.2", 500);
-        } catch (e) { console.error("Erro ao carregar dados"); }
+        } catch (e) { console.error("Erro API"); }
     }
 
     function renderizar(lista) {
@@ -146,10 +100,9 @@
         tbody.innerHTML = '';
         let p = 0, c = 0;
 
-        // FILTRO DE DATA CORRIGIDO (Compara YYYY-MM-DD)
+        // FILTRO CRUCIAL: Normaliza a data do Firebase (DD/MM/YYYY) para comparar com o Filtro (YYYY-MM-DD)
         const filtrados = lista.filter(item => {
             if (!item.data_registro) return false;
-            // Converte "23/04/2026 10:00:00" -> "2026-04-23"
             const partes = item.data_registro.split(' ')[0].split('/');
             const itemISO = `${partes[2]}-${partes[1]}-${partes[0]}`;
             return itemISO === dataFiltroISO;
@@ -164,17 +117,16 @@
                 <td><small>${item.data_registro}</small></td>
                 <td><strong>${item.nome}</strong></td>
                 <td>${item.setor_sala}</td>
-                <td><small>${item.tipo_servico || 'N/A'}</small></td>
-                <td style="max-width:300px; white-space:normal;">${item.descricao}</td>
+                <td>${item.descricao}</td>
                 <td>
                     <span class="status-badge status-${status}">${status}</span>
                     ${status === 'Concluido' && item.tecnico_responsavel ? 
-                        `<br><small style="color:var(--primary); font-size:10px; display:block; margin-top:4px;">Téc: ${item.tecnico_responsavel}</small>` : ''}
+                        `<br><small style="color:var(--primary); font-size: 10px;">Téc: ${item.tecnico_responsavel}</small>` : ''}
                 </td>
                 <td class="no-print">
                     <select onchange="alterarStatus('${item.id}', this.value)">
                         <option value="Pendente" ${status === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                        <option value="Concluido" ${status === 'Concluido' ? 'selected' : ''}>Concluído</option>
+                        <option value="Concluido" ${status === 'Concluido' ? 'selected' : ''}>Concluido</option>
                     </select>
                 </td>
             `;
@@ -190,12 +142,8 @@
         let payload = { status: novoStatus };
 
         if (novoStatus === 'Concluido') {
-            const tecnico = prompt("Nome do Técnico responsável:");
-            if (!tecnico || tecnico.trim() === "") {
-                alert("Obrigatório informar o técnico.");
-                buscarDados(true);
-                return;
-            }
+            const tecnico = prompt("Quem é o técnico responsável?");
+            if (!tecnico) { buscarDados(true); return; }
             payload.tecnico_responsavel = tecnico;
         }
 
@@ -206,26 +154,21 @@
                 body: JSON.stringify(payload)
             });
             buscarDados(true);
-        } catch (e) { alert("Erro ao salvar status"); }
+        } catch (e) { alert("Erro ao atualizar"); }
     }
-
-    function abrirModal() { document.getElementById('modalData').style.display = 'block'; }
-    function fecharModal() { document.getElementById('modalData').style.display = 'none'; }
 
     function aplicarFiltro() {
         const novaData = document.getElementById('inputData').value;
         if (novaData) {
             dataFiltroISO = novaData;
-            document.getElementById('txt-filtro').innerText = novaData.split('-').reverse().join('/');
-            fecharModal();
+            document.getElementById('modalData').style.display = 'none';
             buscarDados(true);
         }
     }
 
-    // Inicialização
     document.getElementById('inputData').value = dataFiltroISO;
     buscarDados();
-    setInterval(buscarDados, 2000); // Atualiza a cada 2 segundos
+    setInterval(buscarDados, 2000);
 </script>
 
 </body>
