@@ -354,27 +354,12 @@ def registrar_treinamento():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-@app.route('/api/admin/login', methods=['POST'])
-def admin_login():
-    try:
-        data = request.get_json()
-        # Pega a senha que você digitou no prompt do navegador
-        senha_digitada = str(data.get('senha', '')).strip()
-        
-        # Pega a senha que está na Vercel (ADMIN_PASSWORD)
-        admin_pass = str(os.environ.get('ADMIN_PASS', '')).strip()
-
-        # Se as duas forem iguais, libera o acesso
-        if senha_digitada == admin_pass and admin_pass != "":
-            return jsonify({"status": "sucesso"}), 200
-        else:
-            return jsonify({"status": "erro", "mensagem": "Senha incorreta"}), 401
-    except Exception as e:
-        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+# Mantenha como está, apenas garanta que não há verificações de senha nestas duas rotas:
 
 @app.route('/api/listar', methods=['GET'])
 def listar_treinamentos():
     try:
+        # Removido qualquer filtro de senha
         docs = db.collection('treinamentos').order_by('data_conclusao', direction=firestore.Query.DESCENDING).stream()
         lista = []
         for doc in docs:
@@ -383,17 +368,18 @@ def listar_treinamentos():
                 "nome": d.get('nome'),
                 "cpf": d.get('cpf'),
                 "email": d.get('email'),
-                "data_conclusao": d.get('data_conclusao').strftime("%d/%m/%Y %H:%M")
+                "data_conclusao": d.get('data_conclusao').strftime("%d/%m/%Y %H:%M") if d.get('data_conclusao') else "---"
             })
         return jsonify(lista), 200
     except Exception as e:
         return jsonify({"erro": str(e)}), 500
-        
+
 @app.route('/api/certificado_download')
 def certificado_download():
     nome = request.args.get('nome')
     cpf = request.args.get('cpf')
     try:
+        # Usa sua função gerar_pdf_buffer que já existe no código
         pdf_bytes = gerar_pdf_buffer(nome, cpf)
         return send_file(
             BytesIO(pdf_bytes),
@@ -402,7 +388,6 @@ def certificado_download():
         )
     except Exception as e:
         return str(e), 500
-
 @app.route('/')
 def home():
     return "API Central de TI rodando!"
