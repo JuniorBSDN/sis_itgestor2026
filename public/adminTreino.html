@@ -58,7 +58,7 @@
         
         try {
             // Tenta buscar os dados na sua rota do index.py
-            const res = await fetch('/api/listar');
+            const res = await fetch('https://sisitgestor2026.vercel.app/api/listar');
             
             if (!res.ok) throw new Error('Falha na resposta do servidor');
 
