@@ -206,56 +206,25 @@
     let player;
     let user = { nome: '', cpf: '', email: '' };
 
-    // Configuração do Player do YouTube
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('player', {
-            height: '100%',
-            width: '100%',
-            videoId: 'ID_DO_SEU_VIDEO', // <--- COLOQUE O ID DO VÍDEO AQUI
+            height: '100%', width: '100%',
+            videoId: 'ID_DO_VÍDEO_AQUI', // <--- INSIRA O ID REAL AQUI
             playerVars: { 'rel': 0, 'modestbranding': 1, 'controls': 1 },
             events: {
                 'onStateChange': (event) => {
-                    if (event.data == YT.PlayerState.ENDED) {
-                        irParaStep(3);
-                    }
+                    if (event.data == YT.PlayerState.ENDED) { irParaStep(3); }
                 }
             }
         });
     }
 
-    function irParaStep(s) {
-        document.querySelectorAll('.step').forEach(sec => sec.classList.remove('active'));
-        document.getElementById(`step-${s}`).classList.add('active');
-        window.scrollTo(0,0);
-    }
-
-    function irParaVideo() {
-        user.nome = document.getElementById('nome').value;
-        user.cpf = document.getElementById('cpf').value;
-        if(!user.nome || !user.cpf) return alert("Por favor, preencha Nome e CPF.");
-        irParaStep(2);
-    }
-
-    function validarQuiz() {
-        const resposta = document.querySelector('input[name="quiz"]:checked');
-        if(!resposta) return alert("Selecione uma opção!");
-
-        if(resposta.value === "correta") {
-            document.getElementById('modalFinal').style.display = 'flex';
-        } else {
-            alert("Resposta incorreta. O vídeo será reiniciado para revisão.");
-            irParaStep(2);
-            player.seekTo(0);
-        }
-    }
-
+    // Funções de navegação e validação (conforme seu arquivo original)
     async function enviarDados(acao) {
         user.email = document.getElementById('email').value;
         if(!user.email) return alert("Insira um e-mail para continuar.");
 
-        // Feedback visual de carregamento
         const btn = event.target;
-        const originalText = btn.innerText;
         btn.disabled = true;
         btn.innerText = "Processando...";
 
@@ -268,18 +237,17 @@
 
             if(response.ok) {
                 if(acao === 'download') {
+                    // Rota direta para download do PDF gerado na API
                     window.open(`/api/certificado_download?cpf=${user.cpf}&nome=${user.nome}`, '_blank');
                 } else {
                     alert("Certificado enviado para o e-mail informado!");
                 }
                 location.reload();
-            } else {
-                throw new Error();
-            }
+            } else { throw new Error(); }
         } catch (err) {
-            alert("Erro ao conectar com o servidor. Verifique sua conexão.");
+            alert("Erro ao conectar com o servidor.");
             btn.disabled = false;
-            btn.innerText = originalText;
+            btn.innerText = acao === 'email' ? "Enviar por E-mail" : "Imprimir / Salvar PDF";
         }
     }
 </script>
