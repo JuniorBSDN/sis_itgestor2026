@@ -4,3 +4,4 @@ pytz
 flask-cors
 firebase-admin
 psycopg2-binary
+fpdf
