@@ -354,16 +354,18 @@ def registrar_treinamento():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    data = request.json
+    senha_digitada = str(data.get('senha', '')).strip()
+    admin_pass = str(os.environ.get('ADMIN_PASSWORD') or '').strip()
+    if senha_digitada == admin_pass:
+        return jsonify({"status": "sucesso"}), 200
+    else:
+        return jsonify({"status": "erro", "mensagem": "Senha incorreta"}), 401
+
 @app.route('/api/listar', methods=['GET'])
 def listar_treinamentos():
-    token = request.headers.get('Authorization')
-    
-    # O .strip() aqui vai matar aquele espaço que apareceu no seu print!
-    admin_pass = str(os.environ.get('ADMIN_PASSWORD') or '').strip()
-
-    if not token or str(token).strip() != admin_pass:
-        return jsonify({"erro": "Não autorizado"}), 401
-
     try:
         docs = db.collection('treinamentos').order_by('data_conclusao', direction=firestore.Query.DESCENDING).stream()
         lista = []
@@ -377,7 +379,7 @@ def listar_treinamentos():
             })
         return jsonify(lista), 200
     except Exception as e:
-        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+        return jsonify({"erro": str(e)}), 500
         
 @app.route('/api/certificado_download')
 def certificado_download():
