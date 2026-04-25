@@ -265,7 +265,7 @@ def atualizar_status_rat(id_doc):
 # --- CONFIGURAÇÕES DE APOIO (Certificados) ---
 GMAIL_USER = "juniordomundo@gmail.com"
 GMAIL_PASS = os.environ.get('GMAIL_PASS')
-ADMIN_PASS = os.environ.get('ADMIN_PASSWORD')
+ADMIN_PASS = os.environ.get('ADMIN_PASS')
 
 
 def gerar_pdf_buffer(nome, cpf):
@@ -358,17 +358,17 @@ def registrar_treinamento():
 def admin_login():
     try:
         data = request.get_json()
-        # O que você digitou no prompt
+        # Pega a senha que você digitou no prompt do navegador
         senha_digitada = str(data.get('senha', '')).strip()
         
-        # O que está salvo na Vercel (Forçado para Texto)
-        admin_pass = str(os.environ.get('ADMIN_PASSWORD', '')).strip()
+        # Pega a senha que está na Vercel (ADMIN_PASSWORD)
+        admin_pass = str(os.environ.get('ADMIN_PASS', '')).strip()
 
-        # Comparação direta de texto
+        # Se as duas forem iguais, libera o acesso
         if senha_digitada == admin_pass and admin_pass != "":
             return jsonify({"status": "sucesso"}), 200
         else:
-            return jsonify({"status": "erro", "mensagem": "Acesso Negado"}), 401
+            return jsonify({"status": "erro", "mensagem": "Senha incorreta"}), 401
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
