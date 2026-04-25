@@ -46,7 +46,7 @@
 
 <script>
     // CAMADA DE SEGURANÇA IGUAL AO PONTOBACK
-   async function validarAcesso() {
+  async function validarAcesso() {
     const senha = prompt("Chave de Acesso Administrativa:");
     if (!senha) return location.reload();
 
@@ -54,21 +54,20 @@
         const res = await fetch('/api/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ senha: senha.trim() }) 
+            body: JSON.stringify({ senha: senha.trim() }) // Remove espaços acidentais
         });
 
         if (res.ok) {
-            document.body.style.display = "block";
-            carregarDados();
+            document.body.style.display = "block"; // Mostra o painel
+            carregarDados(); // Chama a função que preenche a tabela
         } else {
-            alert("Acesso Negado! Verifique a senha no painel da Vercel.");
+            alert("Acesso Negado! Verifique a senha na Vercel.");
             location.reload();
         }
     } catch (e) {
         alert("Erro de conexão com o servidor.");
     }
 }
-
     async function carregarDados() {
         try {
             const res = await fetch('/api/listar');
