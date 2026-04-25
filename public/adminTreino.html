@@ -4,102 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo | HMV</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #0056b3; --success: #28a745; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .admin-box { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        #login-screen { text-align: center; padding: 40px 0; }
-        .login-input { padding: 12px; width: 250px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; margin-bottom: 20px; }
-        #admin-screen { display: none; }
-        .header-admin { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
-        th { background: var(--primary); color: white; }
-        tr:nth-child(even) { background: #fafafa; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
-        @media print { .no-print { display: none !important; } body { padding: 0; } .admin-box { box-shadow: none; width: 100%; } }
+        :root { --primary: #0056b3; --bg: #f8fafc; --text: #1e293b; --border: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: none; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); margin-bottom: 20px; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border: 1px solid var(--border); text-align: left; }
+        th { background: #f1f5f9; font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; }
+        @media print { .no-print { display: none !important; } body { display: block !important; } }
     </style>
 </head>
 <body>
-<div class="admin-box">
-    <div id="login-screen">
-        <img src="/static/img/logo_hmv.png" style="height: 50px; margin-bottom: 20px;">
-        <h2>Acesso à Coordenação</h2>
-        <p>Insira a chave de acesso para visualizar os registros.</p>
-        <input type="password" id="pass-input" class="login-input" placeholder="Senha Administrativa"><br>
-        <button class="btn" style="background: var(--primary);" onclick="acessar()">Entrar no Painel</button>
-    </div>
 
-    <div id="admin-screen">
-        <div class="header-admin no-print">
-            <div>
-                <h2 style="margin:0; color: var(--primary);">Lista de Presença Digital</h2>
-                <small>Treinamentos concluídos - HMV</small>
-            </div>
-            <div>
-                <button class="btn btn-print" onclick="window.print()">Imprimir Lista</button>
-                <button class="btn" style="background: #6c757d; margin-left: 10px;" onclick="sair()">Sair</button>
-            </div>
+<div class="container">
+    <header>
+        <div>
+            <h1 style="color: var(--primary); margin:0;">Lista de Presença</h1>
+            <small>HMV - Treinamentos Concluídos</small>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Profissional</th>
-                    <th>CPF</th>
-                    <th>E-mail</th>
-                    <th>Conclusão</th>
-                </tr>
-            </thead>
-            <tbody id="lista-corpo"></tbody>
-        </table>
-    </div>
+        <div class="no-print">
+            <button class="btn" style="background: #28a745;" onclick="window.print()">Imprimir</button>
+            <button class="btn" style="background: #6c757d; margin-left:10px;" onclick="sair()">Sair</button>
+        </div>
+    </header>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Profissional</th>
+                <th>CPF</th>
+                <th>E-mail</th>
+                <th>Conclusão</th>
+            </tr>
+        </thead>
+        <tbody id="lista-corpo"></tbody>
+    </table>
 </div>
 
 <script>
-    async function acessar() {
-        const senha = document.getElementById('pass-input').value.trim();
+    // CAMADA DE SEGURANÇA IGUAL AO PONTOBACK
+    async function validarAcesso() {
+        const senha = prompt("Chave de Acesso Administrativa:");
+        if (!senha) return location.reload();
+
         try {
-            const res = await fetch('/api/listar', {
-                headers: { 'Authorization': senha }
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ senha })
             });
+
             if (res.ok) {
-                const registros = await res.json();
-                sessionStorage.setItem('token_hmv', senha);
-                exibirPainel(registros);
+                document.body.style.display = "block";
+                carregarDados();
             } else {
-                alert("Senha incorreta. Verifique a chave na Vercel.");
+                alert("Acesso Negado!");
+                location.reload();
             }
-        } catch (err) {
-            alert("Erro ao conectar com o servidor.");
+        } catch (e) {
+            alert("Erro de conexão.");
         }
     }
 
-    function exibirPainel(dados) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('admin-screen').style.display = 'block';
-        const corpo = document.getElementById('lista-corpo');
-        corpo.innerHTML = dados.map(r => `
-            <tr>
-                <td>${r.nome}</td>
-                <td>${r.cpf}</td>
-                <td>${r.email}</td>
-                <td>${r.data_conclusao}</td>
-            </tr>
-        `).join('');
+    async function carregarDados() {
+        try {
+            const res = await fetch('/api/listar');
+            const dados = await res.json();
+            const corpo = document.getElementById('lista-corpo');
+            corpo.innerHTML = dados.map(r => `
+                <tr>
+                    <td><strong>${r.nome}</strong></td>
+                    <td>${r.cpf}</td>
+                    <td>${r.email}</td>
+                    <td>${r.data_conclusao}</td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            console.error("Erro ao carregar dados");
+        }
     }
 
     function sair() {
-        sessionStorage.removeItem('token_hmv');
         location.reload();
     }
 
-    window.onload = () => {
-        const token = sessionStorage.getItem('token_hmv');
-        if (token) {
-            document.getElementById('pass-input').value = token;
-            acessar();
-        }
-    }
+    // Inicia a validação ao carregar
+    validarAcesso();
 </script>
+
 </body>
 </html>
