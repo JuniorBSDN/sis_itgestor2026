@@ -357,9 +357,10 @@ def registrar_treinamento():
 
 @app.route('/api/listar', methods=['GET'])
 def listar_treinamentos():
-    # Autenticação via Header para a página admin.html
     token = request.headers.get('Authorization')
-    if token != ADMIN_PASS:
+    admin_pass = os.environ.get('ADMIN_PASSWORD')
+
+    if token != admin_pass:
         return jsonify({"erro": "Não autorizado"}), 401
 
     try:
