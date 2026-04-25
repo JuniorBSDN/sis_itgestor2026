@@ -360,7 +360,8 @@ def listar_treinamentos():
     token = request.headers.get('Authorization')
     admin_pass = os.environ.get('ADMIN_PASSWORD')
 
-    if token != admin_pass:
+    # Validação Robusta: remove espaços e garante que a variável existe
+    if not token or not admin_pass or token.strip() != admin_pass.strip():
         return jsonify({"erro": "Não autorizado"}), 401
 
     try:
