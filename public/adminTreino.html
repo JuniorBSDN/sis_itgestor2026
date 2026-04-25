@@ -8,19 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #0056b3; --bg: #f8fafc; --text: #1e293b; --border: #e2e8f0; }
-        
-        /* CORREÇÃO 1: Removido o display: none */
+        /* IMPORTANTE: Removido o display:none para a página carregar visível */
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
-        
         .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); margin-bottom: 20px; padding-bottom: 15px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border: 1px solid var(--border); text-align: left; }
         th { background: #f1f5f9; font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
-        
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn { padding: 8px 15px; border-radius: 8px; color: white; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
         .btn-pdf { background: var(--primary); font-size: 13px; }
-        
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
@@ -36,7 +32,7 @@
             <button class="btn" style="background: #28a745;" onclick="window.print()">
                 <i class="fas fa-print"></i> Imprimir Lista
             </button>
-            <button class="btn" style="background: #6c757d; margin-left:10px;" onclick="location.href='/'">Sair</button>
+            <button class="btn" style="background: #6c757d; margin-left:10px;" onclick="window.location.href='/'">Sair</button>
         </div>
     </header>
 
@@ -45,31 +41,29 @@
             <tr>
                 <th>Profissional</th>
                 <th>CPF</th>
-                <th>E-mail</th>
-                <th>Conclusão</th>
-                <th class="no-print" style="text-align:center;">Certificado</th>
+                <th>E-MAIL</th>
+                <th>CONCLUSÃO</th>
+                <th class="no-print" style="text-align:center;">CERTIFICADO</th>
             </tr>
         </thead>
         <tbody id="lista-corpo">
-            <tr><td colspan="5" style="text-align:center;">Carregando registros...</td></tr>
+            <tr><td colspan="5" style="text-align:center; padding: 20px;">Buscando registros no servidor...</td></tr>
         </tbody>
     </table>
 </div>
 
 <script>
-    // CORREÇÃO 2: Script limpo e unificado
     async function carregarDados() {
         const corpo = document.getElementById('lista-corpo');
         
         try {
+            // Tenta buscar os dados na sua rota do index.py
             const res = await fetch('/api/listar');
+            
+            if (!res.ok) throw new Error('Falha na resposta do servidor');
+
             const dados = await res.json();
             
-            if (dados.erro) {
-                corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Erro: ${dados.erro}</td></tr>`;
-                return;
-            }
-
             if (dados.length === 0) {
                 corpo.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
                 return;
@@ -83,17 +77,18 @@
                     <td>${p.data_conclusao}</td>
                     <td class="no-print" style="text-align:center;">
                         <a href="/api/certificado_download?cpf=${p.cpf}&nome=${encodeURIComponent(p.nome)}" class="btn btn-pdf">
-                            <i class="fas fa-certificate"></i> PDF
+                            <i class="fas fa-file-pdf"></i> Gerar PDF
                         </a>
                     </td>
                 </tr>
             `).join('');
         } catch (e) {
-            corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Erro ao conectar com a API.</td></tr>`;
+            console.error(e);
+            corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; font-weight:bold; padding: 20px;">Erro ao conectar com a API. Verifique se o servidor está rodando.</td></tr>`;
         }
     }
 
-    // Carrega os dados assim que a página abre
+    // Chama a função assim que a página termina de carregar
     window.onload = carregarDados;
 </script>
 
