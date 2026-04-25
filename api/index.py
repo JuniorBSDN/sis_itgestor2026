@@ -356,14 +356,14 @@ def registrar_treinamento():
 
 @app.route('/api/listar', methods=['GET'])
 def listar_treinamentos():
-    # Recebe o que você digitou no navegador
+    # Pega a senha enviada pelo navegador
     token = request.headers.get('Authorization')
     
-    # Pega a senha da Vercel, garante que é texto e remove espaços
+    # IMPORTANTE: Forçamos a variável da Vercel a ser string e limpamos espaços
     admin_pass = str(os.environ.get('ADMIN_PASSWORD') or '').strip()
 
-    # Compara limpando o que veio do navegador também
-    if not token or token.strip() != admin_pass:
+    # Comparamos as duas como strings limpas
+    if not token or str(token).strip() != admin_pass:
         return jsonify({"erro": "Não autorizado"}), 401
 
     try:
@@ -380,7 +380,7 @@ def listar_treinamentos():
         return jsonify(lista), 200
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
+        
 @app.route('/api/certificado_download')
 def certificado_download():
     nome = request.args.get('nome')
