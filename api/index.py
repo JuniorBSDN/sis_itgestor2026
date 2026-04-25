@@ -354,16 +354,12 @@ def registrar_treinamento():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
 @app.route('/api/listar', methods=['GET'])
 def listar_treinamentos():
     token = request.headers.get('Authorization')
-    admin_pass = os.environ.get('ADMIN_PASSWORD')
-
-    # Validação Robusta: remove espaços e garante que a variável existe
-    if not token or not admin_pass or token.strip() != admin_pass.strip():
+    admin_pass = (os.environ.get('ADMIN_PASSWORD') or '').strip()
+    if not token or not admin_pass or token.strip() != admin_pass:
         return jsonify({"erro": "Não autorizado"}), 401
-
     try:
         docs = db.collection('treinamentos').order_by('data_conclusao', direction=firestore.Query.DESCENDING).stream()
         lista = []
