@@ -356,13 +356,21 @@ def registrar_treinamento():
 
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
-    data = request.json
-    senha_digitada = str(data.get('senha', '')).strip()
-    admin_pass = str(os.environ.get('ADMIN_PASSWORD') or '').strip()
-    if senha_digitada == admin_pass:
-        return jsonify({"status": "sucesso"}), 200
-    else:
-        return jsonify({"status": "erro", "mensagem": "Senha incorreta"}), 401
+    try:
+        data = request.get_json()
+        # O que você digitou no prompt
+        senha_digitada = str(data.get('senha', '')).strip()
+        
+        # O que está salvo na Vercel (Forçado para Texto)
+        admin_pass = str(os.environ.get('ADMIN_PASSWORD', '')).strip()
+
+        # Comparação direta de texto
+        if senha_digitada == admin_pass and admin_pass != "":
+            return jsonify({"status": "sucesso"}), 200
+        else:
+            return jsonify({"status": "erro", "mensagem": "Acesso Negado"}), 401
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 @app.route('/api/listar', methods=['GET'])
 def listar_treinamentos():
