@@ -16,7 +16,7 @@
         th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
         th { background: var(--primary); color: white; }
         tr:nth-child(even) { background: #fafafa; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
         @media print { .no-print { display: none !important; } body { padding: 0; } .admin-box { box-shadow: none; width: 100%; } }
     </style>
 </head>
@@ -25,7 +25,7 @@
     <div id="login-screen">
         <img src="/static/img/logo_hmv.png" style="height: 50px; margin-bottom: 20px;">
         <h2>Acesso à Coordenação</h2>
-        <p>Insira a chave de acesso (11111000001) para visualizar os registros.</p>
+        <p>Insira a chave de acesso para visualizar os registros.</p>
         <input type="password" id="pass-input" class="login-input" placeholder="Senha Administrativa"><br>
         <button class="btn" style="background: var(--primary);" onclick="acessar()">Entrar no Painel</button>
     </div>
@@ -37,8 +37,8 @@
                 <small>Treinamentos concluídos - HMV</small>
             </div>
             <div>
-                <button class="btn" style="background: var(--success);" onclick="window.print()">Imprimir Lista</button>
-                <button class="btn" style="background: #6c757d; font-size: 12px;" onclick="sair()">Sair</button>
+                <button class="btn btn-print" onclick="window.print()">Imprimir Lista</button>
+                <button class="btn" style="background: #6c757d; margin-left: 10px;" onclick="sair()">Sair</button>
             </div>
         </div>
         <table>
@@ -58,8 +58,6 @@
 <script>
     async function acessar() {
         const senha = document.getElementById('pass-input').value.trim();
-        if(!senha) return alert("Digite a senha.");
-
         try {
             const res = await fetch('/api/listar', {
                 headers: { 'Authorization': senha }
@@ -69,10 +67,10 @@
                 sessionStorage.setItem('token_hmv', senha);
                 exibirPainel(registros);
             } else {
-                alert("Senha inválida no servidor Vercel.");
+                alert("Senha incorreta. Verifique a chave na Vercel.");
             }
         } catch (err) {
-            alert("Erro ao conectar com a API.");
+            alert("Erro ao conectar com o servidor.");
         }
     }
 
