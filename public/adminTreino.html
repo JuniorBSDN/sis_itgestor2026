@@ -90,14 +90,13 @@
 <script>
     async function acessar() {
         const senha = document.getElementById('pass-input').value;
-
         try {
             const res = await fetch('/api/listar', {
-                headers: { 'Authorization': senha }
+                headers: { 'Authorization': senha } // Envia a senha para validar contra ADMIN_PASSWORD
             });
             if (res.ok) {
                 const registros = await res.json();
-                sessionStorage.setItem('token_hmv', senha); // Salva na sessão
+                sessionStorage.setItem('token_hmv', senha);
                 exibirPainel(registros);
             } else {
                 alert("Senha inválida ou sem autorização.");
