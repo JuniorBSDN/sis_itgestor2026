@@ -45,46 +45,42 @@
 </div>
 
 <script>
-    // CAMADA DE SEGURANÇA IGUAL AO PONTOBACK
-  async function validarAcesso() {
-    const senha = prompt("Chave de Acesso Administrativa:");
-    if (!senha) return location.reload();
 
-    try {
-        const res = await fetch('/api/admin/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ senha: senha.trim() }) // Remove espaços acidentais
-        });
-
-        if (res.ok) {
-            document.body.style.display = "block"; // Mostra o painel
-            carregarDados(); // Chama a função que preenche a tabela
-        } else {
-            alert("Acesso Negado! Verifique a senha na Vercel.");
-            location.reload();
-        }
-    } catch (e) {
-        alert("Erro de conexão com o servidor.");
-    }
-}
+  <script>
+    // Função para carregar a lista direto, sem pedir senha
     async function carregarDados() {
+        const corpo = document.getElementById('tabela-corpo'); // verifique se o ID é este ou 'lista-corpo'
+        
         try {
             const res = await fetch('/api/listar');
             const dados = await res.json();
-            const corpo = document.getElementById('lista-corpo');
-            corpo.innerHTML = dados.map(r => `
+            
+            if (dados.error) {
+                corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Erro: ${dados.error}</td></tr>`;
+                return;
+            }
+
+            corpo.innerHTML = dados.map(p => `
                 <tr>
-                    <td><strong>${r.nome}</strong></td>
-                    <td>${r.cpf}</td>
-                    <td>${r.email}</td>
-                    <td>${r.data_conclusao}</td>
+                    <td><strong>${p.nome}</strong></td>
+                    <td>${p.cpf}</td>
+                    <td>${p.email}</td>
+                    <td>${p.data_conclusao}</td>
+                    <td class="no-print" style="text-align:center;">
+                        <a href="/api/certificado_download?cpf=${p.cpf}&nome=${encodeURIComponent(p.nome)}" class="btn-pdf">
+                            <i class="fas fa-file-pdf"></i> Gerar Certificado
+                        </a>
+                    </td>
                 </tr>
             `).join('');
-        } catch (err) {
-            console.error("Erro ao carregar dados");
+        } catch (e) {
+            corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Erro ao conectar com a API.</td></tr>`;
         }
     }
+
+    // Inicia o carregamento assim que a página abre
+    window.onload = carregarDados;
+</script>
 
     function sair() {
         location.reload();
