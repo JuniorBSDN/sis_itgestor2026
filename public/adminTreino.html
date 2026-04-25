@@ -5,16 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo | HMV</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #0056b3; --bg: #f8fafc; --text: #1e293b; --border: #e2e8f0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: none; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); margin-bottom: 20px; padding-bottom: 10px; }
+        
+        /* CORREÇÃO 1: Removido o display: none */
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
+        
+        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); margin-bottom: 20px; padding-bottom: 15px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border: 1px solid var(--border); text-align: left; }
         th { background: #f1f5f9; font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; }
-        @media print { .no-print { display: none !important; } body { display: block !important; } }
+        
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-pdf { background: var(--primary); font-size: 13px; }
+        
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body>
@@ -26,8 +33,10 @@
             <small>HMV - Treinamentos Concluídos</small>
         </div>
         <div class="no-print">
-            <button class="btn" style="background: #28a745;" onclick="window.print()">Imprimir</button>
-            <button class="btn" style="background: #6c757d; margin-left:10px;" onclick="sair()">Sair</button>
+            <button class="btn" style="background: #28a745;" onclick="window.print()">
+                <i class="fas fa-print"></i> Imprimir Lista
+            </button>
+            <button class="btn" style="background: #6c757d; margin-left:10px;" onclick="location.href='/'">Sair</button>
         </div>
     </header>
 
@@ -38,25 +47,31 @@
                 <th>CPF</th>
                 <th>E-mail</th>
                 <th>Conclusão</th>
+                <th class="no-print" style="text-align:center;">Certificado</th>
             </tr>
         </thead>
-        <tbody id="lista-corpo"></tbody>
+        <tbody id="lista-corpo">
+            <tr><td colspan="5" style="text-align:center;">Carregando registros...</td></tr>
+        </tbody>
     </table>
 </div>
 
 <script>
-
-  <script>
-    // Função para carregar a lista direto, sem pedir senha
+    // CORREÇÃO 2: Script limpo e unificado
     async function carregarDados() {
-        const corpo = document.getElementById('tabela-corpo'); // verifique se o ID é este ou 'lista-corpo'
+        const corpo = document.getElementById('lista-corpo');
         
         try {
             const res = await fetch('/api/listar');
             const dados = await res.json();
             
-            if (dados.error) {
-                corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Erro: ${dados.error}</td></tr>`;
+            if (dados.erro) {
+                corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Erro: ${dados.erro}</td></tr>`;
+                return;
+            }
+
+            if (dados.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
                 return;
             }
 
@@ -67,8 +82,8 @@
                     <td>${p.email}</td>
                     <td>${p.data_conclusao}</td>
                     <td class="no-print" style="text-align:center;">
-                        <a href="/api/certificado_download?cpf=${p.cpf}&nome=${encodeURIComponent(p.nome)}" class="btn-pdf">
-                            <i class="fas fa-file-pdf"></i> Gerar Certificado
+                        <a href="/api/certificado_download?cpf=${p.cpf}&nome=${encodeURIComponent(p.nome)}" class="btn btn-pdf">
+                            <i class="fas fa-certificate"></i> PDF
                         </a>
                     </td>
                 </tr>
@@ -78,16 +93,8 @@
         }
     }
 
-    // Inicia o carregamento assim que a página abre
+    // Carrega os dados assim que a página abre
     window.onload = carregarDados;
-</script>
-
-    function sair() {
-        location.reload();
-    }
-
-    // Inicia a validação ao carregar
-    validarAcesso();
 </script>
 
 </body>
