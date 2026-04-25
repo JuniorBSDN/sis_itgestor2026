@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo | HMV</title>
+    <style>
+        :root { --primary: #0056b3; --success: #28a745; --danger: #dc3545; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+
+        .admin-box {
+            max-width: 1000px; margin: auto; background: white;
+            padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Tela de Login */
+        #login-screen { text-align: center; padding: 40px 0; }
+        .login-input {
+            padding: 12px; width: 250px; border: 1px solid #ddd;
+            border-radius: 6px; font-size: 16px; margin-bottom: 20px;
+        }
+
+        /* Tabela e Cabeçalho */
+        #admin-screen { display: none; }
+        .header-admin {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
+        th { background: var(--primary); color: white; }
+        tr:nth-child(even) { background: #fafafa; }
+
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 6px;
+            color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .btn-print { background: var(--success); }
+        .btn-logout { background: #6c757d; font-size: 12px; margin-left: 10px; }
+
+        /* Configuração de Impressão */
+        @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; background: white; }
+            .admin-box { box-shadow: none; width: 100%; max-width: 100%; }
+            th { background: #ddd !important; color: black; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-box">
+
+    <div id="login-screen">
+        <img src="/static/img/logo_hmv.png" style="height: 50px; margin-bottom: 20px;">
+        <h2>Acesso à Coordenação</h2>
+        <p>Insira a chave de acesso para visualizar os registros.</p>
+        <input type="password" id="pass-input" class="login-input" placeholder="Senha Administrativa"><br>
+        <button class="btn" style="background: var(--primary);" onclick="acessar()">Entrar no Painel</button>
+    </div>
+
+    <div id="admin-screen">
+        <div class="header-admin no-print">
+            <div>
+                <h2 style="margin:0; color: var(--primary);">Lista de Presença Digital</h2>
+                <small>Treinamentos concluídos - HMV / Ímpar</small>
+            </div>
+            <div>
+                <button class="btn btn-print" onclick="window.print()">Imprimir Lista</button>
+                <button class="btn btn-logout" onclick="sair()">Sair</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Profissional</th>
+                    <th>CPF</th>
+                    <th>E-mail</th>
+                    <th>Conclusão</th>
+                </tr>
+            </thead>
+            <tbody id="lista-corpo">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    async function acessar() {
+        const senha = document.getElementById('pass-input').value;
+
+        try {
+            const res = await fetch('/api/listar', {
+                headers: { 'Authorization': senha }
+            });
+            if (res.ok) {
+                const registros = await res.json();
+                sessionStorage.setItem('token_hmv', senha); // Salva na sessão
+                exibirPainel(registros);
+            } else {
+                alert("Senha inválida ou sem autorização.");
+            }
+        } catch (err) {
+            alert("Erro ao conectar com o servidor.");
+        }
+    }
+
+    function exibirPainel(dados) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-screen').style.display = 'block';
+
+        const corpo = document.getElementById('lista-corpo');
+        corpo.innerHTML = dados.map(r => `
+            <tr>
+                <td>${r.nome}</td>
+                <td>${r.cpf}</td>
+                <td>${r.email}</td>
+                <td>${r.data_conclusao}</td>
+            </tr>
+        `).join('');
+    }
+
+    function sair() {
+        sessionStorage.removeItem('token_hmv');
+        location.reload();
+    }
+
+    // Auto-login se já tiver a senha salva na sessão
+    window.onload = () => {
+        const token = sessionStorage.getItem('token_hmv');
+        if (token) {
+            document.getElementById('pass-input').value = token;
+            acessar();
+        }
+    }
+</script>
+
+</body>
+</html>
