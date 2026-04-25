@@ -5,183 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Treinamento HMV | Instituto Ímpar</title>
     <style>
-        :root {
-            --primary: #0056b3;
-            --success: #28a745;
-            --danger: #dc3545;
-            --bg: #f4f7f6;
-            --text: #333;
-        }
-
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
+        /* Manti seu CSS original que está ótimo */
+        :root { --primary: #0056b3; --success: #28a745; --danger: #dc3545; --bg: #f4f7f6; --text: #333; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); margin: 0; display: flex; justify-content: center; color: var(--text); }
-
-        .app-container {
-            padding: 10px;
-            width: 100%;
-            max-width: 500px;
-            background: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-
-        header {
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--bg);
-        }
-
+        .app-container { padding: 10px; width: 100%; max-width: 500px; background: white; min-height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        header { padding: 20px; display: flex; justify-content: center; align-items: center; border-bottom: 2px solid var(--bg); }
         header img { height: 45px; object-fit: contain; }
-
         .content { padding: 25px; flex-grow: 1; }
-
         .step { display: none; }
         .step.active { display: block; animation: fadeIn 0.4s ease-in-out; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        h2 { color: var(--primary);
-            margin-top: 0;
-            font-size: 1.5rem;
-            text-align: center;}
+        h2 { color: var(--primary); margin-top: 0; font-size: 1.5rem; text-align: center;}
         p { line-height: 1.6; color: #555; }
-
         label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 0.9rem; }
-
-        input[type="text"], input[type="tel"], input[type="email"] {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            background: #fafafa;
-        }
-
-        button {
-            width: 100%;
-            padding: 18px;
-            border: none;
-            border-radius: 8px;
-            background: var(--primary);
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:active { transform: scale(0.98); }
-
-        /* Video Area */
-        .video-container {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-
+        input[type="text"], input[type="tel"], input[type="email"] { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; background: #fafafa; }
+        button { width: 100%; padding: 18px; border: none; border-radius: 8px; background: var(--primary); color: white; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 10px; overflow: hidden; margin: 20px 0; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-
-        /* Quiz Options */
-        .quiz-option {
-            display: block;
-            background: #fff;
-            padding: 15px;
-            margin-bottom: 12px;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
+        .quiz-option { display: block; background: #fff; padding: 15px; margin-bottom: 12px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; }
         .quiz-option:has(input:checked) { border-color: var(--primary); background: #eef4ff; }
-        .quiz-option input { margin-right: 10px; }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .modal-content h3 { color: var(--success); margin-bottom: 10px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center; }
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .btn-secondary { background: #6c757d; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-
-    <header>
-        <img src= "https://i.imgur.com/U3RKJBW.png" alt="Instituto Ímpar">
-    </header>
+    <header><img src="https://i.imgur.com/U3RKJBW.png" alt="Instituto Ímpar"></header>
 
     <div class="content">
         <section id="step-1" class="step active">
-            <h2>Identificação do prestador</h2>
-            <p>Olá Prestador! Informe seus dados para iniciar o treinamento sobre o HELPDESK HMV.</p>
-
+            <h2>Identificação</h2>
+            <p>Informe seus dados para iniciar o treinamento sobre o HELPDESK HMV.</p>
             <label>Nome Completo:</label>
-            <input type="text" id="nome" placeholder="Seu nome aqui" required>
-
+            <input type="text" id="nome" placeholder="Seu nome completo" required>
             <label>CPF:</label>
             <input type="tel" id="cpf" placeholder="000.000.000-00" required>
-
             <button onclick="irParaVideo()">Acessar Vídeo</button>
         </section>
 
         <section id="step-2" class="step">
             <h2>Vídeo de Treinamento</h2>
-            <p>Assista ao conteúdo completo. O Quiz será liberado automaticamente ao final.</p>
-            <div class="video-container">
-                <div id="player"></div>
-            </div>
+            <div class="video-container"><div id="player"></div></div>
             <p id="msg-aguarde" style="text-align: center; color: var(--danger); font-weight: bold;">
-                Status: Assistindo ao vídeo...
+                Status: Assista até o final para liberar a prova.
             </p>
         </section>
 
         <section id="step-3" class="step">
             <h2>Avaliação</h2>
             <p><strong>Pergunta:</strong> Qual a conduta correta de acordo com o protocolo apresentado?</p>
-
-            <label class="quiz-option">
-                <input type="radio" name="quiz" value="correta">
-                <span>Seguir rigorosamente o tempo de higienização e descarte.</span>
-            </label>
-            <label class="quiz-option">
-                <input type="radio" name="quiz" value="errada1">
-                <span>Realizar o procedimento apenas quando houver supervisão.</span>
-            </label>
-            <label class="quiz-option">
-                <input type="radio" name="quiz" value="errada2">
-                <span>Priorizar a rapidez em detrimento do protocolo.</span>
-            </label>
-
+            <label class="quiz-option"><input type="radio" name="quiz" value="correta"><span>Seguir rigorosamente o tempo de higienização e descarte.</span></label>
+            <label class="quiz-option"><input type="radio" name="quiz" value="errada1"><span>Realizar o procedimento apenas quando houver supervisão.</span></label>
             <button onclick="validarQuiz()" style="background: var(--success); margin-top: 15px;">Validar Resposta</button>
         </section>
     </div>
@@ -189,14 +66,12 @@
 
 <div id="modalFinal" class="modal">
     <div class="modal-content">
-        <h3>Aprovado com Sucesso!</h3>
-        <p>Como deseja receber seu certificado de conclusão?</p>
-
-        <input type="email" id="email" placeholder="Digite seu e-mail aqui">
-
+        <h3 style="color: var(--success)">Aprovado!</h3>
+        <p>Como deseja receber seu certificado?</p>
+        <input type="email" id="email" placeholder="Seu melhor e-mail">
         <div class="btn-group">
             <button onclick="enviarDados('email')">Enviar por E-mail</button>
-            <button class="btn-secondary" onclick="enviarDados('download')">Imprimir / Salvar PDF</button>
+            <button style="background: #6c757d" onclick="enviarDados('download')">Baixar PDF Agora</button>
         </div>
     </div>
 </div>
@@ -206,11 +81,23 @@
     let player;
     let user = { nome: '', cpf: '', email: '' };
 
+    function irParaStep(num) {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step-' + num).classList.add('active');
+    }
+
+    function irParaVideo() {
+        user.nome = document.getElementById('nome').value;
+        user.cpf = document.getElementById('cpf').value;
+        if(!user.nome || !user.cpf) return alert("Preencha nome e CPF!");
+        irParaStep(2);
+    }
+
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('player', {
             height: '100%', width: '100%',
-            videoId: 'ID_DO_VÍDEO_AQUI', // <--- INSIRA O ID REAL AQUI
-            playerVars: { 'rel': 0, 'modestbranding': 1, 'controls': 1 },
+            videoId: 'm8m-YnN7D9o', // <--- COLOQUE AQUI O SEU ID DO VIDEO (ex: m8m-YnN7D9o)
+            playerVars: { 'controls': 1, 'rel': 0 },
             events: {
                 'onStateChange': (event) => {
                     if (event.data == YT.PlayerState.ENDED) { irParaStep(3); }
@@ -219,10 +106,20 @@
         });
     }
 
-    // Funções de navegação e validação (conforme seu arquivo original)
+    function validarQuiz() {
+        const resp = document.querySelector('input[name="quiz"]:checked');
+        if(!resp) return alert("Selecione uma resposta!");
+        if(resp.value === 'correta') {
+            document.getElementById('modalFinal').style.display = 'flex';
+        } else {
+            alert("Resposta incorreta. Assista ao vídeo novamente.");
+            location.reload();
+        }
+    }
+
     async function enviarDados(acao) {
         user.email = document.getElementById('email').value;
-        if(!user.email) return alert("Insira um e-mail para continuar.");
+        if(!user.email && acao === 'email') return alert("Insira um e-mail!");
 
         const btn = event.target;
         btn.disabled = true;
@@ -237,17 +134,16 @@
 
             if(response.ok) {
                 if(acao === 'download') {
-                    // Rota direta para download do PDF gerado na API
-                    window.open(`/api/certificado_download?cpf=${user.cpf}&nome=${user.nome}`, '_blank');
+                    // Abre o PDF em nova aba usando a rota da sua API
+                    window.open(`/api/certificado_download?cpf=${user.cpf}&nome=${encodeURIComponent(user.nome)}`, '_blank');
                 } else {
-                    alert("Certificado enviado para o e-mail informado!");
+                    alert("Sucesso! Verifique seu e-mail.");
                 }
-                location.reload();
-            } else { throw new Error(); }
+                setTimeout(() => location.reload(), 2000);
+            }
         } catch (err) {
-            alert("Erro ao conectar com o servidor.");
+            alert("Erro na conexão.");
             btn.disabled = false;
-            btn.innerText = acao === 'email' ? "Enviar por E-mail" : "Imprimir / Salvar PDF";
         }
     }
 </script>
