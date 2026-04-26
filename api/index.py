@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import firebase_admin
 from firebase_admin import credentials, firestore
 from fpdf import FPDF
@@ -15,6 +15,9 @@ from fpdf import FPDF
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 CORS(app)
+
+# Configuração de Fuso Horário (Vigia - Pará)
+TZ_PA = timezone(timedelta(hours=-3))
 
 # Inicialização do Firebase
 if not firebase_admin._apps:
@@ -26,64 +29,106 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 def gerar_pdf_bytes(nome, cpf):
+    # Formatação visual do CPF
+    cpf_limpo = "".join(filter(str.isdigit, str(cpf)))
+    cpf_formatado = f"{cpf_limpo[:3]}.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-{cpf_limpo[9:]}" if len(cpf_limpo) == 11 else cpf_limpo
+    
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(200, 10, "CERTIFICADO DE TREINAMENTO", ln=True, align='C')
+    
+    # Borda decorativa
+    pdf.rect(5, 5, 200, 287)
+    
+    pdf.set_font("Arial", 'B', 20)
+    pdf.ln(40)
+    pdf.cell(200, 10, "CERTIFICADO DE CONCLUSAO", ln=True, align='C')
+    
     pdf.ln(20)
-    pdf.set_font("Arial", size=12)
-    data_atual = datetime.now().strftime('%d/%m/%Y')
-    texto = f"Certificamos que {nome}, CPF {cpf}, concluiu com êxito o treinamento de HelpDesk HMV em {data_atual}."
-    pdf.multi_cell(0, 10, texto, align='C')
+    pdf.set_font("Arial", size=14)
+    data_atual = datetime.now(TZ_PA).strftime('%d/%m/%Y')
+    
+    # Texto formatado (encode para latin-1 para evitar erro de acentos no FPDF)
+    texto = (f"Certificamos que o colaborador(a) {nome.upper()}, inscrito sob o CPF {cpf_formatado}, "
+             f"concluiu com exito o Treinamento de HelpDesk HMV no dia {data_atual}.")
+    
+    pdf.multi_cell(0, 10, texto.encode('latin-1', 'replace').decode('latin-1'), align='C')
+    
+    pdf.ln(40)
+    pdf.set_font("Arial", 'I', 10)
+    pdf.cell(200, 10, "Validade Permanente - Sistema de Gestao IT HMV", ln=True, align='C')
+    
     return io.BytesIO(pdf.output(dest='S').encode('latin-1'))
 
 def enviar_email(destinatario, nome, pdf_buffer):
-    remetente = os.environ.get('EMAIL_REMETENTE')
-    senha = os.environ.get('EMAIL_SENHA')
-    
-    msg = MIMEMultipart()
-    msg['From'] = remetente
-    msg['To'] = destinatario
-    msg['Subject'] = f"Certificado HelpDesk HMV - {nome}"
-    
-    msg.attach(MIMEText(f"Olá {nome},\n\nSegue em anexo o seu certificado de conclusão.", 'plain'))
-    
-    anexo = MIMEApplication(pdf_buffer.getvalue(), Name=f"Certificado_{nome}.pdf")
-    anexo['Content-Disposition'] = f'attachment; filename="Certificado_{nome}.pdf"'
-    msg.attach(anexo)
+    try:
+        remetente = os.environ.get('EMAIL_REMETENTE')
+        senha = os.environ.get('EMAIL_SENHA')
+        
+        msg = MIMEMultipart()
+        msg['From'] = remetente
+        msg['To'] = destinatario
+        msg['Subject'] = f"Certificado HelpDesk HMV - {nome}"
+        
+        corpo = f"Ola {nome},\n\nSegue em anexo o seu certificado de conclusao do treinamento de HelpDesk."
+        msg.attach(MIMEText(corpo, 'plain'))
+        
+        anexo = MIMEApplication(pdf_buffer.getvalue(), Name=f"Certificado_{nome}.pdf")
+        anexo['Content-Disposition'] = f'attachment; filename="Certificado_{nome}.pdf"'
+        msg.attach(anexo)
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(remetente, senha)
-        server.send_message(msg)
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(remetente, senha)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Erro ao enviar email: {e}")
+        return False
 
+# --- ROTAS DE TREINAMENTO ---
 @app.route('/api/registrar', methods=['POST'])
 def registrar():
-    dados = request.get_json()
-    dados['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-    
-    db.collection('treinamentos').add(dados) # Guarda no Firebase
+    try:
+        dados = request.get_json()
+        if not dados or 'nome' not in dados:
+            return jsonify({"status": "erro", "mensagem": "Dados invalidos"}), 400
 
-    if dados.get('acao') == 'email':
-        pdf_buf = gerar_pdf_bytes(dados['nome'], dados['cpf'])
-        enviar_email(dados['email'], dados['nome'], pdf_buf)
+        dados['data_conclusao'] = datetime.now(TZ_PA).strftime('%d/%m/%Y %H:%M')
+        
+        # Limpeza de CPF para o banco
+        if 'cpf' in dados:
+            dados['cpf'] = "".join(filter(str.isdigit, str(dados['cpf'])))
+        
+        db.collection('treinamentos').add(dados)
 
-    return jsonify({"status": "sucesso"}), 200
+        if dados.get('acao') == 'email' and dados.get('email'):
+            pdf_buf = gerar_pdf_bytes(dados['nome'], dados.get('cpf', '000'))
+            enviar_email(dados['email'], dados['nome'], pdf_buf)
+
+        return jsonify({"status": "sucesso"}), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 @app.route('/api/listar', methods=['GET'])
 def listar():
-    docs = db.collection('treinamentos').order_by('data_conclusao', direction='DESCENDING').stream()
-    lista = [doc.to_dict() for doc in docs]
-    return jsonify(lista), 200
+    try:
+        docs = db.collection('treinamentos').stream()
+        lista = [doc.to_dict() for doc in docs]
+        lista.sort(key=lambda x: x.get('data_conclusao', ''), reverse=True)
+        return jsonify(lista), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 @app.route('/api/certificado_download', methods=['GET'])
 def download():
-    nome = request.args.get('nome')
-    cpf = request.args.get('cpf')
-    pdf_buf = gerar_pdf_bytes(nome, cpf)
-    pdf_buf.seek(0)
-    return send_file(pdf_buf, as_attachment=True, download_name=f"Certificado_{nome}.pdf", mimetype='application/pdf')
-
+    try:
+        nome = request.args.get('nome', 'Colaborador')
+        cpf = request.args.get('cpf', '000')
+        pdf_buf = gerar_pdf_bytes(nome, cpf)
+        pdf_buf.seek(0)
+        return send_file(pdf_buf, as_attachment=True, download_name=f"Certificado_{nome}.pdf", mimetype='application/pdf')
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 # --- MÓDULO: ATIVOS ---
 @app.route('/api/ativos', methods=['GET', 'POST'])
