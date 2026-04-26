@@ -13,13 +13,15 @@ from firebase_admin import credentials, firestore
 from fpdf import FPDF
 
 app = Flask(__name__)
-CORS(app) # Permite que o frontend aceda à API sem erros de CORS
+app.config['JSON_AS_ASCII'] = False
+CORS(app)
 
-# --- CONFIGURAÇÃO FIREBASE ---
+# Inicialização do Firebase
 if not firebase_admin._apps:
-    cred_json = json.loads(os.environ.get('FIREBASE_CREDENTIALS'))
-    cred = credentials.Certificate(cred_json)
-    firebase_admin.initialize_app(cred)
+    cred_json = os.environ.get("FIREBASE_CREDENTIALS")
+    if cred_json:
+        cred = credentials.Certificate(json.loads(cred_json))
+        firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
@@ -82,18 +84,6 @@ def download():
     pdf_buf.seek(0)
     return send_file(pdf_buf, as_attachment=True, download_name=f"Certificado_{nome}.pdf", mimetype='application/pdf')
 
-app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False
-CORS(app)
-
-# Inicialização do Firebase
-if not firebase_admin._apps:
-    cred_json = os.environ.get("FIREBASE_CREDENTIALS")
-    if cred_json:
-        cred = credentials.Certificate(json.loads(cred_json))
-        firebase_admin.initialize_app(cred)
-
-db = firestore.client()
 
 # --- MÓDULO: ATIVOS ---
 @app.route('/api/ativos', methods=['GET', 'POST'])
@@ -311,65 +301,7 @@ def ultima_chamada():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-def gerar_pdf_bytes(nome, cpf):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(200, 10, "CERTIFICADO DE TREINAMENTO", ln=True, align='C')
-    pdf.ln(20)
-    pdf.set_font("Arial", size=12)
-    data_atual = datetime.now().strftime('%d/%m/%Y')
-    texto = f"Certificamos que {nome}, CPF {cpf}, concluiu com êxito o treinamento de HelpDesk HMV em {data_atual}."
-    pdf.multi_cell(0, 10, texto, align='C')
-    return io.BytesIO(pdf.output(dest='S').encode('latin-1'))
 
-def enviar_email(destinatario, nome, pdf_buffer):
-    remetente = os.environ.get('EMAIL_REMETENTE')
-    senha = os.environ.get('EMAIL_SENHA')
-    
-    msg = MIMEMultipart()
-    msg['From'] = remetente
-    msg['To'] = destinatario
-    msg['Subject'] = f"Certificado HelpDesk HMV - {nome}"
-    
-    msg.attach(MIMEText(f"Olá {nome},\n\nSegue em anexo o seu certificado de conclusão.", 'plain'))
-    
-    anexo = MIMEApplication(pdf_buffer.getvalue(), Name=f"Certificado_{nome}.pdf")
-    anexo['Content-Disposition'] = f'attachment; filename="Certificado_{nome}.pdf"'
-    msg.attach(anexo)
-
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(remetente, senha)
-        server.send_message(msg)
-
-@app.route('/api/registrar', methods=['POST'])
-def registrar():
-    dados = request.get_json()
-    dados['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-    
-    db.collection('treinamentos').add(dados) # Guarda no Firebase
-
-    if dados.get('acao') == 'email':
-        pdf_buf = gerar_pdf_bytes(dados['nome'], dados['cpf'])
-        enviar_email(dados['email'], dados['nome'], pdf_buf)
-
-    return jsonify({"status": "sucesso"}), 200
-
-@app.route('/api/listar', methods=['GET'])
-def listar():
-    docs = db.collection('treinamentos').order_by('data_conclusao', direction='DESCENDING').stream()
-    lista = [doc.to_dict() for doc in docs]
-    return jsonify(lista), 200
-
-@app.route('/api/certificado_download', methods=['GET'])
-def download():
-    nome = request.args.get('nome')
-    cpf = request.args.get('cpf')
-    pdf_buf = gerar_pdf_bytes(nome, cpf)
-    pdf_buf.seek(0)
-    return send_file(pdf_buf, as_attachment=True, download_name=f"Certificado_{nome}.pdf", mimetype='application/pdf')
-# --- ATUALIZAÇÃO DE STATUS ---
 @app.route('/api/status_rat/<id_doc>', methods=['PATCH'])
 def atualizar_status_rat(id_doc):
     try:
