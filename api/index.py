@@ -234,28 +234,73 @@ def ultima_chamada():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-# 1. ROTA PARA REGISTRAR CONCLUSÃO
+# --- FUNÇÃO DE E-MAIL ---
+def enviar_email_com_pdf(destinatario, nome_usuario, pdf_buffer):
+    remetente = os.environ.get('EMAIL_REMETENTE')
+    senha = os.environ.get('EMAIL_SENHA')
+    
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = remetente
+        msg['To'] = destinatario
+        msg['Subject'] = f"Certificado de Treinamento - {nome_usuario}"
+
+        corpo = f"Olá {nome_usuario},\n\nParabéns por concluir o treinamento do HelpDesk HMV!"
+        msg.attach(MIMEText(corpo, 'plain'))
+
+        part = MIMEApplication(pdf_buffer.getvalue(), Name=f"Certificado_{nome_usuario}.pdf")
+        part['Content-Disposition'] = f'attachment; filename="Certificado_{nome_usuario}.pdf"'
+        msg.attach(part)
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(remetente, senha)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Erro e-mail: {e}")
+        return False
+
+# --- FUNÇÃO DE PDF ---
+def gerar_pdf_bytes(nome, cpf):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, "CERTIFICADO DE TREINAMENTO", ln=True, align='C')
+    pdf.ln(20)
+    pdf.set_font("Arial", size=12)
+    texto = f"Certificamos que {nome}, CPF {cpf}, concluiu o treinamento de HelpDesk HMV em {datetime.now().strftime('%d/%m/%Y')}."
+    pdf.multi_cell(0, 10, texto, align='C')
+    # Retorna o PDF como string de bytes para o buffer
+    return io.BytesIO(pdf.output(dest='S').encode('latin-1'))
+
+# --- ROTAS ---
 @app.route('/api/registrar', methods=['POST'])
 def registrar():
     dados = request.get_json()
-    # Lógica para salvar no Firebase: nome, cpf, email, data_conclusao
-    # Se acao == 'email', disparar e-mail aqui.
+    dados['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+    
+    db.collection('treinamentos').add(dados)
+
+    if dados.get('acao') == 'email':
+        pdf_buf = gerar_pdf_bytes(dados['nome'], dados['cpf'])
+        enviar_email_com_pdf(dados['email'], dados['nome'], pdf_buf)
+
     return jsonify({"status": "sucesso"}), 200
 
-# 2. ROTA PARA O PAINEL ADMINISTRATIVO
 @app.route('/api/listar', methods=['GET'])
 def listar():
-    # Lógica para buscar todos os documentos da coleção no Firebase
-    registros = [] # preencher com dados do banco
-    return jsonify(registros), 200
+    docs = db.collection('treinamentos').order_by('data_conclusao', direction='DESCENDING').stream()
+    lista = [doc.to_dict() for doc in docs]
+    return jsonify(lista), 200
 
-# 3. ROTA PARA GERAR O PDF
 @app.route('/api/certificado_download', methods=['GET'])
 def certificado_download():
     nome = request.args.get('nome')
     cpf = request.args.get('cpf')
-    # Lógica ReportLab para criar o PDF em memória (BytesIO)
-    # return send_file(pdf_output, download_name=f"Certificado_{nome}.pdf")
+    pdf_buf = gerar_pdf_bytes(nome, cpf)
+    pdf_buf.seek(0)
+    return send_file(pdf_buf, as_attachment=True, download_name=f"Certificado_{nome}.pdf", mimetype='application/pdf')
 
 
 # --- ATUALIZAÇÃO DE STATUS ---
