@@ -1,9 +1,3 @@
-from fpdf import FPDF
-from io import BytesIO
-import smtplib
-from email.mime.mixed import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import firebase_admin
@@ -25,7 +19,6 @@ if not firebase_admin._apps:
 
 db = firestore.client()
 
-
 # --- MÓDULO: ATIVOS ---
 @app.route('/api/ativos', methods=['GET', 'POST'])
 def gerenciar_ativos():
@@ -45,7 +38,6 @@ def gerenciar_ativos():
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
 @app.route('/api/ativos/<id_ativo>', methods=['DELETE'])
 def excluir_ativo(id_ativo):
     try:
@@ -53,7 +45,6 @@ def excluir_ativo(id_ativo):
         return jsonify({"status": "sucesso"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
 
 # --- MÓDULO: HELPDESK (RAT) - CORREÇÃO SEM ÍNDICE ---
 @app.route('/api/helpdesk', methods=['GET', 'POST'])
@@ -79,9 +70,9 @@ def gerenciar_rat():
                 query = db.collection('atividades').where('data_busca', '==', data_filtro)
             else:
                 query = db.collection('atividades').limit(50)
-
+            
             docs = query.stream()
-
+            
             # Converte documentos para lista e inclui o ID
             atividades = []
             for doc in docs:
@@ -95,7 +86,6 @@ def gerenciar_rat():
             return jsonify(atividades), 200
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
 
 # --- MÓDULO: RELATOS ---
 @app.route('/api/relatos', methods=['GET', 'POST'])
@@ -125,15 +115,15 @@ def gerenciar_residuos():
         try:
             dados = request.json
             agora = datetime.now()
-
+            
             # Padronização de datas para busca e exibição
             if 'data_registro' not in dados:
                 dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
-
+            
             # Campo crucial para o filtro do JS (formato YYYY-MM-DD)
             if 'data_busca' not in dados:
                 dados['data_busca'] = agora.strftime("%Y-%m-%d")
-
+                
             db.collection('residuos').add(dados)
             return jsonify({"status": "sucesso"}), 201
         except Exception as e:
@@ -141,13 +131,13 @@ def gerenciar_residuos():
 
     elif request.method == 'GET':
         try:
-            data_filtro = request.args.get('data')
-
+            data_filtro = request.args.get('data') 
+            
             if data_filtro:
                 query = db.collection('residuos').where('data_busca', '==', data_filtro)
             else:
                 query = db.collection('residuos').limit(100)
-
+            
             docs = query.stream()
             residuos = []
             for doc in docs:
@@ -162,7 +152,6 @@ def gerenciar_residuos():
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
 @app.route('/api/residuos/<id_doc>', methods=['PATCH', 'DELETE'])
 def acoes_residuos(id_doc):
     try:
@@ -170,16 +159,16 @@ def acoes_residuos(id_doc):
             dados = request.json
             db.collection('residuos').document(id_doc).update(dados)
             return jsonify({"status": "sucesso"}), 200
-
+            
         elif request.method == 'DELETE':
             db.collection('residuos').document(id_doc).delete()
             return jsonify({"status": "sucesso"}), 200
-
+            
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 
-# ----MECANISMO QUE GERA SENHAS
+#----MECANISMO QUE GERA SENHAS
 # --- MÓDULO: FLUXO DE PACIENTES (SENHAS) ---
 
 @app.route('/api/fila', methods=['GET', 'POST'])
@@ -188,13 +177,13 @@ def gerenciar_fila():
         try:
             dados = request.json
             agora = datetime.now()
-
+            
             # Formatação da Senha (Ex: M-001)
             # Você pode enviar a senha pronta do Totem ou gerar aqui
             dados['status'] = 'aguardando'
             dados['data_registro'] = agora.strftime("%d/%m/%Y %H:%M:%S")
-            dados['timestamp'] = firestore.SERVER_TIMESTAMP  # Para ordenação precisa
-
+            dados['timestamp'] = firestore.SERVER_TIMESTAMP # Para ordenação precisa
+            
             db.collection('fila').add(dados)
             return jsonify({"status": "sucesso"}), 201
         except Exception as e:
@@ -209,45 +198,43 @@ def gerenciar_fila():
         except Exception as e:
             return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
 @app.route('/api/chamar_proximo', methods=['PATCH'])
 def chamar_proximo():
     try:
         # 1. Pega o paciente mais antigo que está aguardando
         query = db.collection('fila').where('status', '==', 'aguardando').order_by('timestamp').limit(1).get()
-
+        
         if not query:
             return jsonify({"status": "vazio", "mensagem": "Ninguém na fila"}), 200
-
+        
         doc = query[0]
         dados_chamada = {
             "status": "chamado",
             "data_chamada": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-            "chamada_timestamp": firestore.SERVER_TIMESTAMP  # Isso dispara a TV e o Rodapé
+            "chamada_timestamp": firestore.SERVER_TIMESTAMP # Isso dispara a TV e o Rodapé
         }
-
+        
         db.collection('fila').document(doc.id).update(dados_chamada)
-
+        
         return jsonify({
-            "status": "sucesso",
+            "status": "sucesso", 
             "senha": doc.to_dict().get('senha')
         }), 200
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
 @app.route('/api/ultima_chamada', methods=['GET'])
 def ultima_chamada():
     try:
         # Endpoint para a TV ou Rodapé consultar via Polling (se não usar Listener)
-        query = db.collection('fila').where('status', '==', 'chamado').order_by('chamada_timestamp',
-                                                                                direction=firestore.Query.DESCENDING).limit(
-            1).get()
+        query = db.collection('fila').where('status', '==', 'chamado').order_by('chamada_timestamp', direction=firestore.Query.DESCENDING).limit(1).get()
         if query:
             return jsonify(query[0].to_dict()), 200
         return jsonify({}), 204
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
 
 
 # --- ATUALIZAÇÃO DE STATUS ---
@@ -261,139 +248,9 @@ def atualizar_status_rat(id_doc):
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
-# --- CONFIGURAÇÕES DE APOIO (Certificados) ---
-GMAIL_USER = "juniordomundo@gmail.com"
-GMAIL_PASS = os.environ.get('GMAIL_PASS')
-ADMIN_PASS = os.environ.get('ADMIN_PASS')
-
-
-def gerar_pdf_buffer(nome, cpf):
-    pdf = FPDF(orientation='L', unit='mm', format='A4')
-    pdf.add_page()
-
-    # Borda Decorativa
-    pdf.set_draw_color(0, 86, 179)
-    pdf.set_line_width(2)
-    pdf.rect(10, 10, 277, 190)
-
-    # Título Principal
-    pdf.set_font('Arial', 'B', 32)
-    pdf.set_text_color(0, 86, 179)
-    pdf.ln(50)
-    pdf.cell(0, 20, 'CERTIFICADO DE CONCLUSÃO', ln=True, align='C')
-
-    # Texto do Certificado
-    pdf.set_font('Arial', '', 18)
-    pdf.set_text_color(50)
-    pdf.ln(10)
-    pdf.cell(0, 10, 'Certificamos para os devidos fins que o(a) profissional', ln=True, align='C')
-
-    pdf.set_font('Arial', 'B', 22)
-    pdf.set_text_color(0)
-    pdf.cell(0, 15, nome.upper(), ln=True, align='C')
-
-    pdf.set_font('Arial', '', 14)
-    pdf.ln(10)
-    pdf.multi_cell(0, 10,
-                   'Concluiu com êxito o treinamento de HELPDESK HMV,\nestando apto(a) a utilizar as ferramentas de suporte da instituição.',
-                   align='C')
-
-    pdf.ln(20)
-    pdf.set_font('Arial', 'I', 10)
-    data_emissao = datetime.now().strftime("%d/%m/%Y %H:%M")
-    pdf.cell(0, 10, f'Autenticado digitalmente em: {data_emissao} | CPF: {cpf}', ln=True, align='C')
-
-    return pdf.output(dest='S').encode('latin-1')
-
-
-def enviar_email_certificado(destinatario, nome, pdf_bytes):
-    msg = MIMEMultipart()
-    msg['From'] = GMAIL_USER
-    msg['To'] = destinatario
-    msg['Subject'] = "Certificado de Treinamento - HMV"
-
-    corpo = f"Olá {nome},\n\nParabéns por concluir o treinamento. Segue em anexo o seu certificado de conclusão."
-    msg.attach(MIMEText(corpo, 'plain'))
-
-    anexo = MIMEApplication(pdf_bytes, Name=f"Certificado_{nome}.pdf")
-    anexo['Content-Disposition'] = f'attachment; filename="Certificado_{nome}.pdf"'
-    msg.attach(anexo)
-
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-        server.login(GMAIL_USER, GMAIL_PASS)
-        server.send_message(msg)
-
-
-# --- MÓDULO: TREINAMENTOS & CERTIFICADOS ---
-
-@app.route('/api/registrar', methods=['POST'])
-def registrar_treinamento():
-    try:
-        dados = request.json
-        nome = dados.get('nome')
-        cpf = dados.get('cpf')
-        email = dados.get('email')
-        acao = dados.get('acao')
-
-        # Gravação no Firestore
-        doc_ref = db.collection('treinamentos').document()
-        doc_ref.set({
-            'nome': nome,
-            'cpf': cpf,
-            'email': email,
-            'data_conclusao': datetime.now()
-        })
-
-        # Processamento do Certificado
-        if acao == 'email':
-            pdf_bytes = gerar_pdf_buffer(nome, cpf)
-            enviar_email_certificado(email, nome, pdf_bytes)
-
-        return jsonify({"status": "sucesso"}), 200
-    except Exception as e:
-        return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
-# Mantenha como está, apenas garanta que não há verificações de senha nestas duas rotas:
-
-@app.route('/api/listar', methods=['GET'])
-def listar_treinamentos():
-    try:
-        # Removido qualquer filtro de senha
-        docs = db.collection('treinamentos').order_by('data_conclusao', direction=firestore.Query.DESCENDING).stream()
-        lista = []
-        for doc in docs:
-            d = doc.to_dict()
-            lista.append({
-                "nome": d.get('nome'),
-                "cpf": d.get('cpf'),
-                "email": d.get('email'),
-                "data_conclusao": d.get('data_conclusao').strftime("%d/%m/%Y %H:%M") if d.get('data_conclusao') else "---"
-            })
-        return jsonify(lista), 200
-    except Exception as e:
-        return jsonify({"erro": str(e)}), 500
-
-@app.route('/api/certificado_download')
-def certificado_download():
-    nome = request.args.get('nome')
-    cpf = request.args.get('cpf')
-    try:
-        # Usa sua função gerar_pdf_buffer que já existe no código
-        pdf_bytes = gerar_pdf_buffer(nome, cpf)
-        return send_file(
-            BytesIO(pdf_bytes),
-            download_name=f"Certificado_{cpf}.pdf",
-            mimetype='application/pdf'
-        )
-    except Exception as e:
-        return str(e), 500
 @app.route('/')
 def home():
     return "API Central de TI rodando!"
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
