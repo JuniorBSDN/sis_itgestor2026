@@ -234,7 +234,28 @@ def ultima_chamada():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+# 1. ROTA PARA REGISTRAR CONCLUSÃO
+@app.route('/api/registrar', methods=['POST'])
+def registrar():
+    dados = request.get_json()
+    # Lógica para salvar no Firebase: nome, cpf, email, data_conclusao
+    # Se acao == 'email', disparar e-mail aqui.
+    return jsonify({"status": "sucesso"}), 200
 
+# 2. ROTA PARA O PAINEL ADMINISTRATIVO
+@app.route('/api/listar', methods=['GET'])
+def listar():
+    # Lógica para buscar todos os documentos da coleção no Firebase
+    registros = [] # preencher com dados do banco
+    return jsonify(registros), 200
+
+# 3. ROTA PARA GERAR O PDF
+@app.route('/api/certificado_download', methods=['GET'])
+def certificado_download():
+    nome = request.args.get('nome')
+    cpf = request.args.get('cpf')
+    # Lógica ReportLab para criar o PDF em memória (BytesIO)
+    # return send_file(pdf_output, download_name=f"Certificado_{nome}.pdf")
 
 
 # --- ATUALIZAÇÃO DE STATUS ---
