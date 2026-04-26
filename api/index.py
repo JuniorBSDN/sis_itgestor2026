@@ -28,6 +28,8 @@ if not firebase_admin._apps:
 
 db = firestore.client()
 
+
+#CERTIFICADO PRONTO PARA IMPRESSÃO EM PDF
 def gerar_pdf_bytes(nome, cpf):
     # Formatação visual do CPF
     cpf_limpo = "".join(filter(str.isdigit, str(cpf)))
@@ -35,22 +37,23 @@ def gerar_pdf_bytes(nome, cpf):
     
     pdf = FPDF()
     pdf.add_page()
-
-    # --- INSERÇÃO DO LOGO ---
-    # Se for uma URL, o FPDF aceita diretamente. 
-    # Se for arquivo local, basta colocar o nome do arquivo: 'logo.png'
-    logo_url = "https://i.imgur.com/U3RKJBW.png" 
+    
+    # --- INSERÇÃO DO LOGOTIPO ---
+    # Utilizamos o URL da imagem que já está no seu arquivo treinamentoHelpDesk.html
+    logo_url = "https://i.imgur.com/U3RKJBW.png"
     
     try:
-        # x=85 (centralizado), y=15 (topo), w=40 (largura da imagem)
-        pdf.image(logo_url, x=85, y=15, w=40) 
+        # x=65 (para centralizar uma imagem de 80mm num A4 de 210mm: (210-80)/2 = 65)
+        # y=15 (distância do topo)
+        # w=80 (largura aumentada para melhor visibilidade dos três logos)
+        pdf.image(logo_url, x=65, y=15, w=80)
     except Exception as e:
-        print(f"Erro ao carregar imagem: {e}")
+        print(f"Erro ao carregar o logo: {e}")
 
     # Borda decorativa
     pdf.rect(5, 5, 200, 287)
     
-    # Ajuste do espaçamento: aumentamos de 40 para 60 para dar espaço ao logo
+    # Ajuste do espaçamento: aumentamos para 60 para o título aparecer abaixo dos logos
     pdf.set_font("Arial", 'B', 20)
     pdf.ln(60) 
     
@@ -60,7 +63,7 @@ def gerar_pdf_bytes(nome, cpf):
     pdf.set_font("Arial", size=14)
     data_atual = datetime.now(TZ_PA).strftime('%d/%m/%Y')
     
-    # Texto formatado
+    # Texto formatado (encode para latin-1 para evitar erro de acentos no FPDF)
     texto = (f"Certificamos que o colaborador(a) {nome.upper()}, inscrito sob o CPF {cpf_formatado}, "
              f"concluiu com exito o Treinamento de HelpDesk HMV no dia {data_atual}.")
     
