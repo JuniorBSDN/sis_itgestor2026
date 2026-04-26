@@ -35,19 +35,32 @@ def gerar_pdf_bytes(nome, cpf):
     
     pdf = FPDF()
     pdf.add_page()
+
+    # --- INSERÇÃO DO LOGO ---
+    # Se for uma URL, o FPDF aceita diretamente. 
+    # Se for arquivo local, basta colocar o nome do arquivo: 'logo.png'
+    logo_url = "https://i.imgur.com/U3RKJBW.png" 
     
+    try:
+        # x=85 (centralizado), y=15 (topo), w=40 (largura da imagem)
+        pdf.image(logo_url, x=85, y=15, w=40) 
+    except Exception as e:
+        print(f"Erro ao carregar imagem: {e}")
+
     # Borda decorativa
     pdf.rect(5, 5, 200, 287)
     
+    # Ajuste do espaçamento: aumentamos de 40 para 60 para dar espaço ao logo
     pdf.set_font("Arial", 'B', 20)
-    pdf.ln(40)
+    pdf.ln(60) 
+    
     pdf.cell(200, 10, "CERTIFICADO DE CONCLUSAO", ln=True, align='C')
     
     pdf.ln(20)
     pdf.set_font("Arial", size=14)
     data_atual = datetime.now(TZ_PA).strftime('%d/%m/%Y')
     
-    # Texto formatado (encode para latin-1 para evitar erro de acentos no FPDF)
+    # Texto formatado
     texto = (f"Certificamos que o colaborador(a) {nome.upper()}, inscrito sob o CPF {cpf_formatado}, "
              f"concluiu com exito o Treinamento de HelpDesk HMV no dia {data_atual}.")
     
@@ -59,6 +72,7 @@ def gerar_pdf_bytes(nome, cpf):
     
     return io.BytesIO(pdf.output(dest='S').encode('latin-1'))
 
+#ENVIAR EMAIL PARA O PRESTADOR QUE PARTICIPOU DO TREINO
 def enviar_email(destinatario, nome, pdf_buffer):
     try:
         remetente = os.environ.get('EMAIL_REMETENTE')
