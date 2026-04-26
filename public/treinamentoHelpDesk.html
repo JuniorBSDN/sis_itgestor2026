@@ -5,165 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Treinamento HMV | Instituto Ímpar</title>
     <style>
-        :root {
-            --primary: #0056b3;
-            --success: #28a745;
-            --danger: #dc3545;
-            --bg: #f4f7f6;
-            --text: #333;
-        }
-
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
-        body { background: var(--bg); margin: 0; display: flex; justify-content: center; color: var(--text); }
-
-        .app-container {
-            padding: 10px;
-            width: 100%;
-            max-width: 500px;
-            background: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-
-        header {
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-bottom: 2px solid var(--bg);
-        }
-
-        header img { height: 45px; object-fit: contain; }
-
-        .content { padding: 25px; flex-grow: 1; }
-
+        :root { --primary: #0056b3; --success: #28a745; --danger: #dc3545; --bg: #f4f7f6; --text: #333; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); margin: 0; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 500px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        header { padding: 20px; text-align: center; border-bottom: 2px solid var(--bg); }
+        header img { height: 45px; }
+        .content { padding: 25px; }
         .step { display: none; }
-        .step.active { display: block; animation: fadeIn 0.4s ease-in-out; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        h2 { color: var(--primary); margin-top: 0; font-size: 1.5rem; text-align: center;}
-        p { line-height: 1.6; color: #555; }
-
-        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 0.9rem; }
-
-        input[type="text"], input[type="tel"], input[type="email"] {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            background: #fafafa;
-        }
-
-        button {
-            width: 100%;
-            padding: 18px;
-            border: none;
-            border-radius: 8px;
-            background: var(--primary);
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:disabled { background: #ccc; cursor: not-allowed; }
-
-        .video-container {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-
+        .step.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        button { width: 100%; padding: 18px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 10px; overflow: hidden; margin: 20px 0; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .btn-secondary { background: #6c757d; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <header>
-        <img src="https://i.imgur.com/U3RKJBW.png" alt="Instituto Ímpar">
-    </header>
-
+    <header><img src="https://i.imgur.com/U3RKJBW.png" alt="Instituto Ímpar"></header>
     <div class="content">
         <section id="step-1" class="step active">
             <h2>Identificação</h2>
-            <p>Olá! Informe seus dados para iniciar o treinamento sobre o novo Portal de HelpDesk HMV.</p>
-
-            <label>Nome Completo:</label>
-            <input type="text" id="nome" placeholder="Seu nome completo" required>
-
-            <label>CPF:</label>
-            <input type="tel" id="cpf" placeholder="000.000.000-00" required>
-
+            <input type="text" id="nome" placeholder="Nome Completo">
+            <input type="tel" id="cpf" placeholder="CPF (apenas números)">
             <button onclick="irParaVideo()">Acessar Treinamento</button>
         </section>
 
         <section id="step-2" class="step">
             <h2>Vídeo de Treinamento</h2>
-            <p>Assista ao vídeo completo para liberar seu certificado.</p>
-            <div class="video-container">
-                <div id="player"></div>
-            </div>
-            <p id="msg-aguarde" style="text-align: center; color: var(--danger); font-weight: bold;">
-                Status: Assistindo ao conteúdo...
-            </p>
+            <div class="video-container"><div id="player"></div></div>
+            <p id="msg-aguarde" style="text-align: center; color: var(--danger);">Assista até o fim para liberar o certificado.</p>
         </section>
 
         <section id="step-3" class="step">
             <h2 style="color: var(--success);">Concluído!</h2>
-            <p style="text-align: center;">Obrigado por completar o treinamento do HELPDESK HMV.</p>
-            <p style="text-align: center; color: #666;">Clique no botão abaixo para informar seu e-mail e emitir o certificado.</p>
-
-            <button onclick="abrirModalFinal()" style="background: var(--success); margin-top: 15px;">OK, FINALIZAR</button>
+            <button onclick="abrirModalFinal()">OK, EMITIR CERTIFICADO</button>
         </section>
     </div>
 </div>
 
 <div id="modalFinal" class="modal">
     <div class="modal-content">
-        <h3>Quase lá!</h3>
-        <p>Informe o e-mail onde deseja receber seu certificado de conclusão.</p>
-
+        <h3>Onde deseja receber?</h3>
         <input type="email" id="email" placeholder="seu-email@exemplo.com">
-
-        <div class="btn-group">
-            <button onclick="enviarDados('email')">Enviar por E-mail</button>
-            <button class="btn-secondary" onclick="enviarDados('download')">Baixar PDF agora</button>
-        </div>
+        <button onclick="enviarDados('email', this)">Enviar por E-mail</button>
+        <button onclick="enviarDados('download', this)" style="background: #6c757d; margin-top: 10px;">Baixar agora</button>
     </div>
 </div>
 
@@ -179,72 +69,46 @@
 
     function irParaVideo() {
         user.nome = document.getElementById('nome').value.trim();
-        user.cpf = document.getElementById('cpf').value.trim();
-
-        if(!user.nome || !user.cpf) {
-            return alert("Por favor, preencha seu Nome e CPF corretamente.");
-        }
+        user.cpf = document.getElementById('cpf').value.replace(/\D/g, '').trim();
+        if(user.nome.length < 3 || user.cpf.length < 11) return alert("Preencha os dados corretamente.");
         irParaStep(2);
     }
 
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('player', {
-            height: '100%',
-            width: '100%',
-            videoId: 'ENPRg3ecejQ',
-            playerVars: { 'rel': 0, 'modestbranding': 1, 'controls': 1 },
-            events: {
-                'onStateChange': (event) => {
-                    if (event.data == YT.PlayerState.ENDED) {
-                        irParaStep(3);
-                    }
-                }
-            }
+            height: '100%', width: '100%', videoId: 'ENPRg3ecejQ',
+            playerVars: { 'rel': 0, 'controls': 1, 'disablekb': 1 },
+            events: { 'onStateChange': (e) => { if(e.data == YT.PlayerState.ENDED) irParaStep(3); } }
         });
     }
 
-    function abrirModalFinal() {
-        document.getElementById('modalFinal').style.display = 'flex';
-    }
+    function abrirModalFinal() { document.getElementById('modalFinal').style.display = 'flex'; }
 
-    async function enviarDados(acao) {
+    async function enviarDados(acao, btn) {
         user.email = document.getElementById('email').value.trim();
-        if(!user.email) return alert("É necessário informar um e-mail.");
+        if(!user.email.includes('@')) return alert("E-mail inválido.");
 
-        const btn = event.target;
         btn.disabled = true;
         btn.innerText = "Processando...";
 
         try {
-            const response = await fetch('/api/registrar', {
+            const res = await fetch('/api/registrar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...user, acao: acao })
             });
 
-            if(response.ok) {
-                if(acao === 'download') {
-                    const downloadUrl = `/api/certificado_download?cpf=${user.cpf}&nome=${encodeURIComponent(user.nome)}`;
-                    window.open(downloadUrl, '_blank');
-                } else {
-                    alert("Certificado enviado para o seu e-mail!");
-                }
-
-                // REDIRECIONAMENTO FINAL
-                setTimeout(() => {
-                    window.location.href = "https://sisitgestor2026.vercel.app/plataforma.html";
-                }, 1500);
-
-            } else {
-                throw new Error("Erro na API");
+            if(res.ok) {
+                if(acao === 'download') window.open(`/api/certificado_download?cpf=${user.cpf}&nome=${encodeURIComponent(user.nome)}`, '_blank');
+                else alert("Certificado enviado!");
+                
+                setTimeout(() => { window.location.href = "https://sisitgestor2026.vercel.app/plataforma.html"; }, 2000);
             }
         } catch (err) {
-            alert("Erro ao conectar com o servidor. Tente novamente.");
+            alert("Erro na conexão.");
             btn.disabled = false;
-            btn.innerText = acao === 'email' ? "Enviar por E-mail" : "Baixar PDF agora";
         }
     }
 </script>
-
 </body>
 </html>
