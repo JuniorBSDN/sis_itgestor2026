@@ -39,13 +39,16 @@ def gerar_pdf_bytes(nome, cpf):
     pdf.add_page()
     
     # --- INSERÇÃO DO LOGOTIPO ---
-   logo_url = "https://i.imgur.com/U3RKJBW.png"
-try:
-    # Adicionamos o parâmetro type='PNG'
-    pdf.image(logo_url, x=65, y=15, w=80, type='PNG')
-except Exception as e:
-    # Se cair aqui, a Vercel está bloqueando o download externo
-    print(f"Erro: {e}")
+    # Utilizamos o URL da imagem que já está no seu arquivo treinamentoHelpDesk.html
+    logo_url = "https://i.imgur.com/U3RKJBW.png"
+    
+    try:
+        # x=65 (para centralizar uma imagem de 80mm num A4 de 210mm: (210-80)/2 = 65)
+        # y=15 (distância do topo)
+        # w=80 (largura aumentada para melhor visibilidade dos três logos)
+        pdf.image(logo_url, x=65, y=15, w=80)
+    except Exception as e:
+        print(f"Erro ao carregar o logo: {e}")
 
     # Borda decorativa
     pdf.rect(5, 5, 200, 287)
