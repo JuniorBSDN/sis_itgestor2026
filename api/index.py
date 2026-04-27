@@ -29,50 +29,54 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 
-#CERTIFICADO PRONTO PARA IMPRESSÃO EM PDF
+# CERTIFICADO PRONTO PARA IMPRESSÃO EM PDF
 def gerar_pdf_bytes(nome, cpf):
     # Formatação visual do CPF
     cpf_limpo = "".join(filter(str.isdigit, str(cpf)))
-    cpf_formatado = f"{cpf_limpo[:3]}.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-{cpf_limpo[9:]}" if len(cpf_limpo) == 11 else cpf_limpo
-    
-    pdf = FPDF()
+    cpf_formatado = f"{cpf_limpo[:3]}.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-{cpf_limpo[9:]}" if len(
+        cpf_limpo) == 11 else cpf_limpo
+
+    pdf = fpdf.FPDF()
     pdf.add_page()
-    
-    # --- INSERÇÃO DO LOGOTIPO ---
-    # Utilizamos o URL da imagem que já está no seu arquivo treinamentoHelpDesk.html
+
     logo_url = "https://i.imgur.com/U3RKJBW.png"
-    
+
     try:
-        # x=65 (para centralizar uma imagem de 80mm num A4 de 210mm: (210-80)/2 = 65)
-        # y=15 (distância do topo)
-        # w=80 (largura aumentada para melhor visibilidade dos três logos)
-        pdf.image(logo_url, x=65, y=15, w=80)
+        response = requests.get(logo_url, timeout=10)
+        if response.status_code == 200:
+            # Em vez de passar o BytesIO direto, usamos o conteúdo bruto
+            # e nomeamos para o FPDF entender o formato
+            from fpdf import FPDF
+            pdf.image(logo_url, x=65, y=15, w=80)
+            # DICA: Se o FPDF estiver atualizado, ele mesmo faz o download interno.
+            # Se não funcionar, a forma mais segura na Vercel é:
+            # pdf.image(requests.get(logo_url).url, x=65, y=15, w=80)
     except Exception as e:
-        print(f"Erro ao carregar o logo: {e}")
+        print(f"Erro: {e}")
 
     # Borda decorativa
     pdf.rect(5, 5, 200, 287)
-    
+
     # Ajuste do espaçamento: aumentamos para 60 para o título aparecer abaixo dos logos
     pdf.set_font("Arial", 'B', 20)
-    pdf.ln(60) 
-    
+    pdf.ln(60)
+
     pdf.cell(200, 10, "CERTIFICADO DE CONCLUSAO", ln=True, align='C')
-    
+
     pdf.ln(20)
     pdf.set_font("Arial", size=14)
     data_atual = datetime.now(TZ_PA).strftime('%d/%m/%Y')
-    
+
     # Texto formatado (encode para latin-1 para evitar erro de acentos no FPDF)
     texto = (f"Certificamos que o colaborador(a) {nome.upper()}, inscrito sob o CPF {cpf_formatado}, "
              f"concluiu com exito o Treinamento de HelpDesk HMV no dia {data_atual}.")
-    
+
     pdf.multi_cell(0, 10, texto.encode('latin-1', 'replace').decode('latin-1'), align='C')
-    
+
     pdf.ln(40)
     pdf.set_font("Arial", 'I', 10)
     pdf.cell(200, 10, "Validade Permanente - Sistema de Gestao IT HMV", ln=True, align='C')
-    
+
     return io.BytesIO(pdf.output(dest='S').encode('latin-1'))
 
 #ENVIAR EMAIL PARA O PRESTADOR QUE PARTICIPOU DO TREINO
