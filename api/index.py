@@ -40,6 +40,16 @@ def gerar_pdf_bytes(nome, cpf):
     # Borda decorativa
     pdf.rect(5, 5, 200, 287)
     
+    # --- CABEÇALHO INSTITUCIONAL ---
+    pdf.set_font("Arial", 'B', 12)
+    pdf.ln(10)
+    instituicao = "INSTITUTO IMPAR & HOSPITAL MUNICIPAL DE VIGIA DE NAZARE - RAIMUNDO VASCONCELOS"
+    # Encode para evitar erro de acentuação em "NAZARÉ"
+    pdf.multi_cell(0, 8, instituicao.encode('latin-1', 'replace').decode('latin-1'), align='C')
+    
+    # Linha divisória simples abaixo do nome
+    pdf.line(20, 35, 190, 35)
+    
     pdf.set_font("Arial", 'B', 20)
     pdf.ln(40)
     pdf.cell(200, 10, "CERTIFICADO DE CONCLUSAO", ln=True, align='C')
