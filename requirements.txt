@@ -4,4 +4,4 @@ pytz
 flask-cors
 firebase-admin
 psycopg2-binary
-fpdf
+fpdf==1.7.2
