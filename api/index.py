@@ -29,57 +29,35 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 
-# CERTIFICADO PRONTO PARA IMPRESSÃO EM PDF
 def gerar_pdf_bytes(nome, cpf):
-    # 1. Formatação visual do CPF
+    # Formatação visual do CPF
     cpf_limpo = "".join(filter(str.isdigit, str(cpf)))
-    cpf_formatado = f"{cpf_limpo[:3]}.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-{cpf_limpo[9:]}" if len(
-        cpf_limpo) == 11 else cpf_limpo
-
-    # 2. Inicialização do PDF (Referenciando o pacote fpdf)
-    pdf = fpdf.FPDF()
-    pdf.add_page()
-
-    # 3. Borda decorativa
-    pdf.rect(5, 5, 200, 287)
-
-    # 4. Cabeçalho com o nome da empresa (Substituindo o logo)
-    pdf.set_font("Arial", 'B', 11)
-    pdf.ln(10)
-    empresa = "INSTITUTO IMPAR & HOSPITAL MUNICIPAL DE VIGIA DE NAZARE - RAIMUNDO VASCONCELOS"
-    # Tratando acentos para o padrão PDF
-    pdf.multi_cell(0, 8, empresa.encode('latin-1', 'replace').decode('latin-1'), align='C')
+    cpf_formatado = f"{cpf_limpo[:3]}.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-{cpf_limpo[9:]}" if len(cpf_limpo) == 11 else cpf_limpo
     
-    # Linha estética abaixo do nome
-    pdf.line(30, 35, 180, 35)
-
-    # 5. Título do Certificado
-    pdf.ln(35)
-    pdf.set_font("Arial", 'B', 22)
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Borda decorativa
+    pdf.rect(5, 5, 200, 287)
+    
+    pdf.set_font("Arial", 'B', 20)
+    pdf.ln(40)
     pdf.cell(200, 10, "CERTIFICADO DE CONCLUSAO", ln=True, align='C')
-
-    # 6. Corpo do Texto
-    pdf.ln(25)
+    
+    pdf.ln(20)
     pdf.set_font("Arial", size=14)
     data_atual = datetime.now(TZ_PA).strftime('%d/%m/%Y')
-
+    
+    # Texto formatado (encode para latin-1 para evitar erro de acentos no FPDF)
     texto = (f"Certificamos que o colaborador(a) {nome.upper()}, inscrito sob o CPF {cpf_formatado}, "
              f"concluiu com exito o Treinamento de HelpDesk HMV no dia {data_atual}.")
-
+    
     pdf.multi_cell(0, 10, texto.encode('latin-1', 'replace').decode('latin-1'), align='C')
-
-    # 7. Rodapé e Validação
-    pdf.ln(50)
+    
+    pdf.ln(40)
     pdf.set_font("Arial", 'I', 10)
     pdf.cell(200, 10, "Validade Permanente - Sistema de Gestao IT HMV", ln=True, align='C')
     
-    # Nota LGPD no pé da página
-    pdf.set_y(-20)
-    pdf.set_font("Arial", size=7)
-    nota_lgpd = "Este certificado foi gerado conforme a LGPD. Os dados sao utilizados apenas para validacao institucional."
-    pdf.cell(0, 10, nota_lgpd.encode('latin-1', 'replace').decode('latin-1'), align='C')
-
-    # 8. Retorno dos bytes (Certifique-se que 'io' está importado)
     return io.BytesIO(pdf.output(dest='S').encode('latin-1'))
 
 
