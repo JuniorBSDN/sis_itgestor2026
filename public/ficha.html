@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recepção HMV - SISTGESTOR 2026</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #2c3e50; --accent: #e74c3c; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
+        .recept-container { max-width: 1000px; margin: auto; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 5px solid var(--accent); }
+        .recept-header { padding: 20px; background: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; gap: 20px; }
+        .search-box { display: flex; gap: 5px; background: #f1f2f6; padding: 10px; border-radius: 8px; border: 1px solid #dfe6e9; flex: 1; }
+        .search-box input { border: none; background: transparent; outline: none; width: 100%; font-size: 0.9rem; }
+        form { padding: 25px; }
+        .form-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 15px; }
+        .group { display: flex; flex-direction: column; grid-column: span 12; }
+        .col-2 { grid-column: span 2; } .col-3 { grid-column: span 3; } .col-4 { grid-column: span 4; }
+        .col-6 { grid-column: span 6; } .col-8 { grid-column: span 8; }
+        label { font-size: 0.7rem; font-weight: 700; color: #636e72; text-transform: uppercase; margin-bottom: 4px; }
+        input, select { padding: 12px; border: 1px solid #dfe6e9; border-radius: 6px; font-size: 1rem; background: #fdfdfd; }
+        input:focus { border-color: var(--accent); outline: none; }
+        .section-divider { grid-column: span 12; margin: 20px 0 10px; padding-bottom: 5px; border-bottom: 1px solid #eee; color: var(--primary); font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 15px; }
+        .btn { padding: 12px 35px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .btn-main { background: var(--accent); color: white; }
+        .btn-search { background: var(--primary); color: white; padding: 5px 15px; }
+        .urgencia-label { background: #ffeaa7; color: #d35400; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="recept-container">
+    <div class="recept-header">
+        <div>
+            <h2 style="margin:0; font-size: 1.3rem; color: var(--primary);">HMV - VIGIA</h2>
+            <span class="urgencia-label">ADMISSÃO DE URGÊNCIA</span>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="campoBusca" placeholder="Buscar por Nome, CPF ou RM...">
+            <button type="button" class="btn btn-search" onclick="buscarPaciente()">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </div>
+
+        <div style="text-align: right; color: #636e72; font-size: 0.8rem;">
+            <strong>28/04/2026</strong>
+        </div>
+    </div>
+
+    <form id="formHmv">
+        <div class="form-grid">
+            <div class="group col-3">
+                <label>Nº Registro (RM)</label>
+                <input type="text" name="rm" id="rm" readonly style="background: #e9ecef; color: #c0392b; font-weight: bold;">
+            </div>
+            <div class="group col-6">
+                <label>Nome Completo do Paciente</label>
+                <input type="text" name="nome" id="nome" required autofocus>
+            </div>
+            <div class="group col-3">
+                <label>SUS / CPF</label>
+                <input type="text" name="documento" id="documento">
+            </div>
+
+            <div class="section-divider"><i class="fa-solid fa-address-card"></i> Dados Pessoais</div>
+
+            <div class="group col-3">
+                <label>Nascimento</label>
+                <input type="date" name="nascimento" id="nascimento">
+            </div>
+            <div class="group col-2">
+                <label>Sexo</label>
+                <select name="sexo" id="sexo">
+                    <option value="M">Masc.</option>
+                    <option value="F">Fem.</option>
+                </select>
+            </div>
+            <div class="group col-3">
+                <label>Naturalidade</label>
+                <input type="text" name="naturalidade" id="naturalidade">
+            </div>
+            <div class="group col-2">
+                <label>Cor</label>
+                <select name="cor" id="cor">
+                    <option value="B">Branca</option>
+                    <option value="N">Negra</option>
+                    <option value="P">Parda</option>
+                    <option value="A">Amarela</option>
+                </select>
+            </div>
+            <div class="group col-2">
+                <label>Estado Civil</label>
+                <select name="estado_civil" id="estado_civil">
+                    <option value="Solteiro">Solteiro</option>
+                    <option value="Casado">Casado</option>
+                    <option value="Uniao">União Est.</option>
+                </select>
+            </div>
+            <div class="group col-4">
+                <label>Telefone</label>
+                <input type="text" name="telefone" id="telefone" placeholder="(91) 00000-0000">
+            </div>
+
+            <div class="section-divider"><i class="fa-solid fa-users"></i> Filiação e Procedência</div>
+
+            <div class="group col-6">
+                <label>Nome da Mãe</label>
+                <input type="text" name="nome_mae" id="nome_mae">
+            </div>
+            <div class="group col-6">
+                <label>Nome do Pai</label>
+                <input type="text" name="nome_pai" id="nome_pai">
+            </div>
+            <div class="group col-4">
+                <label>Ocupação</label>
+                <input type="text" name="ocupacao" id="ocupacao">
+            </div>
+            <div class="group col-4">
+                <label>Escolaridade</label>
+                <input type="text" name="escolaridade" id="escolaridade">
+            </div>
+            <div class="group col-4">
+                <label>Responsável</label>
+                <input type="text" name="responsavel" id="responsavel">
+            </div>
+
+            <div class="section-divider"><i class="fa-solid fa-location-dot"></i> Localização</div>
+
+            <div class="group col-8">
+                <label>Endereço / Bairro / Comunidade</label>
+                <input type="text" name="endereco" id="endereco">
+            </div>
+            <div class="group col-4">
+                <label>Município</label>
+                <input type="text" name="municipio" id="municipio" value="VIGIA DE NAZARÉ">
+            </div>
+        </div>
+
+        <div class="footer">
+            <button type="button" class="btn" onclick="limparEGerarNovo()" style="background: #ecf0f1; color: #7f8c8d;">NOVO</button>
+            <button type="button" onclick="salvarEImprimir()" class="btn btn-main">
+                <i class="fa-solid fa-print"></i> IMPRIMIR E SALVAR
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function gerarRM() {
+        const d = new Date();
+        const stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') +
+                      String(d.getDate()).padStart(2,'0') + "-" +
+                      String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') +
+                      String(d.getSeconds()).padStart(2,'0');
+        document.getElementById('rm').value = "RM" + stamp;
+    }
+
+    function limparEGerarNovo() {
+        document.getElementById('formHmv').reset();
+        gerarRM();
+        document.getElementById('municipio').value = "VIGIA DE NAZARÉ";
+    }
+
+    window.onload = gerarRM;
+
+    // Busca ajustada para a rota /api/buscar_paciente
+    function buscarPaciente() {
+        const q = document.getElementById('campoBusca').value;
+        if(!q) return;
+
+        fetch(`/api/buscar_paciente?q=${q}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.encontrado) {
+                    const p = data.paciente;
+                    for (let key in p) {
+                        let el = document.getElementById(key);
+                        if(el) el.value = p[key];
+                    }
+                    alert("Paciente localizado! Dados carregados.");
+                } else {
+                    alert("Paciente não encontrado no SISTGESTOR local.");
+                }
+            })
+            .catch(err => console.error("Erro na busca:", err));
+    }
+
+    // Função para salvar no Excel e abrir o PDF automaticamente
+    function salvarEImprimir() {
+        const form = document.getElementById('formHmv');
+        const formData = new FormData(form);
+        const dados = Object.fromEntries(formData.entries());
+
+        if(!dados.nome) {
+            alert("Por favor, preencha o nome do paciente.");
+            return;
+        }
+
+        fetch('/api/processar_admissao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        })
+        .then(res => res.json())
+        .then(resData => {
+            if(resData.status === 'sucesso') {
+                // Abre o PDF em uma nova aba
+                window.open(`/api/imprimir_prontuario/${resData.rm}`, '_blank');
+                alert("Dados salvos e ficha gerada!");
+            } else {
+                alert("Erro ao salvar: " + resData.mensagem);
+            }
+        })
+        .catch(err => alert("Erro na conexão com a API: " + err));
+    }
+</script>
+</body>
+</html>
