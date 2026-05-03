@@ -219,15 +219,31 @@ function gerarPara() {
     const doc = new jsPDF();
     doc.setFont('Courier');
 
+    // Cabeçalho idêntico aos outros
     doc.setFontSize(14);
     doc.text("HOSPITAL MUNICIPAL DE VIGIA DE NAZARÉ", 105, 20, {align:'center'});
+    doc.setFontSize(10);
+    doc.text("LABORATÓRIO - RESULTADO DE EXAMES", 105, 26, {align:'center'});
+    doc.text("CNPJ: 11.672.396/0001-30 | CNES: 2314002", 105, 31, {align:'center'});
+    doc.text("Av. Barão do Guajará, s/n | Castanheira", 105, 36, {align:'center'});
+    doc.text("Vigia de Nazaré - PA | CEP: 68780-000", 105, 41, {align:'center'});
+    doc.text("Responsável Técnico: Jessyca Soeiro Palheta - Biomédica /CRBM 4244", 105, 46, {align:'center'});
+
+    // Mesmos Dados do Paciente
     doc.setFontSize(12);
-    doc.text("LAUDO: PARASITOLOGIA", 105, 35, {align:'center'});
+    doc.text(`PACIENTE: ${p.nome.toUpperCase()} | IDADE: ${p.idade}`, 20, 60);
+    doc.text(`PROTOCOLO: ${p.prot} | SOLICITANTE: ${p.solic}`, 20, 67);
+    doc.text(`PROCEDÊNCIA: ${p.proced} | DATA: ${p.data}`, 20, 74);
 
-    doc.text(`PACIENTE: ${p.nome.toUpperCase()}`, 20, 50);
-    doc.text(`RESULTADO: ${document.getElementById('p_resultado').value}`, 20, 60);
+    // Título igual aos outros
+    doc.setFontSize(14);
+    doc.text(`LAUDO: PARASITOLOGIA`, 105, 88, {align:'center'});
 
-    // Adicionado o padrão de data aqui também
+    // Conteúdo (Resultado)
+    doc.setFontSize(12);
+    doc.text("RESULTADO:", 20, 100);
+    doc.text(document.getElementById('p_resultado').value, 20, 110);
+
     const dataAtual = new Date().toISOString().split('T')[0];
     doc.save(`${p.nome} - Parasitologia - ${dataAtual}.pdf`);
 }
