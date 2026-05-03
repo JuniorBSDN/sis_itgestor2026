@@ -1,0 +1,83 @@
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+    let player;
+    let user = { nome: '', cpf: '' };
+    // Definimos a URL base para evitar erros de caminho
+    const BASE_URL = 'https://sisitgestor2026.vercel.app'; 
+
+    function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function irParaStep(num) {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step-' + num).classList.add('active');
+    }
+
+    function iniciarTreinamento() {
+        user.nome = document.getElementById('nome').value.trim();
+        user.cpf = document.getElementById('cpf').value.replace(/\D/g, '').trim();
+        if(user.nome.length < 3 || user.cpf.length < 11) return alert("Preencha os dados corretamente.");
+        irParaStep(2);
+    }
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '100%', width: '100%',
+            videoId: 'fiz_PP3tdF4',
+            events: {
+                'onStateChange': function(event) {
+                    if (event.data === YT.PlayerState.ENDED) {
+                        irParaStep(3);
+                    }
+                }
+            }
+        });
+    }
+
+    function validarQuiz() {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        if (!q1 || !q2) return alert("Responda todas as perguntas!");
+        if (q1.value === 'wpp' && q2.value === 'sim') {
+            irParaStep(4);
+        } else {
+            alert("Respostas incorretas. Tente novamente.");
+        }
+    }
+
+    async function enviarDados(acao, btn) {
+        const email = document.getElementById('email-certificado').value.trim();
+        if(!email.includes('@')) return alert("E-mail inválido.");
+        btn.disabled = true;
+        
+        try {
+            // Requisição de registro
+            const res = await fetch(`${BASE_URL}/api/registrar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    ...user, 
+                    email, 
+                    curso: 'Treinamento Slacke', 
+                    acao: acao 
+                })
+            });
+
+            if(res.ok) {
+                if(acao === 'download') {
+                    // Correção: encodeURIComponent garante que o espaço no nome do curso não quebre a URL
+                    const urlDownload = `${BASE_URL}/api/certificado_download?cpf=${user.cpf}&nome=${encodeURIComponent(user.nome)}&curso=${encodeURIComponent('Treinamento Slacke')}`;
+                    window.open(urlDownload, '_blank');
+                } else {
+                    alert("Certificado enviado com sucesso!");
+                }
+                window.location.reload();
+            } else {
+                alert("Erro ao registrar no servidor.");
+            }
+        } catch (err) { 
+            alert("Erro de conexão."); 
+            btn.disabled = false; 
+        }
+    }
+</script>
