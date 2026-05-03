@@ -1,9 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treinamento Slacke | Instituto Ímpar</title>
+    <style>
+        :root { --primary: #2eb67d; --success: #28a745; --danger: #dc3545; --bg: #f4f7f6; --text: #333; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        body { background: var(--bg); margin: 0; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 500px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        header { padding: 20px; text-align: center; border-bottom: 2px solid var(--bg); }
+        header img { height: 45px; }
+
+        .content { padding: 25px; }
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        button { width: 100%; padding: 18px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 10px; overflow: hidden; margin: 20px 0; }
+        #player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .quiz-option { display: block; margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; background: #fafafa; }
+        .quiz-option:hover { background: #f0f0f0; }
+
+        /* Estilo do Modal (Importado do seu outro código) */
+        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+        .modal-content { background-color: #1a1a1a; padding: 30px; border: 1px solid var(--primary); width: 90%; max-width: 400px; border-radius: 10px; color: white; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header><img src="https://i.imgur.com/U3RKJBW.png" alt="Instituto Ímpar"></header>
+    <div class="content">
+        <section id="step-1" class="step active">
+            <h2>Identificação</h2>
+            <p>Informe seus dados para iniciar o treinamento do <b>Slacke</b>.</p>
+            <input type="text" id="nome" placeholder="Nome Completo">
+            <input type="tel" id="cpf" placeholder="CPF (apenas números)">
+            <p><small style="color: #888; cursor: pointer;" onclick="abrirModal('modalLGPD')"><u>Política de Dados (LGPD)</u></small></p>
+            <button onclick="iniciarTreinamento()">Acessar Treinamento</button>
+        </section>
+
+        <section id="step-2" class="step">
+            <h2>Treinamento Slacke</h2>
+            <div class="video-container"><div id="player"></div></div>
+            <p style="text-align: center; color: var(--danger);">Assista até o final para liberar o Quiz.</p>
+        </section>
+
+        <section id="step-3" class="step">
+            <h2>Quiz de Fixação</h2>
+            <p><strong>1. O Slacke substitui qual ferramenta?</strong></p>
+            <label class="quiz-option"><input type="radio" name="q1" value="wpp"> WhatsApp</label>
+            <label class="quiz-option"><input type="radio" name="q1" value="errado"> E-mail</label>
+
+            <p><strong>2. O uso do Slacke é obrigatório?</strong></p>
+            <label class="quiz-option"><input type="radio" name="q2" value="sim"> Sim</label>
+            <label class="quiz-option"><input type="radio" name="q2" value="errado"> Não</label>
+
+            <button onclick="validarQuiz()" style="margin-top: 20px;">Enviar Respostas</button>
+        </section>
+
+        <section id="step-4" class="step">
+            <h2 style="color: var(--success);">Parabéns!</h2>
+            <button onclick="abrirModal('modalFinal')">EMITIR CERTIFICADO</button>
+        </section>
+    </div>
+</div>
+
+<div id="modalLGPD" class="modal">
+    <div class="modal-content">
+        <h3 style="color: var(--primary);">Uso de Dados (LGPD)</h3>
+        <p style="font-size: 0.9rem;">Coleta de Nome e CPF para formalização de lista de presença e certificação.</p>
+        <button onclick="fecharModal('modalLGPD')" style="background: var(--primary);">Entendi</button>
+    </div>
+</div>
+
+<div id="modalFinal" class="modal">
+    <div class="modal-content">
+        <h3>Receber Certificado</h3>
+        <input type="email" id="email-certificado" placeholder="seu-email@exemplo.com" style="color: #000;">
+        <button onclick="enviarDados('email', this)">Enviar por E-mail</button>
+        <button onclick="enviarDados('download', this)" style="background: #6c757d; margin-top: 10px;">Baixar agora</button>
+    </div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
     let player;
     let user = { nome: '', cpf: '' };
     // Definimos a URL base para evitar erros de caminho
-    const BASE_URL = 'https://sisitgestor2026.vercel.app'; 
+    const BASE_URL = 'https://sisitgestor2026.vercel.app';
 
     function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
     function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -49,17 +141,17 @@
         const email = document.getElementById('email-certificado').value.trim();
         if(!email.includes('@')) return alert("E-mail inválido.");
         btn.disabled = true;
-        
+
         try {
             // Requisição de registro
             const res = await fetch(`${BASE_URL}/api/registrar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    ...user, 
-                    email, 
-                    curso: 'Treinamento Slacke', 
-                    acao: acao 
+                body: JSON.stringify({
+                    ...user,
+                    email,
+                    curso: 'Treinamento Slacke',
+                    acao: acao
                 })
             });
 
@@ -75,9 +167,11 @@
             } else {
                 alert("Erro ao registrar no servidor.");
             }
-        } catch (err) { 
-            alert("Erro de conexão."); 
-            btn.disabled = false; 
+        } catch (err) {
+            alert("Erro de conexão.");
+            btn.disabled = false;
         }
     }
 </script>
+</body>
+</html>
