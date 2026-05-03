@@ -90,12 +90,11 @@
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
-<script src="https://www.youtube.com/iframe_api"></script>
 <script>
     let player;
     let user = { nome: '', cpf: '' };
     // Definimos a URL base para evitar erros de caminho
-    const BASE_URL = 'https://sisitgestor2026.vercel.app';
+    const BASE_URL = 'https://sisitgestor2026.vercel.app'; 
 
     function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
     function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -141,17 +140,17 @@
         const email = document.getElementById('email-certificado').value.trim();
         if(!email.includes('@')) return alert("E-mail inválido.");
         btn.disabled = true;
-
+        
         try {
             // Requisição de registro
             const res = await fetch(`${BASE_URL}/api/registrar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...user,
-                    email,
-                    curso: 'Treinamento Slacke',
-                    acao: acao
+                body: JSON.stringify({ 
+                    ...user, 
+                    email, 
+                    curso: 'Treinamento Slacke', 
+                    acao: acao 
                 })
             });
 
@@ -167,9 +166,9 @@
             } else {
                 alert("Erro ao registrar no servidor.");
             }
-        } catch (err) {
-            alert("Erro de conexão.");
-            btn.disabled = false;
+        } catch (err) { 
+            alert("Erro de conexão."); 
+            btn.disabled = false; 
         }
     }
 </script>
