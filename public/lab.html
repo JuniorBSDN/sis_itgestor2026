@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGH | Emissor de Laudos HVN</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --primary: #38bdf8; --text: #f1f5f9; --dim: #94a3b8; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
+        .container { max-width: 800px; margin: auto; }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
+        h1 { color: var(--primary); text-align: center; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        h2 { color: var(--primary); font-size: 1rem; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 15px; }
+        .header-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+        .exam-grid { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 10px; align-items: center; margin-bottom: 8px; }
+        label { font-size: 0.75rem; color: var(--dim); display: block; }
+        input { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; width: 100%; box-sizing: border-box; }
+        .btn-main { width: 100%; background: var(--primary); color: #0f172a; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-clear { width: 100%; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-sec { background: #334155; color: #fff; padding: 8px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 0.8rem; margin-top: 10px; }
+        .section-toggle { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .tgl-btn { background: #334155; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
+        .tgl-btn.active { background: var(--primary); color: #0f172a; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>sisLab-HMV V1.0</h1>
+
+    <div class="card">
+        <p>Responsável Técnico: Jessyca Soeiro Palheta - Biomédica /CRBM 4244</p>
+        <h2>Identificação do Paciente</h2>
+        <div class="header-grid">
+            <div><label>Nome</label><input type="text" id="p_nome"></div>
+            <div><label>Idade</label><input type="number" id="p_idade"></div>
+            <div><label>Protocolo</label><input type="text" id="p_prot"></div>
+            <div><label>Solicitante</label><input type="text" id="p_solicitante"></div>
+            <div><label>Procedência</label><input type="text" id="p_proced"></div>
+            <div><label>Data</label><input type="date" id="p_data"></div>
+        </div>
+    </div>
+
+    <div class="section-toggle">
+        <button class="tgl-btn active" id="btn_h" onclick="toggleSec('sec_hemo', 'btn_h')">HEMOGRAMA</button>
+        <button class="tgl-btn" id="btn_u" onclick="toggleSec('sec_uri', 'btn_u')">URINÁLISE</button>
+        <button class="tgl-btn" id="btn_p" onclick="toggleSec('sec_para', 'btn_p')">PARASITOLOGIA</button>
+    </div>
+
+    <div id="sec_hemo" class="card">
+        <h2>Hemograma Completo</h2>
+        <div id="hemo_container"></div>
+        <button class="btn-sec" onclick="gerarIndividual('Hemograma', schemaHemo)">IMPRIMIR HEMOGRAMA</button>
+    </div>
+
+    <div id="sec_uri" class="card hidden">
+        <h2>EAS - Urinálise</h2>
+        <div id="uri_container"></div>
+        <button class="btn-sec" onclick="gerarIndividual('Urinálise', schemaUri)">IMPRIMIR URINÁLISE</button>
+    </div>
+
+    <div id="sec_para" class="card hidden">
+        <h2>Exame Parasitológico</h2>
+        <div class="exam-grid">
+            <span>Resultado:</span>
+            <input type="text" id="p_resultado" placeholder="Ex: Negativo">
+        </div>
+        <button class="btn-sec" onclick="gerarPara()">IMPRIMIR PARASITOLOGIA</button>
+    </div>
+
+    <button class="btn-main" onclick="imprimirTudo()">GERAR TODOS OS EXAMES PREENCHIDOS</button>
+    <button class="btn-clear" onclick="limparFormulario()">NOVO ATENDIMENTO (LIMPAR)</button>
+</div>
+
+<script>
+    const { jsPDF } = window.jspdf;
+
+    // Schemas (mantidos conforme solicitado)
+    const schemaHemo = [
+        { cat: 'SÉRIE VERMELHA', label: 'Hemácias', id: 'h_hem',unit: 'M/mm³', ref: '4.3 - 5.9 M/mm³' },
+        { cat: '', label: 'Hemoglobina', id: 'h_hb',unit: 'g/dL', ref: '13.9 - 16.3 g/dL' },
+        { cat: '', label: 'Hematócrito', id: 'h_ht',unit: '%', ref: '39 - 55 %' },
+        { cat: '', label: 'VCM', id: 'h_vcm',unit: 'fL', ref: '80 - 100 fL' },
+        { cat: '', label: 'HCM', id: 'h_hcm',unit: 'pg', ref: '25.4 - 34.6 pg' },
+        { cat: '', label: 'CHCM', id: 'h_chcm',unit: 'g/dL', ref: '31 - 37 g/dL' },
+        { cat: '', label: 'RDW', id: 'h_rdw',unit: '%', ref: '11 - 14.8 %' },
+        { cat: 'SÉRIE BRANCA', label: 'Leucócitos', id: 'h_leu', ref: '4.5k - 11k /mm³' },
+        { cat: '', label: 'Eosinófilos', id: 'h_eosi',unit: '%', ref: '0 - 7 %' },
+        { cat: '', label: 'Linfócitos', id: 'h_linf', unit: '%', ref: '25 - 45 %' },
+        { cat: '', label: 'Segmentados', id: 'h_segm',unit: '%', ref: '30 - 60 %' },
+        { cat: '', label: 'Monócitos', id: 'h_mono',unit: '%', ref: '0 - 12 %' },
+        { cat: '', label: 'Bastões', id: 'h_bast',unit: '%', ref: '1 - 5 %' },
+        { cat: '', label: 'Basófilos', id: 'h_baso',unit: '%', ref: '0 - 2 %' },
+        { cat: 'PLAQUETOGRAMA', label: 'Plaquetas', id: 'h_plaq', ref: '135k - 440k /mm³' },
+        { cat: '', label: 'VPM', id: 'h_vpm',unit: 'fL', ref: '6.5 - 12.0 fL' },
+        { cat: '', label: 'PDW', id: 'h_pdw',unit: 'fL', ref: '9.0 - 17.0 fL' },
+        { cat: '', label: 'PCT', id: 'h_pct',unit: 'mL/L', ref: '1.08 - 2.82 mL/L' },
+        { cat: 'BIOQUÍMICA', label: 'Proteína C', id: 'h_pcr', ref: '< 200 mg/dL' },
+        { cat: '', label: 'Glicose', id: 'h_glic',unit: 'mg/dL', ref: '70 - 99 mg/dL' },
+        { cat: '', label: 'Ureia', id: 'h_urei',unit: 'mg/dL', ref: '15 - 40 mg/dL' },
+        { cat: '', label: 'Creatinina', id: 'h_crea',unit: 'mg/dL', ref: '0.5 - 1.6 mg/dL' }
+    ];
+
+    const schemaUri = [
+        { cat: 'FÍSICO', label: 'Densidade', id: 'u_den', unit: 'g/cm³', ref: '1.010 - 1.025' },
+        { cat: '', label: 'pH', id: 'u_ph', unit: '', ref: '5.0 - 8.0' },
+        { cat: 'QUÍMICO', label: 'Proteína', id: 'u_prot', unit: 'mg/dL', ref: 'Ausência' },
+        { cat: '', label: 'Glicose', id: 'u_glic', unit: 'mg/dL', ref: 'Ausência' },
+        { cat: '', label: 'Bilirrubina', id: 'u_bili', unit: 'mg/dL', ref: 'Ausência' },
+        { cat: '', label: 'Urobilinogênio', id: 'u_urob', unit: 'mg/dL', ref: 'Ausência' },
+        { cat: '', label: 'Cetona', id: 'u_ceto', unit: 'mg/dL', ref: 'Ausência' },
+        { cat: '', label: 'Nitrito', id: 'u_nitr', unit: '', ref: 'Não reagente' },
+        { cat: 'SEDIMENTO', label: 'Leucócitos', id: 'u_leu', unit: '/campo', ref: 'Até 5/campo' },
+        { cat: '', label: 'Hemácias', id: 'u_hem', unit: '/campo', ref: 'Inferior a 5' },
+        { cat: '', label: 'Células', id: 'u_cel', unit: '', ref: 'Raras/campo' },
+        { cat: '', label: 'Leveduras', id: 'u_lev', unit: '', ref: 'Ausente' },
+        { cat: '', label: 'Cristais', id: 'u_cris', unit: '', ref: 'Ausente' },
+        { cat: '', label: 'Bactérias', id: 'u_bact', unit: '', ref: 'Ausente' },
+        { cat: '', label: 'Muco', id: 'u_muco', unit: '', ref: 'Ausente' }
+    ];
+
+    function render(schema, containerId) {
+        const cont = document.getElementById(containerId);
+        schema.forEach(item => {
+            if(item.cat) cont.innerHTML += `<div style="margin-top:10px; font-weight:bold; color:var(--primary); font-size:0.8rem">${item.cat}</div>`;
+            // Adicionado placeholder com a unidade
+            const placeholder = item.unit ? `(${item.unit})` : '';
+            cont.innerHTML += `<div class="exam-grid">
+                <span>${item.label}</span>
+                <input type="text" id="${item.id}" placeholder="${placeholder}">
+                <span style="font-size:0.7rem; color:#94a3b8">${item.ref}</span>
+            </div>`;
+        });
+    }
+
+    render(schemaHemo, 'hemo_container');
+    render(schemaUri, 'uri_container');
+
+    function limparFormulario() {
+        document.querySelectorAll('input').forEach(i => i.value = '');
+        document.getElementById('p_data').valueAsDate = new Date(); // Reset data para hoje
+    }
+
+    function toggleSec(id, btnId) {
+        document.querySelectorAll('.tgl-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(btnId).classList.add('active');
+        ['sec_hemo', 'sec_uri', 'sec_para'].forEach(s => document.getElementById(s).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function getP() {
+        return {
+            nome: document.getElementById('p_nome').value.trim() || "Paciente_Sem_Nome",
+            idade: document.getElementById('p_idade').value,
+            prot: document.getElementById('p_prot').value,
+            solic: document.getElementById('p_solicitante').value,
+            proced: document.getElementById('p_proced').value,
+            data: document.getElementById('p_data').value
+        };
+    }
+
+    function temDados(schema) {
+        return schema.some(item => document.getElementById(item.id).value.trim() !== "");
+    }
+
+    function gerarPDF(titulo, schema, p) {
+       const doc = new jsPDF();
+        doc.setFont('Courier');
+
+        // Cabeçalho ajustado e espaçado (y aumenta conforme a linha)
+        doc.setFontSize(14);
+        doc.text("HOSPITAL MUNICIPAL DE VIGIA DE NAZARÉ", 105, 20, {align:'center'});
+        doc.setFontSize(10);
+    doc.text("LABORATÓRIO - RESULTADO DE EXAMES", 105, 26, {align:'center'});
+    doc.text("CNPJ: 11.672.396/0001-30 | CNES: 2314002", 105, 31, {align:'center'});
+    doc.text("Av. Barão do Guajará, s/n | Castanheira", 105, 36, {align:'center'});
+    doc.text("Vigia de Nazaré - PA | CEP: 68780-000", 105, 41, {align:'center'});
+    doc.text("Responsável Técnico: Jessyca Soeiro Palheta - Biomédica /CRBM 4244", 105, 46, {align:'center'});
+
+    // Corpo do laudo
+    doc.setFontSize(12); // Fonte 12 aplicada aqui
+    doc.text(`PACIENTE: ${p.nome.toUpperCase()} | IDADE: ${p.idade}`, 20, 60);
+    doc.text(`PROTOCOLO: ${p.prot} | SOLICITANTE: ${p.solic}`, 20, 67);
+    doc.text(`DATA: ${p.data}`, 20, 74);
+
+    doc.setFontSize(14); // Título do exame um pouco maior
+    doc.text(`LAUDO: ${titulo.toUpperCase()}`, 105, 88, {align:'center'});
+
+    doc.setFontSize(12);
+    let y = 100;
+    schema.forEach(item => {
+        const val = document.getElementById(item.id).value.trim();
+        const unit = item.unit ? item.unit : ""; // Pega a unidade definida no schema
+        const resultadoFinal = val ? `${val} ${unit}` : "---"; // Junta valor + unidade
+
+        // Imprime alinhado: Item | Resultado | Referência
+        doc.text(`${item.label}`, 20, y);
+        doc.text(`${resultadoFinal}`, 90, y); // Resultado com unidade na coluna 90
+        doc.text(`${item.ref}`, 140, y);      // Referência na coluna 140
+
+        y += 7;
+    });
+
+    const dataAtual = new Date().toISOString().split('T')[0];
+    doc.save(`${p.nome} - ${titulo} - ${dataAtual}.pdf`);
+}
+
+// Adicione esta função para que os botões individuais funcionem
+function gerarIndividual(titulo, schema) {
+    const p = getP();
+    gerarPDF(titulo, schema, p);
+}
+
+function gerarPara() {
+    const p = getP();
+    const doc = new jsPDF();
+    doc.setFont('Courier');
+
+    doc.setFontSize(14);
+    doc.text("HOSPITAL MUNICIPAL DE VIGIA DE NAZARÉ", 105, 20, {align:'center'});
+    doc.setFontSize(12);
+    doc.text("LAUDO: PARASITOLOGIA", 105, 35, {align:'center'});
+
+    doc.text(`PACIENTE: ${p.nome.toUpperCase()}`, 20, 50);
+    doc.text(`RESULTADO: ${document.getElementById('p_resultado').value}`, 20, 60);
+
+    // Adicionado o padrão de data aqui também
+    const dataAtual = new Date().toISOString().split('T')[0];
+    doc.save(`${p.nome} - Parasitologia - ${dataAtual}.pdf`);
+}
+
+    function imprimirTudo() {
+        const p = getP();
+        let delay = 0;
+        let gerouAlgum = false;
+
+        if (temDados(schemaHemo)) {
+            gerarPDF('Hemograma', schemaHemo, p);
+            delay += 500;
+            gerouAlgum = true;
+        }
+
+        if (temDados(schemaUri)) {
+            setTimeout(() => gerarPDF('Urinálise', schemaUri, p), delay);
+            delay += 500;
+            gerouAlgum = true;
+        }
+
+        if (document.getElementById('p_resultado').value.trim() !== "") {
+            setTimeout(() => gerarPara(), delay);
+            gerouAlgum = true;
+        }
+
+        if(gerouAlgum) {
+            // Limpa automaticamente após 1.5s (dá tempo do navegador processar os downloads)
+            setTimeout(() => limparFormulario(), 1500);
+        }
+    }
+
+    document.getElementById('p_data').valueAsDate = new Date();
+</script>
+</body>
+</html>
