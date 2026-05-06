@@ -56,38 +56,40 @@
 
     const configs = [
         { title: 'HEMOGRAMA', id: 'hemo', fields: [
-            {n:'Hemácias', r:'3.5-6.0', u:'10⁶/µL', g:'ERITROGRAMA'},
+            {n:'Hemácias', r:'3.5-6.0', u:'10^6/uL', g:'ERITROGRAMA'},
             {n:'Hemoglobina', r:'11-17.5', u:'g/dL', g:'ERITROGRAMA'},
             {n:'Hematócrito', r:'35-54', u:'%', g:'ERITROGRAMA'},
             {n:'VCM', r:'80-100', u:'fL', g:'ERITROGRAMA'},
             {n:'HCM', r:'26-34', u:'pg', g:'ERITROGRAMA'},
             {n:'CHCM', r:'31-36', u:'g/dL', g:'ERITROGRAMA'},
             {n:'RDW', r:'11-16', u:'%', g:'ERITROGRAMA'},
-            {n:'Leucócitos', r:'3.5-10', u:'10³/µL', g:'LEUCOGRAMA'},
+            {n:'Leucócitos', r:'3.5-10', u:'10^3/uL', g:'LEUCOGRAMA'},
             {n:'Bastões', r:'1-5', u:'%', g:'LEUCOGRAMA'},
             {n:'Segmentados', r:'50-60', u:'%', g:'LEUCOGRAMA'},
             {n:'Eosinófilos', r:'1-4', u:'%', g:'LEUCOGRAMA'},
             {n:'Linfócitos', r:'20-40', u:'%', g:'LEUCOGRAMA'},
             {n:'Monócitos', r:'2-8', u:'%', g:'LEUCOGRAMA'},
-            {n:'Plaquetas', r:'150-350', u:'10³/µL', g:'PLAQUETOGRAMA'},
+            {n:'Plaquetas', r:'150-350', u:'10^3/uL', g:'PLAQUETOGRAMA'},
             {n:'VPM', r:'6.5-12', u:'fL', g:'PLAQUETOGRAMA'},
             {n:'PDW', r:'9-17', u:'%', g:'PLAQUETOGRAMA'},
             {n:'PCT', r:'0.10-0.28', u:'%', g:'PLAQUETOGRAMA'}
-        ]},
+]},
         { title: 'COAGULOGRAMA', id: 'coag', fields: [
-            {n:'TAP (Atividade)', r:'70-100', u:'%', g:'COAGULAÇÃO'},
-            {n:'RNI', r:'0.8-1.2', u:'', g:'COAGULAÇÃO'},
-            {n:'TTPA', r:'25-35', u:'s', g:'COAGULAÇÃO'},
-            {n:'Fibrinogênio', r:'200-400', u:'mg/dL', g:'COAGULAÇÃO'}
+            {n:'Tempo de Sagria:', r:'', u:'', g:'COAGULAÇÃO'},
+            {n:'Prova do laço', r:'', u:'', g:'COAGULAÇÃO'},
+            {n:'Tempo de coagulação', r:'', u:'', g:'COAGULAÇÃO'},
+            {n:'Cont. de Plaquetas', r:'', u:'', g:'COAGULAÇÃO'}
         ]},
         { title: 'BIOQUÍMICA', id: 'bio', fields: [
             {n:'Glicose', r:'80-99', u:'mg/dL', g:'METABOLISMO'},
             {n:'Ureia', r:'15-40', u:'mg/dL', g:'METABOLISMO'},
             {n:'Creatinina', r:'0.5-1.6', u:'mg/dL', g:'METABOLISMO'},
             {n:'Ácido Úrico', r:'2.4-7.0', u:'mg/dL', g:'METABOLISMO'},
-            {n:'Colesterol Total', r:'≤ 200', u:'mg/dL', g:'LIPIDOGRAMA'},
-            {n:'Colesterol HDL', r:'≥ 60', u:'mg/dL', g:'LIPIDOGRAMA'},
-            {n:'Triglicerídeos', r:'≤ 150', u:'mg/dL', g:'LIPIDOGRAMA'},
+
+            {n:'Colesterol Total', r:'<= 200', u:'mg/dL', g:'LIPIDOGRAMA'},
+            {n:'Colesterol HDL', r:'>= 60', u:'mg/dL', g:'LIPIDOGRAMA'},
+            {n:'Triglicerídeos', r:'<= 150', u:'mg/dL', g:'LIPIDOGRAMA'},
+
             {n:'TGO', r:'10-37', u:'U/L', g:'ENZIMAS'},
             {n:'TGP', r:'10-39', u:'U/L', g:'ENZIMAS'},
             {n:'Bilirrubina Total', r:'0.2-1.0', u:'mg/dL', g:'ENZIMAS'},
@@ -97,12 +99,12 @@
             {n:'Amilase', r:'25-125', u:'U/L', g:'ENZIMAS'},
             {n:'Lipase', r:'7-60', u:'U/L', g:'ENZIMAS'},
             {n:'Proteínas Totais', r:'6.0-8.3', u:'g/dL', g:'ENZIMAS'},
-            {n:'CKMB', r:'≤ 25', u:'U/L', g:'ENZIMAS'},
+            {n:'CKMB', r:'<= 25', u:'U/L', g:'ENZIMAS'},
         ]},
         { title: 'IMUNOLOGIA', id: 'imuno', fields: [
-            {n:'Proteína C Reativa', r:'≤ 6', u:'mg/L', g:'IMUNOLOGIA'},
-            {n:'Anti-Estreptolisina', r:'≤ 200', u:'UI/mL', g:'IMUNOLOGIA'},
-            {n:'Fator Reumatoide', r:'≤ 8', u:'UI/mL', g:'IMUNOLOGIA'},
+            {n:'Proteína C Reativa', r:'<= 6', u:'mg/L', g:'IMUNOLOGIA'},
+            {n:'Anti-Estreptolisina', r:'<= 200', u:'UI/mL', g:'IMUNOLOGIA'},
+            {n:'Fator Reumatoide', r:'<= 8', u:'UI/mL', g:'IMUNOLOGIA'},
             {n:'HIV', r:'Não Reagente', u:'', g:'SOROLOGIA'},
             {n:'VDRL', r:'Não Reagente', u:'', g:'SOROLOGIA'},
             {n:'HBsAg', r:'Não Reagente', u:'', g:'SOROLOGIA'},
@@ -119,9 +121,9 @@
             {n:'Troponina', r:'Negativo', u:'', g:'SOROLOGIA'},
         ]},
         { title: 'B.A.A.R.', id: 'baar', fields: [
-            {n:'Método', r:'Ziehl-Neelsen', u:'', g:'PESQUISA'},
-            {n:'Resultado', r:'Negativo', u:'', g:'PESQUISA'},
-            {n:'Aspecto', r:'-', u:'', g:'PESQUISA'}
+            {n:'Amostra', r:'', u:'', g:'PESQUISA'},
+            {n:'resultado(1ª):', r:'', u:'', g:'PESQUISA'},
+            {n:'resultado(2ª):', r:'', u:'', g:'PESQUISA'}
         ]},
         { title: 'URINÁLISE', id: 'uri', fields: [
             {n:'Cor', r:'Amarelo', u:'', g:'CARACTERÍSTICAS FÍSICAS'},
@@ -223,15 +225,23 @@
         doc.line(margemEsquerda, 55, margemDireita, 55);
     }
 
-    function montarRodape(doc) {
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
-        doc.line(30, 260, 90, 260);
-        doc.text(document.getElementById('p_plantonista').value || "Resp. Plantonista", 60, 266, {align: 'center'});
-        doc.line(120, 260, 180, 260);
-        doc.text("Jéssica Soeiro Palheta", 150, 266, {align: 'center'});
-        doc.text("Responsável Técnica - CRBM 4244", 150, 273, {align: 'center'});
-    }
+    // Substitua o seu montarRodape por este:
+async function montarRodape(doc) {
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    // Linha do Plantonista
+    doc.line(30, 260, 90, 260);
+    doc.text(document.getElementById('p_plantonista').value || "Resp. Plantonista", 60, 266, {align: 'center'});
+
+    // ASSINATURA: Use o código Base64 aqui
+    const imgData = 'https://i.imgur.com/ztukv2M_d.jpeg?maxwidth=520&shape=thumb&fidelity=high';
+
+    // Adiciona a imagem (formato, x, y, largura, altura)
+    // O PDF aceita 'JPEG' ou 'PNG' dependendo da sua imagem
+    doc.addImage(imgData, 'JPEG', 125, 230, 40, 25);
+
+}
 
     function gerarPDFIndividual(sectionId) {
         const s = configs.find(c => c.id === sectionId);
