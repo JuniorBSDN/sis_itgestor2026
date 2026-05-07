@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmyBIO</title>
+    <title>EmyBIO v.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --bg: #0f172a;
@@ -223,15 +223,25 @@
     function save() { document.querySelectorAll('input, textarea').forEach(e => localStorage.setItem(e.id, e.value)); }
 
     window.onload = () => {
-        document.querySelectorAll('input, textarea').forEach(e => e.value = localStorage.getItem(e.id) || '');
-        const dataInput = document.getElementById('p_data');
-        if (dataInput && !dataInput.value) { dataInput.value = new Date().toISOString().split('T')[0]; }
-        const horaInput = document.getElementById('p_hora');
-        if (horaInput && !horaInput.value) {
-            const now = new Date();
-            horaInput.value = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-        }
-    };
+    // Preenche os inputs com o que está salvo (Nome, Idade, etc)
+    document.querySelectorAll('input, textarea').forEach(e => e.value = localStorage.getItem(e.id) || '');
+
+    // Atualiza a DATA sempre para o dia atual
+    const dataInput = document.getElementById('p_data');
+    if (dataInput) {
+        dataInput.value = new Date().toLocaleDateString('en-CA'); // Formato AAAA-MM-DD
+    }
+
+    // Atualiza a HORA sempre para o momento atual
+    const horaInput = document.getElementById('p_hora');
+    if (horaInput) {
+        const agora = new Date();
+        horaInput.value = agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+    }
+
+    // Salva automaticamente a nova hora e data no localStorage
+    save();
+};
 
     function limparTudo() { if(confirm("Limpar dados?")) { localStorage.clear(); location.reload(); } }
 
