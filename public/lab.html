@@ -247,81 +247,137 @@
 
     function limparTudo() { if(confirm("Limpar dados?")) { localStorage.clear(); location.reload(); } }
 
-// LAUDO UNIFICADO CONSOLIDADO
 async function gerarLaudoConsolidado() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // Configurações de Layout
-    let y = 65; // Início após o cabeçalho
+    // 1. Definição da Imagem (Base64 que você forneceu)
+    const imgData = "data:image/jpeg;base64,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";
+
+    // --- CONFIGURAÇÕES DE LAYOUT ---
+    const margemSuperior = 65;
+    let y = margemSuperior;
     let x = 15;
     const col2X = 110;
     const larguraCol = 85;
-    const limiteY = 230; // Margem de segurança para não invadir a assinatura
+    const limiteY = 240;
     let colunaAtual = 1;
 
-    // 1. Cabeçalho Inicial
-    montarCabecalho(doc);
+    // --- FUNÇÕES DE APOIO ---
+    const montarCabecalhoLocal = (d) => {
+        d.setFont("helvetica", "bold");
+        d.setFontSize(12);
+        d.text("HOSPITAL MUNICIPAL RAIMUNDO VASCONCELOS", 105, 15, { align: "center" });
+        d.setFontSize(10);
+        d.text("LABORATÓRIO DE ANÁLISES CLÍNICAS", 105, 20, { align: "center" });
+        d.setFontSize(8); d.setFont("helvetica", "normal");
+        d.text("CNPJ: 11.672.396/0001-30 | CNES: 2314002", 105, 24, { align: "center" });
+        d.text("End: Av Barão do Guajará, s/n | Castanheira, VIGIA - PA", 105, 28, { align: "center" });
+        d.line(15, 32, 195, 32);
+
+        // Dados do Paciente
+        const nome = (document.getElementById('p_nome').value || "---").toUpperCase();
+        const idade = document.getElementById('p_idade').value || "---";
+        const data = document.getElementById('p_data').value || "---";
+        const protocolo = document.getElementById('p_prot').value || "---";
+        const solicitante = (document.getElementById('p_solicitante').value || "---").toUpperCase();
+        const procedencia = (document.getElementById('p_procedencia').value || "---").toUpperCase();
+        const plantonista = (document.getElementById('p_plantonista').value || "---").toUpperCase();
+
+        d.setFontSize(9); d.setFont("helvetica", "bold");
+        d.text(`Paciente: ${nome}`, 15, 40);
+        d.text(`Idade: ${idade}`, 150, 40);
+        d.text(`Solicitante: ${solicitante}`, 15, 46);
+        d.text(`Protocolo: ${protocolo}`, 150, 46);
+        d.text(`Procedência: ${procedencia}`, 15, 52);
+        d.text(`Data: ${data}`, 150, 52);
+        d.text(`Responsável Plantonista: ${plantonista}`, 15, 58);
+        d.line(15, 61, 195, 61);
+    };
+
+    const aplicarRodapeLocal = (d) => {
+        const yLinha = 265;
+        const xDirCentro = 160;
+
+        // Linha e Nome do Plantonista (Esquerda)
+        d.setDrawColor(0);
+        d.line(20, yLinha, 105, yLinha);
+        const plantonista = (document.getElementById('p_plantonista').value || "EMY").toUpperCase();
+        d.setFontSize(10); d.setFont("helvetica", "bold");
+        d.text(plantonista, 62, yLinha + 6, { align: "center" });
+
+        // --- IMAGEM DA ASSINATURA ---
+        try {
+            // Inserimos a imagem no documento atual
+            d.addImage(imgData, 'JPEG', xDirCentro - 20, yLinha - 22, 40, 25);
+        } catch (e) { console.error("Erro imagem:", e); }
+
+        // Carimbo Técnico (Direita)
+        d.setFontSize(9);
+        d.text("Responsável técnico", xDirCentro, yLinha + 2, { align: "center" });
+        d.setFontSize(8); d.setFont("helvetica", "normal");
+        d.text("Jessyca Soeiro Palheta", xDirCentro, yLinha + 6, { align: "center" });
+        d.text("Biomédica/CRBM 4244", xDirCentro, yLinha + 10, { align: "center" });
+    };
+
+    // --- INÍCIO DA MONTAGEM ---
+    montarCabecalhoLocal(doc);
 
     for (const secao of configs) {
-        // Filtra apenas campos que têm valor preenchido
         const camposComValor = secao.fields.filter(f => {
             const el = document.getElementById(`${secao.id}_${f.n}`);
             return el && el.value && el.value.trim() !== "";
         });
 
         if (camposComValor.length > 0) {
-            // Cálculo de altura: Título (10) + campos (5 cada) + margem final (5)
-            const alturaEstimada = 10 + (camposComValor.length * 5) + 5;
-
-            // Verifica se a seção cabe na coluna/página atual
+            const alturaEstimada = 15 + (camposComValor.length * 5);
             if (y + alturaEstimada > limiteY) {
                 if (colunaAtual === 1) {
-                    colunaAtual = 2;
-                    x = col2X;
-                    y = 65;
+                    colunaAtual = 2; x = col2X; y = margemSuperior;
                 } else {
-                    // Se estiver na segunda coluna e não couber, vai para nova página
-                    await aplicarRodapeComAssinatura(doc);
+                    aplicarRodapeLocal(doc);
                     doc.addPage();
-                    montarCabecalho(doc);
-                    colunaAtual = 1;
-                    x = 15;
-                    y = 65;
+                    montarCabecalhoLocal(doc);
+                    colunaAtual = 1; x = 15; y = margemSuperior;
                 }
             }
 
-            // Desenha Título da Seção (Fundo cinza claro)
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(10);
-            doc.setFillColor(240, 240, 240);
-            doc.rect(x, y, larguraCol, 7, 'F');
+            // Título Seção
+            doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+            doc.setFillColor(235, 235, 235); doc.rect(x, y, larguraCol, 7, 'F');
             doc.text(secao.title.toUpperCase(), x + 2, y + 5);
             y += 10;
 
-            // Listagem dos Exames
-            doc.setFontSize(9);
             camposComValor.forEach(f => {
                 const valor = document.getElementById(`${secao.id}_${f.n}`).value;
-
-                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8); doc.setFont("helvetica", "bold");
                 doc.text(`${f.n}:`, x, y);
-
                 doc.setFont("helvetica", "normal");
-                // Ajuste de posição do valor para não sobrepor o nome do campo
-                doc.text(valor, x + 35, y);
-
+                doc.text(`${valor} ${f.u}`, x + 30, y);
                 y += 5;
             });
-            y += 5; // Espaço extra após terminar uma seção
+            y += 5;
         }
     }
 
-    // Finalização: Aplica o rodapé na última página e salva
-    await aplicarRodapeComAssinatura(doc);
+    // APLICA O RODAPÉ NA ÚLTIMA PÁGINA
+    aplicarRodapeLocal(doc);
 
-    const nomePac = document.getElementById('p_nome').value || "Paciente";
-    doc.save(`LAUDO_CONSOLIDADO_${nomePac.toUpperCase()}.pdf`);
+    // --- O PULO DO GATO: SALVAMENTO SEGURO ---
+    const nomeArquivo = document.getElementById('p_nome').value || "PACIENTE";
+
+    // Pequeno atraso de 300ms para garantir que o jsPDF processou a imagem no buffer
+    setTimeout(() => {
+        doc.save(`LAUDO_CONSOLIDADO_${nomeArquivo.toUpperCase()}.pdf`);
+    }, 300);
+}
+
+
+
+
+    await aplicarRodapeLocal(doc); // AGUARDA O RODAPÉ FINAL
+    const nomeArquivo = document.getElementById('p_nome').value || "PACIENTE";
+    doc.save(`LAUDO_CONSOLIDADO_${nomeArquivo.toUpperCase()}.pdf`);
 }
 
 // Função do Rodapé Corrigida (conforme solicitado anteriormente)
@@ -411,6 +467,7 @@ async function montarRodape(doc) {
         }
     }
 
+    //GERAR PDF INDIVIDUAL
     function gerarPDFIndividual(sectionId) {
         const s = configs.find(c => c.id === sectionId);
         const doc = new jsPDF();
@@ -445,12 +502,12 @@ async function montarRodape(doc) {
         doc.save(`Laudo_${s.title}_${document.getElementById('p_nome').value || 'Paciente'}.pdf`);
     }
 
-    function gerarTodosExames() {
+
     // Filtra apenas os exames que têm conteúdo
+    function gerarTodosExames() {
     const examesComDados = configs.filter(s =>
         s.fields.some(f => document.getElementById(`${s.id}_${f.n}`)?.value !== "")
     );
-
     let i = 0;
 
     // Cria um atraso de 500ms (meio segundo) entre cada download
