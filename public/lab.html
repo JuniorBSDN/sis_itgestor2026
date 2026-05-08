@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmyBIO v.1</title>
+    <title>EmyBIO v.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --bg: #0f172a;
@@ -76,6 +76,7 @@
         <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
         <button class="btn-action" style="background:var(--accent)" onclick="gerarTodosExames()">GERAR TODOS OS LAUDOS</button>
         <button class="btn-action" style="background:var(--danger)" onclick="limparTudo()">NOVO ATENDIMENTO</button>
+        <button class="btn-action" style="background:#6366f1" onclick="gerarLaudoConsolidado()">LAUDO CONSOLIDADO (2 COLUNAS)</button>
         <br>
         <p>ATENÇÃO! Para Suporte imediato, entre em contato com setor de técnologia da informação - T.I pelo numero (91)98325-2639 </p>
     </div>
@@ -164,7 +165,8 @@
             {n:'Teste Sífilis', r:'Negativo', u:'', g:'SOROLOGIA'},
             {n:'Teste DENGUE', r:'Negativo', u:'', g:'SOROLOGIA'},
             {n:'Teste COVID 19', r:'Negativo', u:'', g:'SOROLOGIA'},
-            {n:'Sistema ABO', r:'Negativo', u:'', g:'SOROLOGIA'},
+            {n:'Sistema ABO', r:'', u:'', g:'SOROLOGIA'},
+            {n:'Fator RH', r:'', u:'', g:'SOROLOGIA'},
             {n:'VHS(1Hs)', r:'Negativo', u:'', g:'SOROLOGIA'},
             {n:'Troponina', r:'Negativo', u:'', g:'SOROLOGIA'},
         ]},
@@ -186,13 +188,13 @@
             {n:'Nitrito', r:'Não reagente', u:'', g:'CARACTERÍSTICAS QUÍMICAS'},
             {n:'Hemoglobina', r:'Ausência', u:'', g:'CARACTERÍSTICAS QUÍMICAS'},
             {n:'Leucócitos', r:'Ausência', u:'', g:'CARACTERÍSTICAS QUÍMICAS'},
-            {n:'Células', r:'', u:'Ausência', g:'SEDIMENTOSCOPIA'},
-            {n:'Piócitos', r:'', u:'Ausência', g:'SEDIMENTOSCOPIA'},
-            {n:'Hemácias', r:'', u:'Ausência', g:'SEDIMENTOSCOPIA'},
-            {n:'Cilindros', r:'', u:'Ausência', g:'SEDIMENTOSCOPIA'},
-            {n:'Bactérias', r:'', u:'Ausência', g:'SEDIMENTOSCOPIA'},
-            {n:'Leveduras', r:'', u:'Ausência', g:'SEDIMENTOSCOPIA'},
-            {n:'Cristais', r:'', u:'Ausência', g:'SEDIMENTOSCOPIA'}
+            {n:'Células', r:'Ausência', u:'', g:'SEDIMENTOSCOPIA'},
+            {n:'Piócitos', r:'Ausência', u:'', g:'SEDIMENTOSCOPIA'},
+            {n:'Hemácias', r:'Ausência', u:'', g:'SEDIMENTOSCOPIA'},
+            {n:'Cilindros', r:'Ausência', u:'', g:'SEDIMENTOSCOPIA'},
+            {n:'Bactérias', r:'Ausência', u:'', g:'SEDIMENTOSCOPIA'},
+            {n:'Leveduras', r:'Ausência', u:'', g:'SEDIMENTOSCOPIA'},
+            {n:'Cristais', r:'Ausência', u:'', g:'SEDIMENTOSCOPIA'}
         ]}
     ];
 
@@ -245,6 +247,113 @@
 
     function limparTudo() { if(confirm("Limpar dados?")) { localStorage.clear(); location.reload(); } }
 
+// LAUDO UNIFICADO CONSOLIDADO
+async function gerarLaudoConsolidado() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Configurações de Layout
+    let y = 65; // Início após o cabeçalho
+    let x = 15;
+    const col2X = 110;
+    const larguraCol = 85;
+    const limiteY = 230; // Margem de segurança para não invadir a assinatura
+    let colunaAtual = 1;
+
+    // 1. Cabeçalho Inicial
+    montarCabecalho(doc);
+
+    for (const secao of configs) {
+        // Filtra apenas campos que têm valor preenchido
+        const camposComValor = secao.fields.filter(f => {
+            const el = document.getElementById(`${secao.id}_${f.n}`);
+            return el && el.value && el.value.trim() !== "";
+        });
+
+        if (camposComValor.length > 0) {
+            // Cálculo de altura: Título (10) + campos (5 cada) + margem final (5)
+            const alturaEstimada = 10 + (camposComValor.length * 5) + 5;
+
+            // Verifica se a seção cabe na coluna/página atual
+            if (y + alturaEstimada > limiteY) {
+                if (colunaAtual === 1) {
+                    colunaAtual = 2;
+                    x = col2X;
+                    y = 65;
+                } else {
+                    // Se estiver na segunda coluna e não couber, vai para nova página
+                    await aplicarRodapeComAssinatura(doc);
+                    doc.addPage();
+                    montarCabecalho(doc);
+                    colunaAtual = 1;
+                    x = 15;
+                    y = 65;
+                }
+            }
+
+            // Desenha Título da Seção (Fundo cinza claro)
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setFillColor(240, 240, 240);
+            doc.rect(x, y, larguraCol, 7, 'F');
+            doc.text(secao.title.toUpperCase(), x + 2, y + 5);
+            y += 10;
+
+            // Listagem dos Exames
+            doc.setFontSize(9);
+            camposComValor.forEach(f => {
+                const valor = document.getElementById(`${secao.id}_${f.n}`).value;
+
+                doc.setFont("helvetica", "bold");
+                doc.text(`${f.n}:`, x, y);
+
+                doc.setFont("helvetica", "normal");
+                // Ajuste de posição do valor para não sobrepor o nome do campo
+                doc.text(valor, x + 35, y);
+
+                y += 5;
+            });
+            y += 5; // Espaço extra após terminar uma seção
+        }
+    }
+
+    // Finalização: Aplica o rodapé na última página e salva
+    await aplicarRodapeComAssinatura(doc);
+
+    const nomePac = document.getElementById('p_nome').value || "Paciente";
+    doc.save(`LAUDO_CONSOLIDADO_${nomePac.toUpperCase()}.pdf`);
+}
+
+// Função do Rodapé Corrigida (conforme solicitado anteriormente)
+async function aplicarRodapeComAssinatura(doc) {
+    // Substitua pelo seu Base64 completo da imagem
+    const imgData = 'data:image/jpeg;base64,...';
+
+    try {
+        // 1. Imagem da Assinatura
+        doc.addImage(imgData, 'JPEG', 75, 235, 60, 20);
+
+        // 2. Linha do Plantonista
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.5);
+        doc.line(60, 260, 150, 260);
+
+        // 3. Nome do Plantonista
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        const plantonista = document.getElementById('p_plantonista').value || "Responsável Técnico";
+        doc.text(plantonista.toUpperCase(), 105, 266, { align: 'center' });
+
+        // 4. Rodapé do Sistema
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(100);
+        doc.text("Página gerada pelo sistema EmyBIO", 105, 285, { align: 'center' });
+        doc.setTextColor(0);
+    } catch (e) {
+        console.error("Erro ao aplicar assinatura: ", e);
+    }
+}
     // --- FUNÇÕES PDF PROFISSIONAL ---
 
     function montarCabecalho(doc) {
