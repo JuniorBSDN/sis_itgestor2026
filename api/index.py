@@ -32,37 +32,47 @@ db = firestore.client()
 
 # --- MÓDULO: OUVIDORIA HOSPITALAR (TOTEM & DASHBOARD) ---
 
+# Nome da Coleção no Firestore
 COLECAO_AVALIACOES = "avaliacoes"
 
-# Rotas Web para servir os arquivos que estão no seu repositório
+
+# --- MÓDULO: ROTAS DE RENDERIZAÇÃO WEB (FRONT-END NATIVO) ---
+
 @app.route('/totem')
 def abrir_totem():
-    """Acessível via http://localhost:5000/totem"""
+    """Entrega o Totem de Ouvidoria de forma nativa"""
     return render_template('feed.html')
 
 @app.route('/admin')
 def abrir_admin():
-    """Acessível via http://localhost:5000/admin"""
+    """Entrega o Painel Administrativo de forma nativa"""
     return render_template('feedAdmin.html')
 
 
+# --- MÓDULO: API DE OUVIDORIA HOSPITALAR ---
+
 @app.route('/api/avaliacoes', methods=['POST'])
 def salvar_avaliacao():
+    """Recebe e valida os votos vindos do Totem (feed.html)"""
     try:
         dados = request.get_json()
+        if not dados:
+            return jsonify({"status": "erro", "mensagem": "Dados ausentes"}), 400
+            
         agora = datetime.now(TZ_PA)
         
+        # Montagem rigorosa do Payload para o Firestore
         payload = {
-            "setor": str(dados.get("setor")),
-            "nota": int(dados.get("nota")),
-            "rotulo_nota": str(dados.get("rotulo_nota")),
+            "setor": str(dados.get("setor", "Não Informado")),
+            "nota": int(dados.get("nota", 0)),
+            "rotulo_nota": str(dados.get("rotulo_nota", "Sem Rótulo")),
             "motivos": list(dados.get("motivos", [])),
             "timestamp": agora.isoformat(),
             "data_busca": agora.strftime("%Y-%m-%d")
         }
         
         db.collection(COLECAO_AVALIACOES).add(payload)
-        return jsonify({"status": "sucesso", "mensagem": "Avaliação salva com sucesso."}), 201
+        return jsonify({"status": "sucesso", "mensagem": "Avaliação registrada."}), 201
         
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 400
@@ -70,6 +80,7 @@ def salvar_avaliacao():
 
 @app.route('/api/indicadores', methods=['GET'])
 def buscar_indicadores():
+    """Calcula e agrupa métricas em tempo real para o Painel (feedAdmin.html)"""
     try:
         docs = db.collection(COLECAO_AVALIACOES).stream()
         
@@ -77,7 +88,7 @@ def buscar_indicadores():
         soma_notas = 0
         distribuicao_notas = {"Péssimo": 0, "Ruim": 0, "Regular": 0, "Bom": 0, "Excelente": 0}
         
-        # Setores pré-definidos para evitar erros no gráfico se o banco iniciar vazio
+        # Estrutura base dos setores hospitalares recomendados
         setores = {
             "Pronto Atendimento": {"soma": 0, "votos": 0, "media": 0},
             "Ambulatório": {"soma": 0, "votos": 0, "media": 0},
@@ -97,12 +108,13 @@ def buscar_indicadores():
             if rotulo in distribuicao_notas:
                 distribuicao_notas[rotulo] += 1
                 
-            if setor not in setores:
-                setores[setor] = {"soma": 0, "votos": 0, "media": 0}
-            
-            setores[setor]["votos"] += 1
-            setores[setor]["soma"] += nota
+            if setor:
+                if setor not in setores:
+                    setores[setor] = {"soma": 0, "votos": 0, "media": 0}
+                setores[setor]["votos"] += 1
+                setores[setor]["soma"] += nota
 
+        # Cálculo preciso das médias por setor
         for s in setores:
             if setores[s]["votos"] > 0:
                 setores[s]["media"] = round(setores[s]["soma"] / setores[s]["votos"], 2)
