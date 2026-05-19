@@ -30,22 +30,19 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 
-# --- MÓDULO: OUVIDORIA HOSPITALAR (TOTEM & DASHBOARD) ---
-
-# Nome da Coleção no Firestore
 COLECAO_AVALIACOES = "avaliacoes"
 
 
-# --- MÓDULO: ROTAS DE RENDERIZAÇÃO WEB (FRONT-END NATIVO) ---
+# --- MÓDULO: ROTAS DE RENDERIZAÇÃO WEB (PÁGINAS DENTRO DE /public) ---
 
 @app.route('/totem')
 def abrir_totem():
-    """Entrega o Totem de Ouvidoria de forma nativa"""
+    """Entrega o Totem de Ouvidoria puxado direto da pasta /public"""
     return render_template('feed.html')
 
 @app.route('/admin')
 def abrir_admin():
-    """Entrega o Painel Administrativo de forma nativa"""
+    """Entrega o Painel Administrativo puxado direto da pasta /public"""
     return render_template('feedAdmin.html')
 
 
@@ -53,7 +50,6 @@ def abrir_admin():
 
 @app.route('/api/avaliacoes', methods=['POST'])
 def salvar_avaliacao():
-    """Recebe e valida os votos vindos do Totem (feed.html)"""
     try:
         dados = request.get_json()
         if not dados:
@@ -61,7 +57,6 @@ def salvar_avaliacao():
             
         agora = datetime.now(TZ_PA)
         
-        # Montagem rigorosa do Payload para o Firestore
         payload = {
             "setor": str(dados.get("setor", "Não Informado")),
             "nota": int(dados.get("nota", 0)),
@@ -80,7 +75,6 @@ def salvar_avaliacao():
 
 @app.route('/api/indicadores', methods=['GET'])
 def buscar_indicadores():
-    """Calcula e agrupa métricas em tempo real para o Painel (feedAdmin.html)"""
     try:
         docs = db.collection(COLECAO_AVALIACOES).stream()
         
@@ -88,7 +82,6 @@ def buscar_indicadores():
         soma_notas = 0
         distribuicao_notas = {"Péssimo": 0, "Ruim": 0, "Regular": 0, "Bom": 0, "Excelente": 0}
         
-        # Estrutura base dos setores hospitalares recomendados
         setores = {
             "Pronto Atendimento": {"soma": 0, "votos": 0, "media": 0},
             "Ambulatório": {"soma": 0, "votos": 0, "media": 0},
@@ -114,7 +107,6 @@ def buscar_indicadores():
                 setores[setor]["votos"] += 1
                 setores[setor]["soma"] += nota
 
-        # Cálculo preciso das médias por setor
         for s in setores:
             if setores[s]["votos"] > 0:
                 setores[s]["media"] = round(setores[s]["soma"] / setores[s]["votos"], 2)
