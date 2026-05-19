@@ -13,7 +13,7 @@
         <div>
             <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-500 font-bold mb-1">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                Sincronizado com API Python & Firestore
+                Sincronizado em Tempo Real via Firestore
             </div>
             <h1 class="text-3xl font-black text-white tracking-tight">Análise de Satisfação Hospitalar</h1>
         </div>
@@ -29,7 +29,7 @@
                 <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Média de Satisfação</div>
                 <div id="kpi-media" class="text-4xl font-black text-cyan-400 mt-2">0.0 / 5.0</div>
             </div>
-            <div id="card-alerta" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl transition-all">
+            <div id="card-alerta" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
                 <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Status Operacional</div>
                 <div id="kpi-status" class="text-xl font-bold text-emerald-400 mt-3">Todos os setores estáveis</div>
             </div>
@@ -38,26 +38,18 @@
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
                 <h3 class="text-lg font-bold text-white mb-4">Volume de Notas por Classificação</h3>
-                <div class="relative h-64 w-full">
-                    <canvas id="graficoNotas"></canvas>
-                </div>
+                <div class="h-64 relative"><canvas id="graficoLinhaSatisfacao"></canvas></div>
             </div>
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
-                <h3 class="text-lg font-bold text-white mb-4">Média por Setor Hospitalar</h3>
-                <div class="relative h-64 w-full">
-                    <canvas id="graficoSetores"></canvas>
-                </div>
+                <h3 class="text-lg font-bold text-white mb-4">Média por Setor</h3>
+                <div class="h-64 relative"><canvas id="graficoBarrasSetor"></canvas></div>
             </div>
         </section>
     </main>
 
     <script>
-        // Endpoint relativo apontando para a API Python unificada
         const URL_API_GET = "/api/indicadores";
-        
-        // Configuração global de estilo do Chart.js para combinar com o tema Matrix/Ciano
         Chart.defaults.color = '#64748b';
-        Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif';
 
         let chartNotas = null;
         let chartSetores = null;
@@ -65,101 +57,64 @@
         async function carregarDashboard() {
             try {
                 const res = await fetch(URL_API_GET);
-                if (!res.ok) throw new Error("Falha ao buscar indicadores");
-                
+                if (!res.ok) throw new Error("Erro na requisição");
                 const dados = await res.json();
 
-                // 1. Atualiza os cards estáticos
                 document.getElementById('kpi-total').innerText = dados.total_votos || 0;
                 document.getElementById('kpi-media').innerText = (dados.media_geral ? dados.media_geral.toFixed(1) : "0.0") + " / 5.0";
 
-                // 2. Sistema de Alerta Operacional Automático
-                const boxAlerta = document.getElementById('card-alerta');
-                const txtAlerta = document.getElementById('kpi-status');
-                let temSetorCritico = false;
-
+                // Atualização de alertas operacionais
                 if (dados.setores) {
-                    for (const setor in dados.setores) {
-                        const s = dados.setores[setor];
-                        if (s.votos > 0 && s.media < 3.0) {
-                            boxAlerta.className = "bg-red-950/40 border border-red-900 p-6 rounded-2xl shadow-xl transition-all";
-                            txtAlerta.className = "text-xl font-bold text-red-400 mt-3";
-                            txtAlerta.innerText = `Atenção Crítica: ${setor}`;
-                            temSetorCritico = true;
-                            break;
-                        }
+                    const setoresCriticos = Object.keys(dados.setores).filter(s => dados.setores[s].votos > 0 && dados.setores[s].media < 3.0);
+                    const box = document.getElementById('card-alerta');
+                    const txt = document.getElementById('kpi-status');
+                    if (setoresCriticos.length > 0) {
+                        box.className = "bg-red-950/40 border border-red-900 p-6 rounded-2xl shadow-xl";
+                        txt.className = "text-xl font-bold text-red-400 mt-3";
+                        txt.innerText = `Atenção no ${setoresCriticos[0]}`;
+                    } else {
+                        box.className = "bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl";
+                        txt.className = "text-xl font-bold text-emerald-400 mt-3";
+                        txt.innerText = "Todos os setores estáveis";
                     }
                 }
 
-                if (!temSetorCritico) {
-                    boxAlerta.className = "bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl transition-all";
-                    txtAlerta.className = "text-xl font-bold text-emerald-400 mt-3";
-                    txtAlerta.innerText = "Todos os setores estáveis";
-                }
-
-                // 3. Renderização Dinâmica do Gráfico de Classificação de Votos
-                const ctxNotas = document.getElementById('graficoNotas').getContext('2d');
+                // Gráfico 1: Distribuição de notas
+                const ctxNotas = document.getElementById('graficoLinhaSatisfacao').getContext('2d');
                 const labelsNotas = ["Péssimo", "Ruim", "Regular", "Bom", "Excelente"];
-                const valoresNotas = labelsNotas.map(label => dados.distribuicao_notas?.[label] || 0);
+                const valoresNotas = labelsNotas.map(l => dados.distribuicao_notas?.[l] || 0);
 
-                if (chartNotas) chartNotas.destroy();
+                if(chartNotas) chartNotas.destroy();
                 chartNotas = new Chart(ctxNotas, {
                     type: 'bar',
                     data: {
                         labels: labelsNotas,
-                        datasets: [{
-                            label: 'Quantidade de Votos',
-                            data: valoresNotas,
-                            backgroundColor: '#22d3ee', // Ciano Neon
-                            borderRadius: 6
-                        }]
+                        datasets: [{ data: valoresNotas, backgroundColor: '#22d3ee', borderRadius: 6 }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { beginAtZero: true, grid: { color: '#1e293b' } },
-                            x: { grid: { display: false } }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
 
-                // 4. Renderização Dinâmica do Gráfico de Média por Setor
-                const ctxSetores = document.getElementById('graficoSetores').getContext('2d');
-                const labelsSetores = ["Pronto Atendimento", "Ambulatório", "Exames e Laboratório", "Internação"];
-                const valoresSetores = labelsSetores.map(setor => dados.setores?.[setor]?.media || 0);
+                // Gráfico 2: Média por Setor
+                const ctxSetores = document.getElementById('graficoBarrasSetor').getContext('2d');
+                const labelsSetores = ["Pronto Atendimento", "Ambulatório / Consultas", "Exames / Laboratório", "Internação"];
+                const curtidasSetores = ["P.A.", "Ambulatório", "Exames", "Internação"];
+                const valoresSetores = labelsSetores.map(s => dados.setores?.[s]?.media || 0);
 
-                if (chartSetores) chartSetores.destroy();
+                if(chartSetores) chartSetores.destroy();
                 chartSetores = new Chart(ctxSetores, {
                     type: 'bar',
                     data: {
-                        labels: ['P.A.', 'Ambulatório', 'Exames', 'Internação'],
-                        datasets: [{
-                            data: valoresSetores,
-                            backgroundColor: ['#ef4444', '#34d399', '#22d3ee', '#a78bfa'],
-                            borderRadius: 6
-                        }]
+                        labels: curtidasSetores,
+                        datasets: [{ data: valoresSetores, backgroundColor: ['#ef4444', '#34d399', '#22d3ee', '#a78bfa'], borderRadius: 6 }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { min: 0, max: 5, grid: { color: '#1e293b' } },
-                            x: { grid: { display: false } }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 5 } } }
                 });
 
-            } catch (err) {
-                console.error("Erro ao atualizar o dashboard da Ouvidoria:", err);
-            }
+            } catch (err) { console.error("Erro ao atualizar painel:", err); }
         }
 
-        // Inicialização imediata e loop de atualização em tempo real (a cada 10 segundos)
         carregarDashboard();
-        setInterval(carregarDashboard, 10000);
+        setInterval(carregarDashboard, 5000); // Polling rápido de 5s para você ver funcionando imediatamente
     </script>
 </body>
 </html>
