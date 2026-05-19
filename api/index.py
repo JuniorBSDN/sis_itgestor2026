@@ -12,7 +12,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from fpdf import FPDF
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='public', static_folder='public', static_url_path='')
 app.config['JSON_AS_ASCII'] = False
 CORS(app)
 
@@ -31,25 +31,36 @@ db = firestore.client()
 
 COLECAO_AVALIACOES = "avaliacoes"
 
+# --- ROTAS DE RENDERIZAÇÃO DAS PÁGINAS ---
+@app.route('/totem')
+def abrir_totem():
+    return render_template('feed.html')
+
+@app.route('/admin')
+def abrir_admin():
+    return render_template('feedAdmin.html')
+
+
+# --- API DA OUVIDORIA HOSPITALAR (ROTAS CORRIGIDAS) ---
 @app.route('/api/avaliacoes', methods=['POST'])
 def salvar_avaliacao():
     try:
         dados = request.get_json()
+        if not dados:
+            return jsonify({"status": "erro", "mensagem": "Dados ausentes"}), 400
+
         agora = datetime.now(TZ_PA)
-        
-        # Mapeamento e tipagem milimétrica com o front-end (feed.html)
         payload = {
-            "setor": str(dados.get("setor")),
-            "nota": int(dados.get("nota")),
-            "rotulo_nota": str(dados.get("rotulo_nota")),
+            "setor": str(dados.get("setor", "Não Informado")),
+            "nota": int(dados.get("nota", 0)),
+            "rotulo_nota": str(dados.get("rotulo_nota", "Sem Rótulo")),
             "motivos": list(dados.get("motivos", [])),
             "timestamp": agora.isoformat(),
-            "data_busca": agora.strftime("%Y-%m-%d") # Facilita queries por período posterior
+            "data_busca": agora.strftime("%Y-%m-%d")
         }
-        
+
         db.collection(COLECAO_AVALIACOES).add(payload)
-        return jsonify({"status": "sucesso", "mensagem": "Avaliação salva com sucesso."}), 201
-        
+        return jsonify({"status": "sucesso"}), 201
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 400
 
@@ -57,53 +68,53 @@ def salvar_avaliacao():
 @app.route('/api/indicadores', methods=['GET'])
 def buscar_indicadores():
     try:
-        # Stream simples para evitar a necessidade de criação manual de índices compostos
         docs = db.collection(COLECAO_AVALIACOES).stream()
-        
+
         total_votos = 0
         soma_notas = 0
-        
-        # Estruturas de agregação limpas
         distribuicao_notas = {"Péssimo": 0, "Ruim": 0, "Regular": 0, "Bom": 0, "Excelente": 0}
-        setores = {}
+
+        # Alinhamento exato com as strings textuais enviadas pelos botões do seu feed.html
+        setores = {
+            "Pronto Atendimento": {"soma": 0, "votos": 0, "media": 0},
+            "Ambulatório / Consultas": {"soma": 0, "votos": 0, "media": 0},
+            "Exames / Laboratório": {"soma": 0, "votos": 0, "media": 0},
+            "Internação": {"soma": 0, "votos": 0, "media": 0}
+        }
 
         for doc in docs:
             data = doc.to_dict()
-            nota = data.get("nota", 0)
+            nota = int(data.get("nota", 0))
             rotulo = data.get("rotulo_nota")
             setor = data.get("setor")
-            
+
             total_votos += 1
             soma_notas += nota
-            
+
             if rotulo in distribuicao_notas:
                 distribuicao_notas[rotulo] += 1
-                
-            if setor not in setores:
-                setores[setor] = {"soma": 0, "votos": 0, "media": 0}
-            
-            setores[setor]["votos"] += 1
-            setores[setor]["soma"] += nota
 
-        # Processamento das médias aritméticas por setor
+            if setor in setores:
+                setores[setor]["votos"] += 1
+                setores[setor]["soma"] += nota
+
+        # Cálculo dinâmico das médias por setor
         for s in setores:
             if setores[s]["votos"] > 0:
                 setores[s]["media"] = round(setores[s]["soma"] / setores[s]["votos"], 2)
 
         media_geral = (soma_notas / total_votos) if total_votos > 0 else 0
 
-        # JSON idêntico ao esperado pelo script do feedAdmin.html
         resposta = {
             "total_votos": total_votos,
             "media_geral": round(media_geral, 2),
             "distribuicao_notas": distribuicao_notas,
             "setores": setores
         }
-
         return jsonify(resposta), 200
-
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+        
 def gerar_pdf_bytes(nome, cpf):
     # Formatação visual do CPF
     cpf_limpo = "".join(filter(str.isdigit, str(cpf)))
