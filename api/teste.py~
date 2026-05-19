@@ -29,6 +29,81 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 
+COLECAO_AVALIACOES = "avaliacoes"
+
+@app.route('/api/avaliacoes', methods=['POST'])
+def salvar_avaliacao():
+    try:
+        dados = request.get_json()
+        agora = datetime.now(TZ_PA)
+        
+        # Mapeamento e tipagem milimétrica com o front-end (feed.html)
+        payload = {
+            "setor": str(dados.get("setor")),
+            "nota": int(dados.get("nota")),
+            "rotulo_nota": str(dados.get("rotulo_nota")),
+            "motivos": list(dados.get("motivos", [])),
+            "timestamp": agora.isoformat(),
+            "data_busca": agora.strftime("%Y-%m-%d") # Facilita queries por período posterior
+        }
+        
+        db.collection(COLECAO_AVALIACOES).add(payload)
+        return jsonify({"status": "sucesso", "mensagem": "Avaliação salva com sucesso."}), 201
+        
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 400
+
+
+@app.route('/api/indicadores', methods=['GET'])
+def buscar_indicadores():
+    try:
+        # Stream simples para evitar a necessidade de criação manual de índices compostos
+        docs = db.collection(COLECAO_AVALIACOES).stream()
+        
+        total_votos = 0
+        soma_notas = 0
+        
+        # Estruturas de agregação limpas
+        distribuicao_notas = {"Péssimo": 0, "Ruim": 0, "Regular": 0, "Bom": 0, "Excelente": 0}
+        setores = {}
+
+        for doc in docs:
+            data = doc.to_dict()
+            nota = data.get("nota", 0)
+            rotulo = data.get("rotulo_nota")
+            setor = data.get("setor")
+            
+            total_votos += 1
+            soma_notas += nota
+            
+            if rotulo in distribuicao_notas:
+                distribuicao_notas[rotulo] += 1
+                
+            if setor not in setores:
+                setores[setor] = {"soma": 0, "votos": 0, "media": 0}
+            
+            setores[setor]["votos"] += 1
+            setores[setor]["soma"] += nota
+
+        # Processamento das médias aritméticas por setor
+        for s in setores:
+            if setores[s]["votos"] > 0:
+                setores[s]["media"] = round(setores[s]["soma"] / setores[s]["votos"], 2)
+
+        media_geral = (soma_notas / total_votos) if total_votos > 0 else 0
+
+        # JSON idêntico ao esperado pelo script do feedAdmin.html
+        resposta = {
+            "total_votos": total_votos,
+            "media_geral": round(media_geral, 2),
+            "distribuicao_notas": distribuicao_notas,
+            "setores": setores
+        }
+
+        return jsonify(resposta), 200
+
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 def gerar_pdf_bytes(nome, cpf):
     # Formatação visual do CPF
     cpf_limpo = "".join(filter(str.isdigit, str(cpf)))
