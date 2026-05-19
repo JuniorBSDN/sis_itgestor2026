@@ -13,7 +13,7 @@
         <div>
             <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-500 font-bold mb-1">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                Sincronizado com API Python & Firestore
+                Sincronizado em Tempo Real com Flask & Firestore
             </div>
             <h1 class="text-3xl font-black text-white tracking-tight">Análise de Satisfação Hospitalar</h1>
         </div>
@@ -48,7 +48,8 @@
     </main>
 
     <script>
-        let URL_API_GET = "sisitgestor2026.vercel.app";
+        // Correção Importante: Rota relativa para consumir a API centralizada
+        let URL_API_GET = "/api/indicadores";
         Chart.defaults.color = '#64748b';
 
         let chartNotas = null;
@@ -59,39 +60,40 @@
                 const res = await fetch(URL_API_GET);
                 const dados = await res.json();
 
-                // Atualiza KPIs básicos
-                document.getElementById('kpi-total').innerText = dados.total_votos;
-                document.getElementById('kpi-media').innerText = dados.media_geral.toFixed(1) + " / 5.0";
+                document.getElementById('kpi-total').innerText = dados.total_votos || 0;
+                document.getElementById('kpi-media').innerText = (dados.media_general ? dados.media_general.toFixed(1) : "0.0") + " / 5.0";
 
-                // Atualiza Alerta se houver setor com nota muito baixa (< 3.0)
-                const setoresCriticos = Object.keys(dados.setores).filter(s => dados.setores[s].media < 3.0);
-                if (setoresCriticos.length > 0) {
-                    const box = document.getElementById('card-alerta');
-                    box.className = "bg-red-950/20 border border-red-900 p-6 rounded-2xl shadow-xl";
-                    document.getElementById('kpi-status').className = "text-xl font-bold text-red-400 mt-3";
-                    document.getElementById('kpi-status').innerText = `Atenção no ${setoresCriticos[0]}`;
+                // Validação de alertas para não travar
+                if (dados.setores) {
+                    const setoresCriticos = Object.keys(dados.setores).filter(s => dados.setores[s].media > 0 && dados.setores[s].media < 3.0);
+                    if (setoresCriticos.length > 0) {
+                        const box = document.getElementById('card-alerta');
+                        box.className = "bg-red-950/20 border border-red-900 p-6 rounded-2xl shadow-xl";
+                        document.getElementById('kpi-status').className = "text-xl font-bold text-red-400 mt-3";
+                        document.getElementById('kpi-status').innerText = `Atenção no ${setoresCriticos[0]}`;
+                    }
                 }
 
-                // Renderiza ou Atualiza Gráfico 1 (Notas)
+                // Gráfico de Notas
                 const ctxNotas = document.getElementById('graficoNotas').getContext('2d');
                 if(chartNotas) chartNotas.destroy();
                 chartNotas = new Chart(ctxNotas, {
                     type: 'bar',
                     data: {
-                        labels: Object.keys(dados.distribuicao_notas),
-                        datasets: [{ data: Object.values(dados.distribuicao_notas), backgroundColor: '#22d3ee', borderRadius: 6 }]
+                        labels: Object.keys(dados.distribuicao_notas || {}),
+                        datasets: [{ data: Object.values(dados.distribuicao_notas || {}), backgroundColor: '#22d3ee', borderRadius: 6 }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
 
-                // Renderiza ou Atualiza Gráfico 2 (Setores)
+                // Gráfico de Setores
                 const ctxSetores = document.getElementById('graficoSetores').getContext('2d');
-                const mediasSetores = Object.keys(dados.setores).map(s => dados.setores[s].media);
+                const mediasSetores = dados.setores ? Object.keys(dados.setores).map(s => dados.setores[s].media) : [];
                 if(chartSetores) chartSetores.destroy();
                 chartSetores = new Chart(ctxSetores, {
                     type: 'bar',
                     data: {
-                        labels: Object.keys(dados.setores),
+                        labels: Object.keys(dados.setores || {}),
                         datasets: [{ data: mediasSetores, backgroundColor: ['#ef4444', '#34d399', '#22d3ee', '#a78bfa'], borderRadius: 6 }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 5 } } }
@@ -100,7 +102,6 @@
             } catch (err) { console.error("Erro ao carregar dados do Dashboard:", err); }
         }
 
-        // Carrega imediatamente ao abrir e atualiza a cada 15 segundos
         carregarDashboard();
         setInterval(carregarDashboard, 15000);
     </script>
