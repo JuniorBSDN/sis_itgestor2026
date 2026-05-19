@@ -181,6 +181,10 @@
             {n:'resultado(1ª):', r:'', u:'', g:'PESQUISA'},
             {n:'resultado(2ª):', r:'', u:'', g:'PESQUISA'}
         ]},
+        { title: 'PARASITOLOGIA DAS FEZES', id: 'para', fields: [
+            {n:'Helmintos', r:'', u:'', g:'PARASITOLOGIA'},
+            {n:'Protozoários:', r:'', u:'', g:'PARASITOLOGIA'},
+        ]},
         { title: 'URINÁLISE', id: 'uri', fields: [
             {n:'Cor', r:'Amarelo', u:'', g:'CARACTERÍSTICAS FÍSICAS'},
             {n:'Aspecto', r:'Límpido', u:'', g:'CARACTERÍSTICAS FÍSICAS'},
@@ -365,6 +369,7 @@ doc.line(20, 42, 190, 42);
     doc.setFont("helvetica", "bold");
     doc.text(valorComUnidade, x + 45, y);
 
+
     // REFERÊNCIA (Logo abaixo do valor, com letra menor)
     if (f.r) {
         y += 4; // Pequeno salto para a linha da referência
@@ -516,39 +521,55 @@ async function montarRodape(doc) {
         }
     }
 
-    function gerarPDFIndividual(sectionId) {
-        const s = configs.find(c => c.id === sectionId);
-        const doc = new jsPDF();
-        montarCabecalho(doc);
+   async function gerarPDFIndividual(sectionId) {
+    const s = configs.find(c => c.id === sectionId);
+    const doc = new jsPDF();
+    montarCabecalho(doc);
 
-        let y = 60;
-        doc.setFont("helvetica", "bold"); doc.setFontSize(14);
-        doc.text(s.title, 15, y); y += 10;
+    // Unificado para usar apenas a variável 'y'
+    let y = 65;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(s.title, 105, y, {align: 'center'});
+    y += 10;
 
-        let lastGroup = '';
-        s.fields.forEach(f => {
-            const val = document.getElementById(`${s.id}_${f.n}`).value;
-            if(val) {
-                if (f.g !== lastGroup) {
-                    doc.setFontSize(9); doc.setFont("helvetica", "bold");
-                    doc.text(f.g, 20, y); y += 6;
-                    lastGroup = f.g;
-                }
-                doc.setFontSize(10); doc.setFont("helvetica", "normal");
-                // Aqui incluímos o valor + unidade
-                doc.text(`${f.n}: ${val} ${f.u}`, 25, y);
-                // Aqui incluímos o intervalo de referência + unidade
-                doc.text(`Ref: ${f.r} ${f.u}`, 140, y);
+    let lastGroup = '';
+    s.fields.forEach(f => {
+        const inputEl = document.getElementById(`${s.id}_${f.n}`);
+        const val = inputEl ? inputEl.value : "";
+
+        if (val.trim() !== "") {
+            if (f.g !== lastGroup) {
+                y += 5;
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                doc.text(f.g, 20, y);
                 y += 6;
+                lastGroup = f.g;
             }
-        });
+            adicionarResultado(doc, f.n, val, f.u, f.r, y);
+            y += 7;
+        }
+    });
 
-        const obs = document.getElementById(`obs_${s.id}`).value;
-        if(obs) { doc.text(`Obs: ${obs}`, 25, y+5); }
+    const obs = document.getElementById(`obs_${s.id}`).value;
+    if (obs.trim() !== "") {
+        y += 12; // Pula um espaço seguro após o último resultado impresso
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text("OBSERVAÇÃO:", 20, y); // Imprime o título da observação
 
-        montarRodape(doc);
-        doc.save(`Laudo_${s.title}_${document.getElementById('p_nome').value || 'Paciente'}.pdf`);
+        y += 6; // Desce mais uma linha para renderizar o conteúdo
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(9);
+
+        // Mudamos o maxWidth de 170 para 100 para o texto quebrar antes de bater no carimbo!
+        doc.text(obs, 20, y, { maxWidth: 100 });
     }
+
+    await montarRodape(doc);
+    doc.save(`${s.title}_${document.getElementById('p_nome').value || 'Paciente'}.pdf`);
+}
 
     function gerarTodosExames() {
     // Filtra apenas os exames que têm conteúdo
