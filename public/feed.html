@@ -28,10 +28,10 @@
             <button onclick="avancarParaNotas('Pronto Atendimento')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
                 <span class="text-2xl font-bold">Pronto Atendimento</span>
             </button>
-            <button onclick="avancarParaNotas('Ambulatório')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
+            <button onclick="avancarParaNotas('Ambulatório / Consultas')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
                 <span class="text-2xl font-bold">Ambulatório / Consultas</span>
             </button>
-            <button onclick="avancarParaNotas('Exames e Laboratório')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
+            <button onclick="avancarParaNotas('Exames / Laboratório')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
                 <span class="text-2xl font-bold">Exames / Laboratório</span>
             </button>
             <button onclick="avancarParaNotas('Internação')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
@@ -91,8 +91,7 @@
     <footer class="text-center pb-2 text-slate-600 text-xs">Interface otimizada para o Totem.</footer>
 
     <script>
-        // Correção Importante: Rota relativa para funcionar acoplado ao Flask na Web
-        let URL_API = "/api/avaliacoes";
+        let URL_API = "/api/avaliacoes"; 
         let dadosAvaliacao = { setor: '', nota: 0, rotulo_nota: '', motivos: [] };
         let autoResetTimeout, countdownInterval;
 
@@ -112,10 +111,10 @@
             const container = document.getElementById('container-tags');
             container.innerHTML = '';
             let lista = nota >= 4 ? motivosPositivos : motivosNegativos;
-            lista.forEach((motivo, i) => {
+            lista.forEach((motivo) => {
                 const btn = document.createElement('button');
                 btn.innerText = motivo;
-                btn.className = "w-full text-left py-4 px-6 rounded-xl border-2 border-slate-800 bg-slate-900 text-lg font-medium transition-all flex items-center justify-between";
+                btn.className = "w-full text-left py-4 px-6 rounded-xl border-2 border-slate-800 bg-slate-900 text-lg font-medium transition-all";
                 btn.onclick = () => {
                     const idx = dadosAvaliacao.motivos.indexOf(motivo);
                     if (idx > -1) {
@@ -133,7 +132,6 @@
         async function finalizarAvaliacao() {
             alterarTela('tela-sucesso');
             iniciarContagemReset();
-
             try {
                 await fetch(URL_API, {
                     method: 'POST',
