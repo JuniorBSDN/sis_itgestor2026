@@ -4,94 +4,160 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ouvidoria Digital - Totem Hospitalar</title>
+    <!-- Tailwind CSS para estilização moderna e alto contraste -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-        ::-webkit-scrollbar { display: none; }
+        /* Bloqueia seleção e comportamentos de browser comum para simular app nativo */
+        body {
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Oculta scrollbars */
+        ::-webkit-scrollbar {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between p-6 md:p-12 font-sans overflow-hidden">
 
-    <header class="text-center pt-2">
-        <div class="flex items-center justify-center gap-2 mb-1">
-            <div class="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
-            <span class="text-xs uppercase tracking-widest text-slate-500 font-bold">Ouvidoria Digital Hospitalar</span>
-        </div>
-    </header>
-
+    <!-- ================= TELA 1: SELEÇÃO DE SETOR ================= -->
     <section id="tela-setor" class="w-full max-w-5xl mx-auto my-auto flex flex-col justify-center dynamic-screen">
         <div class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight">Sua opinião <span class="text-cyan-400">salva vidas.</span></h1>
-            <p class="text-lg md:text-xl text-slate-400 mt-3">Toque no setor onde você foi atendido hoje para começar:</p>
+            <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight">
+                Sua opinião <span class="text-cyan-400">salva vidas.</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-400 mt-3">
+                Toque no setor onde você foi atendido hoje para começar:
+            </p>
         </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <button onclick="avancarParaNotas('Pronto Atendimento')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
+            <button onclick="avancarParaNotas('Pronto Atendimento')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 active:bg-cyan-950 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-150 active:scale-95 shadow-xl">
+                <div class="p-4 rounded-full bg-red-950/40 text-red-400 group-hover:scale-105 transition-transform">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
                 <span class="text-2xl font-bold">Pronto Atendimento</span>
             </button>
-            <button onclick="avancarParaNotas('Ambulatório / Consultas')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
+
+            <button onclick="avancarParaNotas('Ambulatório')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 active:bg-cyan-950 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-150 active:scale-95 shadow-xl">
+                <div class="p-4 rounded-full bg-emerald-950/40 text-emerald-400 group-hover:scale-105 transition-transform">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                </div>
                 <span class="text-2xl font-bold">Ambulatório / Consultas</span>
             </button>
-            <button onclick="avancarParaNotas('Exames / Laboratório')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
+
+            <button onclick="avancarParaNotas('Exames e Laboratório')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 active:bg-cyan-950 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-150 active:scale-95 shadow-xl">
+                <div class="p-4 rounded-full bg-cyan-950/40 text-cyan-400 group-hover:scale-105 transition-transform">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
                 <span class="text-2xl font-bold">Exames / Laboratório</span>
             </button>
-            <button onclick="avancarParaNotas('Internação')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all shadow-xl">
+
+            <button onclick="avancarParaNotas('Internação')" class="group bg-slate-900 border-2 border-slate-800 hover:border-cyan-500 active:bg-cyan-950 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-150 active:scale-95 shadow-xl">
+                <div class="p-4 rounded-full bg-purple-950/40 text-purple-400 group-hover:scale-105 transition-transform">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                </div>
                 <span class="text-2xl font-bold">Internação</span>
             </button>
         </div>
     </section>
 
+    <!-- ================= TELA 2: AVALIAÇÃO PRINCIPAL (EMOJIS) ================= -->
     <section id="tela-nota" class="w-full max-w-5xl mx-auto my-auto hidden dynamic-screen flex flex-col justify-center">
         <div class="text-center mb-12">
             <span id="badge-setor" class="bg-cyan-950/80 text-cyan-400 border border-cyan-800 px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider">Setor</span>
-            <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight mt-6">Como você avalia o atendimento geral?</h2>
+            <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight mt-6">
+                Como você avalia o atendimento geral?
+            </h2>
         </div>
+
+        <!-- Escala de Emojis Gigantes -->
         <div class="grid grid-cols-5 gap-3 md:gap-6 max-w-4xl mx-auto w-full">
-            <button onclick="selecionarNota(1, 'Péssimo')" class="bg-slate-900 border-2 border-slate-800 hover:border-red-500 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all">
-                <span class="text-5xl">🤬</span><span class="text-sm font-bold text-red-400">Péssimo</span>
+
+            <button onclick="selecionarNota(1, 'Péssimo')" class="bg-slate-900 border-2 border-slate-800 hover:border-red-500 active:bg-red-950/30 p-4 md:p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all active:scale-95">
+                <span class="text-5xl md:text-6xl">🤬</span>
+                <span class="text-sm md:text-base font-bold text-red-400">Péssimo</span>
             </button>
-            <button onclick="selecionarNota(2, 'Ruim')" class="bg-slate-900 border-2 border-slate-800 hover:border-orange-500 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all">
-                <span class="text-5xl">🙁</span><span class="text-sm font-bold text-orange-400">Ruim</span>
+
+            <button onclick="selecionarNota(2, 'Ruim')" class="bg-slate-900 border-2 border-slate-800 hover:border-orange-500 active:bg-orange-950/30 p-4 md:p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all active:scale-95">
+                <span class="text-5xl md:text-6xl">🙁</span>
+                <span class="text-sm md:text-base font-bold text-orange-400">Ruim</span>
             </button>
-            <button onclick="selecionarNota(3, 'Regular')" class="bg-slate-900 border-2 border-slate-800 hover:border-yellow-500 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all">
-                <span class="text-5xl">😐</span><span class="text-sm font-bold text-yellow-400">Regular</span>
+
+            <button onclick="selecionarNota(3, 'Regular')" class="bg-slate-900 border-2 border-slate-800 hover:border-yellow-500 active:bg-yellow-950/30 p-4 md:p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all active:scale-95">
+                <span class="text-5xl md:text-6xl">😐</span>
+                <span class="text-sm md:text-base font-bold text-yellow-400">Regular</span>
             </button>
-            <button onclick="selecionarNota(4, 'Bom')" class="bg-slate-900 border-2 border-slate-800 hover:border-emerald-400 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all">
-                <span class="text-5xl">🙂</span><span class="text-sm font-bold text-emerald-400">Bom</span>
+
+            <button onclick="selecionarNota(4, 'Bom')" class="bg-slate-900 border-2 border-slate-800 hover:border-emerald-400 active:bg-emerald-950/30 p-4 md:p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all active:scale-95">
+                <span class="text-5xl md:text-6xl">🙂</span>
+                <span class="text-sm md:text-base font-bold text-emerald-400">Bom</span>
             </button>
-            <button onclick="selecionarNota(5, 'Excelente')" class="bg-slate-900 border-2 border-slate-800 hover:border-cyan-400 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all">
-                <span class="text-5xl">🤩</span><span class="text-sm font-bold text-cyan-400">Excelente</span>
+
+            <button onclick="selecionarNota(5, 'Excelente')" class="bg-slate-900 border-2 border-slate-800 hover:border-cyan-400 active:bg-cyan-950/30 p-4 md:p-6 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all active:scale-95">
+                <span class="text-5xl md:text-6xl">🤩</span>
+                <span class="text-sm md:text-base font-bold text-cyan-400">Excelente</span>
             </button>
+
         </div>
+
         <div class="text-center mt-12">
-            <button onclick="voltarParaSetor()" class="text-slate-500 hover:text-slate-300 font-medium flex items-center justify-center gap-2 mx-auto px-6 py-2 border border-slate-800 rounded-xl">Voltar</button>
+            <button onclick="voltarParaSetor()" class="text-slate-500 hover:text-slate-300 font-medium flex items-center justify-center gap-2 mx-auto px-6 py-2 border border-slate-800 rounded-xl active:bg-slate-900">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Voltar e alterar setor
+            </button>
         </div>
     </section>
 
+    <!-- ================= MODAL/TELA 3: JUSTIFICATIVAS (TAGS DINÂMICAS) ================= -->
     <section id="tela-justificativa" class="w-full max-w-3xl mx-auto my-auto hidden dynamic-screen flex flex-col justify-center">
         <div class="text-center mb-8">
-            <h2 id="titulo-justificativa" class="text-3xl font-black text-white tracking-tight">O que motivou sua nota?</h2>
-            <p class="text-slate-400 mt-2">Selecione uma ou mais opções:</p>
+            <h2 id="titulo-justificativa" class="text-3xl font-black text-white tracking-tight">
+                O que motivou sua nota?
+            </h2>
+            <p class="text-slate-400 mt-2">Selecione uma ou mais opções abaixo para nos ajudar a entender:</p>
         </div>
-        <div id="container-tags" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto w-full"></div>
+
+        <!-- Container de Opções Rápida / Seleção Múltipla -->
+        <div id="container-tags" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
+            <!-- Injetado dinamicamente via JavaScript baseado se a nota for positiva ou negativa -->
+        </div>
+
+        <!-- Controle de Envio do Modal -->
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 w-full max-w-2xl mx-auto">
-            <button onclick="voltarParaNota()" class="w-full sm:w-1/3 py-4 font-bold rounded-xl border border-slate-800 text-slate-400">Voltar</button>
-            <button onclick="finalizarAvaliacao()" class="w-full sm:w-2/3 py-4 font-bold rounded-xl bg-cyan-500 text-slate-950 text-lg shadow-lg">Confirmar e Finalizar</button>
+            <button onclick="voltarParaNota()" class="w-full sm:w-1/3 py-4 font-bold rounded-xl border border-slate-800 text-slate-400 active:bg-slate-900 transition-colors">
+                Voltar
+            </button>
+            <button onclick="finalizarAvaliacao()" class="w-full sm:w-2/3 py-4 font-bold rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-lg shadow-lg shadow-cyan-500/20 active:scale-98 transition-transform">
+                Confirmar e Finalizar
+            </button>
         </div>
     </section>
 
+    <!-- ================= TELA 4: AGRADECIMENTO / FIM ================= -->
     <section id="tela-sucesso" class="w-full max-w-xl mx-auto my-auto hidden dynamic-screen text-center flex flex-col items-center justify-center">
-        <div class="w-24 h-24 rounded-full bg-cyan-950/50 border-2 border-cyan-400 flex items-center justify-center text-cyan-400 mb-6 shadow-xl">
-            <svg class="w-12 h-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+        <div class="w-24 h-24 rounded-full bg-cyan-950/50 border-2 border-cyan-400 flex items-center justify-center text-cyan-400 mb-6 shadow-xl shadow-cyan-500/10">
+            <svg class="w-12 h-12 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
         </div>
         <h2 class="text-4xl font-black text-white tracking-tight">Muito obrigado!</h2>
-        <p class="text-slate-400 text-lg mt-4">Sua avaliação foi registrada de forma anônima.</p>
-        <div class="mt-10 text-xs text-slate-600 uppercase tracking-widest">Reiniciando em <span id="timer-contagem" class="font-bold text-cyan-500">5</span> segundos...</div>
+        <p class="text-slate-400 text-lg mt-4 px-4">
+            Sua avaliação foi registrada de forma anônima e segura. Ela ajuda diretamente a melhorar nosso atendimento.
+        </p>
+
+        <!-- Timer de Auto-Reset para o próximo da fila -->
+        <div class="mt-10 text-xs text-slate-600 uppercase tracking-widest flex items-center gap-2">
+            Reiniciando em <span id="timer-contagem" class="font-bold text-cyan-500">5</span> segundos...
+        </div>
     </section>
 
-    <footer class="text-center pb-2 text-slate-600 text-xs">Interface otimizada para o Totem.</footer>
-
+    <!-- RODAPÉ FIXO -->
+    <footer class="text-center pb-2 text-slate-600 text-xs flex items-center justify-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-cyan-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11V7a4 4 0 00-8 0v4c0 2.517.653 4.904 1.808 7.007M6.057 13.447l.001-.005M19.071 20.314A13.944 13.944 0 0115 11V7a4 4 0 018 0v4c0 2.517-.653 4.904-1.808 7.007M11.956 20.314c.047-.328.072-.663.072-.993v-3.3c0-.18-.09-.348-.242-.448l-1.464-.977a.5.5 0 01-.242-.448V11"></path></svg>
+        Interface otimizada para toque físico. Higienize as mãos após o uso.
+    </footer>
     <script>
-        let URL_API = "/api/avaliacoes"; 
+        let URL_API = "/api/avaliacoes";
         let dadosAvaliacao = { setor: '', nota: 0, rotulo_nota: '', motivos: [] };
         let autoResetTimeout, countdownInterval;
 
