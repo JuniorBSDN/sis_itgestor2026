@@ -48,7 +48,7 @@
     </main>
 
     <script>
-        let URL_API_GET = "http://localhost:5000/api/indicadores";
+        let URL_API_GET = "sisitgestor2026.vercel.app";
         Chart.defaults.color = '#64748b';
 
         let chartNotas = null;
