@@ -1,16 +1,17 @@
-import os
 import json
 import smtplib
-import io
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, render_template
 from flask_cors import CORS
 from datetime import datetime, timedelta, timezone
 import firebase_admin
 from firebase_admin import credentials, firestore
 from fpdf import FPDF
+import pandas as pd
+import os
+import io
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -29,7 +30,21 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 
+# --- MÓDULO: OUVIDORIA HOSPITALAR (TOTEM & DASHBOARD) ---
+
 COLECAO_AVALIACOES = "avaliacoes"
+
+# Rotas Web para servir os arquivos que estão no seu repositório
+@app.route('/totem')
+def abrir_totem():
+    """Acessível via http://localhost:5000/totem"""
+    return render_template('feed.html')
+
+@app.route('/admin')
+def abrir_admin():
+    """Acessível via http://localhost:5000/admin"""
+    return render_template('feedAdmin.html')
+
 
 @app.route('/api/avaliacoes', methods=['POST'])
 def salvar_avaliacao():
@@ -37,14 +52,13 @@ def salvar_avaliacao():
         dados = request.get_json()
         agora = datetime.now(TZ_PA)
         
-        # Mapeamento e tipagem milimétrica com o front-end (feed.html)
         payload = {
             "setor": str(dados.get("setor")),
             "nota": int(dados.get("nota")),
             "rotulo_nota": str(dados.get("rotulo_nota")),
             "motivos": list(dados.get("motivos", [])),
             "timestamp": agora.isoformat(),
-            "data_busca": agora.strftime("%Y-%m-%d") # Facilita queries por período posterior
+            "data_busca": agora.strftime("%Y-%m-%d")
         }
         
         db.collection(COLECAO_AVALIACOES).add(payload)
@@ -57,15 +71,19 @@ def salvar_avaliacao():
 @app.route('/api/indicadores', methods=['GET'])
 def buscar_indicadores():
     try:
-        # Stream simples para evitar a necessidade de criação manual de índices compostos
         docs = db.collection(COLECAO_AVALIACOES).stream()
         
         total_votos = 0
         soma_notas = 0
-        
-        # Estruturas de agregação limpas
         distribuicao_notas = {"Péssimo": 0, "Ruim": 0, "Regular": 0, "Bom": 0, "Excelente": 0}
-        setores = {}
+        
+        # Setores pré-definidos para evitar erros no gráfico se o banco iniciar vazio
+        setores = {
+            "Pronto Atendimento": {"soma": 0, "votos": 0, "media": 0},
+            "Ambulatório": {"soma": 0, "votos": 0, "media": 0},
+            "Exames e Laboratório": {"soma": 0, "votos": 0, "media": 0},
+            "Internação": {"soma": 0, "votos": 0, "media": 0}
+        }
 
         for doc in docs:
             data = doc.to_dict()
@@ -85,14 +103,12 @@ def buscar_indicadores():
             setores[setor]["votos"] += 1
             setores[setor]["soma"] += nota
 
-        # Processamento das médias aritméticas por setor
         for s in setores:
             if setores[s]["votos"] > 0:
                 setores[s]["media"] = round(setores[s]["soma"] / setores[s]["votos"], 2)
 
         media_geral = (soma_notas / total_votos) if total_votos > 0 else 0
 
-        # JSON idêntico ao esperado pelo script do feedAdmin.html
         resposta = {
             "total_votos": total_votos,
             "media_geral": round(media_geral, 2),
@@ -104,6 +120,8 @@ def buscar_indicadores():
 
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
 def gerar_pdf_bytes(nome, cpf):
     # Formatação visual do CPF
     cpf_limpo = "".join(filter(str.isdigit, str(cpf)))
