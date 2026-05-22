@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Etiquetas - Hospitalar v4.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Configurações específicas para Impressão Física/PDF */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-area {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            .sheet-container {
+                border: none !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                max-width: 100% !important;
+            }
+            .label-card {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Ajuste do Grid para as Colunas Exatas */
+        .grid-cols-paciente {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        }
+        .grid-cols-fracionado {
+            grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        }
+        .grid-cols-comprimido {
+            grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 font-sans min-h-screen flex flex-col md:flex-row text-slate-100 relative">
+
+    <div class="no-print w-full md:w-80 bg-slate-950 p-6 flex flex-col gap-5 border-r border-slate-800 shrink-0">
+        <div>
+            <h1 class="text-xl font-bold tracking-wider text-cyan-400">YANA v.1</h1>
+            <p class="text-xs text-slate-400">Etiquetas para Farmácia Hospitalar & Dispensação</p>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tipo de Etiqueta</label>
+            <select id="labelType" onchange="switchForm()" class="bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                <option value="paciente">1. Paciente / Leito </option>
+                <option value="fracionado">2. Líquidos / Fracionados </option>
+                <option value="comprimido">3. Comprimidos </option>
+            </select>
+        </div>
+
+        <div id="formContainer" class="flex flex-col gap-4 bg-slate-900/50 p-3 rounded border border-slate-800">
+            </div>
+
+        <div class="grid grid-cols-2 gap-2">
+            <div class="flex flex-col gap-1">
+                <label class="text-xs text-slate-400">Qtd. de Linhas</label>
+                <input type="number" id="rowCount" value="4" min="1" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white text-center">
+            </div>
+            <div class="flex flex-col gap-1 items-end justify-end">
+                <button onclick="generateLabels()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm py-2 px-3 rounded transition-all">
+                    Gerar Grade
+                </button>
+            </div>
+        </div>
+
+        <button onclick="window.print()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded transition-all flex items-center justify-center gap-2 shadow-lg mt-2">
+            🖨️ Imprimir Etiquetas
+        </button>
+
+        <hr class="border-slate-800 mt-2">
+
+        <button onclick="toggleModal(true)" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs py-2 px-3 rounded transition-all flex items-center justify-center gap-2">
+            ℹ️ Suporte, Ajuda & Conformidade
+        </button>
+    </div>
+
+    <div class="print-area flex-1 p-4 md:p-8 flex justify-center items-start overflow-y-auto bg-slate-900">
+        <div class="sheet-container bg-white p-4 shadow-2xl rounded w-full max-w-[210mm] border border-gray-200 text-black min-h-[297mm]">
+            <div class="no-print border-b border-gray-200 pb-2 mb-4 flex justify-between items-center text-gray-500">
+                <h2 id="gridTitle" class="text-xs font-semibold uppercase tracking-wider">Layout de Impressão</h2>
+                <span id="colIndicator" class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono font-bold">3 colunas</span>
+            </div>
+
+            <div id="previewGrid" class="grid gap-0.5 w-full">
+                </div>
+        </div>
+    </div>
+
+    <div id="infoModal" class="no-print hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-lg shadow-2xl overflow-hidden flex flex-col text-slate-200 font-sans max-h-[90vh]">
+
+            <div class="p-4 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-cyan-400 text-lg">⚙️</span>
+                    <h3 class="font-bold text-base tracking-wide text-white">Central de Conformidade & Suporte Técnico</h3>
+                </div>
+                <button onclick="toggleModal(false)" class="text-slate-400 hover:text-white font-bold text-xl px-2 transition-colors">&times;</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex flex-col gap-6 text-sm leading-relaxed">
+
+                <div>
+                    <h4 class="text-cyan-400 font-bold uppercase tracking-wider text-xs mb-2 flex items-center gap-1.5">
+                        <span>📖</span> 1. Guia Rápido de Operação (Tutorial)
+                    </h4>
+                    <ul class="list-disc pl-5 text-slate-300 flex flex-col gap-1">
+                        <li><strong class="text-white">Escolha o Layout:</strong> Selecione o tipo de etiqueta no menu lateral esquerdo conforme a necessidade do lote.</li>
+                        <li><strong class="text-white">Preencha os Dados:</strong> Modifique os campos de texto. O painel atualiza em tempo real enquanto você digita.</li>
+                        <li><strong class="text-white">Defina o Volume:</strong> Altere a "Qtd. de Linhas" para multiplicar as etiquetas e preencher a folha. Clique em <span class="text-cyan-300">"Gerar Grade"</span>.</li>
+                        <li><strong class="text-white">Configuração de Impressão:</strong> Ao clicar em Imprimir, certifique-se de definir as margens como <span class="text-amber-400 font-medium">"Nenhuma"</span> no navegador e desmarque cabeçalhos/rodapés para alinhamento exato.</li>
+                    </ul>
+                </div>
+
+                <hr class="border-slate-800">
+
+                <div>
+                    <h4 class="text-cyan-400 font-bold uppercase tracking-wider text-xs mb-2 flex items-center gap-1.5">
+                        <span>🛡️</span> 2. Segurança e Conformidade Regulatória
+                    </h4>
+                    <p class="text-slate-300 mb-2">
+                        Esta ferramenta foi projetada atendendo aos critérios de rastreabilidade de medicamentos e identificação segura do paciente, alinhada com as diretrizes da <strong>RDC nº 67/2007 da ANVISA</strong> e protocolos de segurança da OMS.
+                    </p>
+                    <div class="bg-slate-950/60 p-3 rounded border border-slate-800 text-xs text-slate-400 flex flex-col gap-1">
+                        <div>• <strong class="text-slate-300">Identificação de Paciente:</strong> Dupla checagem obrigatória (Nome Completo, Registro/Atendimento e Leito).</div>
+                        <div>• <strong class="text-slate-300">Dispensação de Líquidos:</strong> Inclusão mandatória do Lote e do V.P.A (Validade Pós-Abertura) para controle microbiológico.</div>
+                        <div>• <strong class="text-slate-300">Privacidade (LGPD):</strong> Sistema 100% offline. Nenhum dado de paciente ou lote hospitalar trafega pela internet ou é armazenado em banco externo.</div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-800">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950/40 p-4 rounded border border-slate-800">
+                    <div>
+                        <h4 class="text-slate-400 font-bold uppercase tracking-wider text-xs mb-1.5">🧑‍💻 Engenharia de Software</h4>
+                        <p class="text-slate-300 font-semibold text-white">Back Informática</p>
+                        <p class="text-xs text-slate-400 mt-1">Desenvolvido sob medida para otimização de fluxos hospitalares e eliminação de registros manuais.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-slate-400 font-bold uppercase tracking-wider text-xs mb-1.5">🛠️ Suporte TI & Manutenção</h4>
+                        <p class="text-xs text-slate-300">Para correções de layout, ajustes de margem física ou adição de novas categorias:</p>
+                        <p class="text-xs text-cyan-400 font-mono mt-1.5 font-bold">Contato: Operação Interna de TI</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="p-3 bg-slate-950 border-t border-slate-800 flex justify-end">
+                <button onclick="toggleModal(false)" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs py-2 px-4 rounded transition-all">
+                    Entendido, Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const forms = {
+            paciente: `
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Paciente</label>
+                    <input type="text" id="p_paciente" placeholder="Nome do Paciente" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white uppercase">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Data Nasc.</label>
+                        <input type="date" id="p_nasc" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Leito</label>
+                        <input type="text" id="p_leito" placeholder="Ex: 04" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white uppercase">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Atendimento</label>
+                    <input type="text" id="p_atendimento" placeholder="Nº Atend." class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Medicamento</label>
+                    <input type="text" id="p_medicamento" placeholder="Uso específico" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white uppercase">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Lote</label>
+                        <input type="text" id="p_lote" placeholder="Lote med." class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Data Disp.</label>
+                        <input type="date" id="p_data" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white">
+                    </div>
+                </div>
+            `,
+            fracionado: `
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Medicamento</label>
+                    <input type="text" id="l_nome" value="AMBROXOL" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white uppercase font-bold">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Concentração</label>
+                        <input type="text" id="l_concentracao" value="30MG/ML" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white uppercase">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Qtd / Volume</label>
+                        <input type="text" id="l_volume" value="5 ML" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white uppercase">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Lote</label>
+                        <input type="text" id="l_lote" value="LOT2411" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white uppercase">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Val. Pós-Abertura</label>
+                        <input type="text" id="l_val_abertura" value="15 DIAS" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-white uppercase">
+                    </div>
+                </div>
+            `,
+            comprimido: `
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Nome do Comprimido</label>
+                    <input type="text" id="c_nome" value="Captopril" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white font-semibold">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Dosagem</label>
+                    <input type="text" id="c_dosagem" value="25mg" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Validade (V:)</label>
+                        <input type="text" id="c_validade" value="04/2027" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Lote (L:)</label>
+                        <input type="text" id="c_lote" value="2508916" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white">
+                    </div>
+                </div>
+            `
+        };
+
+        // Função para Abrir/Fechar o Modal de Conformidade
+        function toggleModal(show) {
+            const modal = document.getElementById('infoModal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function switchForm() {
+            const type = document.getElementById('labelType').value;
+            document.getElementById('formContainer').innerHTML = forms[type];
+
+            const titleEl = document.getElementById('gridTitle');
+            const indEl = document.getElementById('colIndicator');
+
+            if (type === 'paciente') {
+                titleEl.innerText = "Layout: Etiquetas de Paciente / Leito";
+                indEl.innerText = "3 COLUNAS";
+                document.getElementById('p_data').value = new Date().toISOString().split('T')[0];
+            } else if (type === 'fracionado') {
+                titleEl.innerText = "Layout: Medicamentos Líquidos / Fracionados";
+                indEl.innerText = "6 COLUNAS";
+            } else if (type === 'comprimido') {
+                titleEl.innerText = "Layout: Fracionamento de Comprimidos";
+                indEl.innerText = "10 COLUNAS";
+            }
+            generateLabels();
+        }
+
+        function formatDate(dateString) {
+            if(!dateString) return "";
+            const parts = dateString.split('-');
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function generateLabels() {
+            const type = document.getElementById('labelType').value;
+            const rows = parseInt(document.getElementById('rowCount').value) || 1;
+            const grid = document.getElementById('previewGrid');
+
+            grid.classList.remove('grid-cols-paciente', 'grid-cols-fracionado', 'grid-cols-comprimido');
+
+            let totalLabels = 0;
+            let htmlContent = "";
+
+            if (type === 'paciente') {
+                grid.classList.add('grid-cols-paciente');
+                totalLabels = rows * 3;
+
+                const paciente = document.getElementById('p_paciente').value || "NOME DO PACIENTE";
+                const nasc = formatDate(document.getElementById('p_nasc').value) || "___/___/______";
+                const leito = document.getElementById('p_leito').value || "____";
+                const atendimento = document.getElementById('p_atendimento').value || "_______";
+                const medicamento = document.getElementById('p_medicamento').value || "......................";
+                const lote = document.getElementById('p_lote').value || "_______";
+                const data = formatDate(document.getElementById('p_data').value) || "___/___/______";
+
+                for (let i = 0; i < totalLabels; i++) {
+                    htmlContent += `
+                        <div class="label-card border border-black p-2 bg-white text-[10px] leading-[1.25] flex flex-col gap-0.5 font-sans">
+                            <div><span class="font-bold">Leito:</span> ${leito}</div>
+                            <div><span class="font-bold">Data:</span> ${data}</div>
+                            <hr class="border-black my-0.5">
+                            <div class="truncate"><span class="font-bold">Paciente:</span> <span class="text-[11px] font-bold">${paciente}</span></div>
+                            <div><span class="font-bold">Data de Nasc.:</span> ${nasc}</div>
+                            <div class="truncate"><span class="font-bold">Medicamento:</span> ${medicamento}</div>
+                            <hr class="border-gray-300 my-0.5">
+                            <div><span class="font-bold">Lote:</span> ${lote}</div>
+                            <div><span class="font-bold">Atendimento:</span> ${atendimento}</div>
+                            <div><span class="font-bold">Leito:</span> ${leito}</div>
+                            <div><span class="font-bold">Data:</span> ${data}</div>
+                        </div>
+                    `;
+                }
+            }
+            else if (type === 'fracionado') {
+                grid.classList.add('grid-cols-fracionado');
+                totalLabels = rows * 6;
+
+                const nome = document.getElementById('l_nome').value || "MEDICAMENTO";
+                const concentracao = document.getElementById('l_concentracao').value || "";
+                const volume = document.getElementById('l_volume').value || "";
+                const lote = document.getElementById('l_lote').value || "";
+                const valAbertura = document.getElementById('l_val_abertura').value || "";
+
+                for (let i = 0; i < totalLabels; i++) {
+                    htmlContent += `
+                        <div class="label-card border border-black p-1 bg-white flex flex-col gap-0.5 font-sans text-left">
+                            <div>
+                                <div class="font-bold text-[9px] uppercase leading-none border-b border-gray-300 pb-0.5 truncate">${nome}</div>
+                                <div class="text-[8px] font-medium text-gray-700 mt-0.5 leading-none">${concentracao}</div>
+                                <div class="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-0.5 rounded inline-block mt-0.5 leading-none">${volume}</div>
+                            </div>
+                            <div class="font-mono text-[7px] text-gray-600 leading-tight pt-0.5 border-t border-dotted border-gray-200">
+                                <div class="truncate">L: <span class="font-bold">${lote}</span></div>
+                                <div class="truncate text-[6.5px] font-sans">V.P.A: <span class="font-bold text-red-600">${valAbertura}</span></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            else if (type === 'comprimido') {
+                grid.classList.add('grid-cols-comprimido');
+                totalLabels = rows * 10;
+
+                const nome = document.getElementById('c_nome').value || "Medicamento";
+                const dosagem = document.getElementById('c_dosagem').value || "";
+                const validade = document.getElementById('c_validade').value || "";
+                const lote = document.getElementById('c_lote').value || "";
+
+                for (let i = 0; i < totalLabels; i++) {
+                    htmlContent += `
+                        <div class="label-card border border-black p-0.5 bg-white text-[7.5px] flex flex-col gap-0.5 font-sans text-left">
+                            <div>
+                                <div class="text-[6px] font-bold text-gray-400 tracking-tight leading-none">P.A</div>
+                                <div class="font-bold text-[8.5px] tracking-tighter leading-none truncate">${nome} ${dosagem}</div>
+                            </div>
+                            <div class="font-mono text-[6.5px] text-gray-600 leading-none pt-0.5 border-t border-dotted border-gray-200">
+                                <div>V: ${validade}</div>
+                                <div class="font-bold mt-0.5">L: ${lote}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            grid.innerHTML = htmlContent;
+        }
+
+        window.onload = switchForm;
+    </script>
+</body>
+</html>
