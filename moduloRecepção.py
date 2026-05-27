@@ -302,7 +302,7 @@ class ModalDetalhesPaciente(ctk.CTkToplevel):
                                                   font=("Segoe UI", 13, "bold"),
                                                   fg_color="#0284c7", hover_color="#0369a1", command=self.gerar_retorno)
         self.btn_novo_atendimento.pack(fill="x", pady=5)
-        
+
 
         self.btn_fechar = ctk.CTkButton(btn_box, text="FECHAR JANELA", font=("Segoe UI", 13),
                                         fg_color="#34495e", hover_color="#2c3e50", command=self.destroy)
