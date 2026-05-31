@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 import sqlite3
 import requests
 from io import BytesIO
@@ -14,6 +14,30 @@ ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
 
+# --- FUNÇÕES AUXILIARES ---
+
+def caminho_recurso(relative_path):
+    """ Retorna o caminho absoluto para o recurso, tanto em desenvolvimento quanto no .exe """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
+def calcular_idade(data_nasc_str):
+    """Calcula a idade exata em anos a partir do formato DD/MM/AAAA"""
+    if not data_nasc_str or data_nasc_str.strip() in ("", "---"):
+        return "---"
+    try:
+        data_nasc = datetime.strptime(data_nasc_str.strip(), '%d/%m/%Y')
+        hoje = datetime.now()
+        idade = hoje.year - data_nasc.year - ((hoje.month, hoje.day) < (data_nasc.month, data_nasc.day))
+        return f"{idade} ANOS"
+    except Exception:
+        return data_nasc_str
+
+
 # --- MODAL DE AUTENTICAÇÃO RESTRITA ---
 class ModalLoginAdmin(ctk.CTkToplevel):
     def __init__(self, parent, on_success):
@@ -24,7 +48,6 @@ class ModalLoginAdmin(ctk.CTkToplevel):
         self.geometry("380x200")
         self.resizable(False, False)
 
-        # Centralizar o modal
         parent.update_idletasks()
         x = parent.winfo_x() + (parent.winfo_width() // 2) - (380 // 2)
         y = parent.winfo_y() + (parent.winfo_height() // 2) - (200 // 2)
@@ -46,7 +69,6 @@ class ModalLoginAdmin(ctk.CTkToplevel):
         self.btn_entrar.pack(pady=10)
 
     def verificar(self):
-        # Senha padrão para acessar o painel administrativo
         if self.input_senha.get() == "11111000001":
             self.destroy()
             self.on_success()
@@ -65,7 +87,6 @@ class ModalAdmin(ctk.CTkToplevel):
         self.geometry("900x650")
         self.resizable(False, False)
 
-        # Centralizar o modal
         parent.update_idletasks()
         x = parent.winfo_x() + (parent.winfo_width() // 2) - (900 // 2)
         y = parent.winfo_y() + (parent.winfo_height() // 2) - (650 // 2)
@@ -74,15 +95,12 @@ class ModalAdmin(ctk.CTkToplevel):
         self.transient(parent)
         self.grab_set()
 
-        # Layout Principal
         main_frame = ctk.CTkFrame(self, corner_radius=15)
         main_frame.pack(fill="both", expand=True, padx=15, pady=15)
 
-        # Cabeçalho
         ctk.CTkLabel(main_frame, text="📊 DASHBOARD INDICADORES & RELATÓRIOS", font=("Segoe UI", 16, "bold"),
                      text_color="#38bdf8").pack(pady=15)
 
-        # Barra de Filtros
         filter_box = ctk.CTkFrame(main_frame, fg_color="#1e293b", corner_radius=10)
         filter_box.pack(fill="x", padx=15, pady=5)
 
@@ -107,7 +125,6 @@ class ModalAdmin(ctk.CTkToplevel):
         filter_box.grid_columnconfigure(4, weight=1)
         self.btn_print_report.grid(row=0, column=5, padx=15, pady=10, sticky="e")
 
-        # Cards de Indicadores
         cards_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         cards_frame.pack(fill="x", padx=15, pady=10)
         cards_frame.columnconfigure(0, weight=1)
@@ -129,7 +146,6 @@ class ModalAdmin(ctk.CTkToplevel):
         ctk.CTkLabel(self.card_recorrencia, text="Pacientes Recorrentes (Retornos)",
                      font=("Segoe UI", 11, "italic")).pack(pady=(0, 10))
 
-        # Tabela de Visualização Administrativa
         tabela_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         tabela_frame.pack(fill="both", expand=True, padx=15, pady=(5, 15))
 
@@ -156,7 +172,6 @@ class ModalAdmin(ctk.CTkToplevel):
     def construir_query_periodo(self):
         tipo = self.combo_tipo.get()
         hoje = datetime.now()
-
         if tipo == "Mês Atual":
             mes_ano = hoje.strftime('/%m/%Y')
             return "SELECT id, rm, nome, data_registro FROM atendimentos WHERE data_registro LIKE ?", (f"%{mes_ano}%",)
@@ -172,13 +187,11 @@ class ModalAdmin(ctk.CTkToplevel):
             self.tabela_adm.delete(item)
 
         query, params = self.construir_query_periodo()
-
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=10)
         cursor = conn.cursor()
         cursor.execute(query, params)
         dados = cursor.fetchall()
 
-        # Calcula o número de recorrentes (pacientes que aparecem mais de uma vez no geral)
         cursor.execute("""SELECT COUNT(id) FROM atendimentos WHERE rm IN (
                             SELECT rm FROM atendimentos GROUP BY rm HAVING COUNT(id) > 1
                           ) AND data_registro LIKE ?""", (params[0],))
@@ -208,8 +221,6 @@ class ModalAdmin(ctk.CTkToplevel):
         path = os.path.abspath(os.path.join(self.pdf_folder, nome_arquivo))
 
         canvas_pdf = canvas.Canvas(path, pagesize=A4)
-
-        # Cabeçalho Relatório Geral
         canvas_pdf.setFont("Helvetica-Bold", 11)
         canvas_pdf.drawString(40, 800, "HOSPITAL MUNICIPAL DE VIGIA DE NAZARÉ - PA")
         canvas_pdf.setFont("Helvetica", 9)
@@ -218,7 +229,6 @@ class ModalAdmin(ctk.CTkToplevel):
                               f"Emitido em: {datetime.now().strftime('%d/%m/%Y às %H:%M')} | Total do Período: {len(dados)} atendimentos")
         canvas_pdf.line(40, 765, 555, 765)
 
-        # Cabeçalho da Tabela do PDF
         canvas_pdf.setFont("Helvetica-Bold", 8)
         canvas_pdf.drawString(40, 750, "Nº ENTRADA")
         canvas_pdf.drawString(120, 750, "RM (PRONTUÁRIO)")
@@ -244,22 +254,22 @@ class ModalAdmin(ctk.CTkToplevel):
             os.startfile(path)
 
 
-# --- MODAL DE DETALHES E NOVA ENTRADA ---
+# --- MODAL DE DETALHES E HISTÓRICO CLINICO ---
 class ModalDetalhesPaciente(ctk.CTkToplevel):
-    def __init__(self, dados, parent, callback_novo_atendimento):
+    def __init__(self, dados, parent, callback_novo_atendimento, callback_reimprimir):
         super().__init__(parent)
         self.dados = dados
         self.callback_novo_atendimento = callback_novo_atendimento
+        self.callback_reimprimir = callback_reimprimir
 
         self.title(f"HISTÓRICO CLÍNICO - RM: {dados.get('rm', '---')}")
-        self.geometry("600x680")
+        self.geometry("600x720")
         self.resizable(False, False)
 
-        # Centralizar o modal
         parent.update_idletasks()
         x = parent.winfo_x() + (parent.winfo_width() // 2) - (600 // 2)
-        y = parent.winfo_y() + (parent.winfo_height() // 2) - (680 // 2)
-        self.geometry(f"600x680+{x}+{y}")
+        y = parent.winfo_y() + (parent.winfo_height() // 2) - (720 // 2)
+        self.geometry(f"600x720+{x}+{y}")
 
         self.transient(parent)
         self.grab_set()
@@ -279,9 +289,11 @@ class ModalDetalhesPaciente(ctk.CTkToplevel):
         grid_dados.pack(fill="both", expand=True, padx=10, pady=5)
         grid_dados.columnconfigure(1, weight=1)
 
+        idade_visual = calcular_idade(dados.get('nascimento', ''))
+
         exibir = [
             ('RM (Prontuário):', 'rm'), ('Nome do Paciente:', 'nome'), ('CPF:', 'cpf'),
-            ('Cartão SUS:', 'sus'), ('RG:', 'rg'), ('Nascimento:', 'nascimento'),
+            ('Cartão SUS:', 'sus'), ('RG:', 'rg'), ('Idade:', 'idade_calculada'),
             ('Sexo:', 'sexo'), ('Naturalidade:', 'naturalidade'), ('Estado Civil:', 'est_civil'),
             ('Cor/Raça:', 'cor'), ('Profissão/Ocupação:', 'ocupacao'), ('Mãe:', 'mae'),
             ('Pai:', 'pai'), ('Endereço:', 'endereco'), ('Telefone:', 'telefone')
@@ -291,26 +303,40 @@ class ModalDetalhesPaciente(ctk.CTkToplevel):
             lbl = ctk.CTkLabel(grid_dados, text=label, font=("Segoe UI", 11, "bold"), anchor="w")
             lbl.grid(row=idx, column=0, padx=10, pady=4, sticky="w")
 
-            val = ctk.CTkLabel(grid_dados, text=str(dados.get(chave, "---")), font=("Segoe UI", 12), anchor="w",
-                               justify="left", wraplength=350)
+            if chave == 'idade_calculada':
+                texto_val = idade_visual
+            else:
+                texto_val = str(dados.get(chave, "---"))
+
+            val = ctk.CTkLabel(grid_dados, text=texto_val, font=("Segoe UI", 12), anchor="w", justify="left",
+                               wraplength=350)
             val.grid(row=idx, column=1, padx=10, pady=4, sticky="w")
 
         btn_box = ctk.CTkFrame(self, fg_color="transparent")
         btn_box.pack(fill="x", pady=15, padx=20)
 
+        self.btn_reimprimir = ctk.CTkButton(btn_box, text="🖨️ REIMPRIMIR ÚLTIMA FICHA DESTE PACIENTE",
+                                            font=("Segoe UI", 13, "bold"), fg_color="#eab308", hover_color="#ca8a04",
+                                            text_color="#1e293b", command=self.reimprimir_ficha)
+        self.btn_reimprimir.pack(fill="x", pady=5)
+
         self.btn_novo_atendimento = ctk.CTkButton(btn_box, text="🔄 REAPROVEITAR REGISTRO (GERAR RETORNO)",
-                                                  font=("Segoe UI", 13, "bold"),
-                                                  fg_color="#0284c7", hover_color="#0369a1", command=self.gerar_retorno)
+                                                  font=("Segoe UI", 13, "bold"), fg_color="#0284c7",
+                                                  hover_color="#0369a1", command=self.gerar_retorno)
         self.btn_novo_atendimento.pack(fill="x", pady=5)
 
-
-        self.btn_fechar = ctk.CTkButton(btn_box, text="FECHAR JANELA", font=("Segoe UI", 13),
-                                        fg_color="#34495e", hover_color="#2c3e50", command=self.destroy)
+        self.btn_fechar = ctk.CTkButton(btn_box, text="FECHAR JANELA", font=("Segoe UI", 13), fg_color="#34495e",
+                                        hover_color="#2c3e50", command=self.destroy)
         self.btn_fechar.pack(fill="x")
 
     def gerar_retorno(self):
         self.callback_novo_atendimento(self.dados)
         self.destroy()
+
+    def reimprimir_ficha(self):
+        self.callback_reimprimir(self.dados)
+        self.destroy()
+
 
 class ModalSobre(ctk.CTkToplevel):
     def __init__(self, parent):
@@ -320,7 +346,6 @@ class ModalSobre(ctk.CTkToplevel):
         self.transient(parent)
         self.grab_set()
 
-        # Centralizar
         parent.update_idletasks()
         x = parent.winfo_x() + (parent.winfo_width() // 2) - (500 // 2)
         y = parent.winfo_y() + (parent.winfo_height() // 2) - (550 // 2)
@@ -350,7 +375,6 @@ Os dados aqui inseridos são de responsabilidade da unidade de saúde.
 O uso indevido é passível de punições administrativas e legais.
         """
         ctk.CTkLabel(scroll, text=texto, justify="left", font=("Segoe UI", 12)).pack(padx=10, pady=10)
-
         ctk.CTkButton(self, text="FECHAR", command=self.destroy).pack(pady=10)
 
 
@@ -358,17 +382,18 @@ O uso indevido é passível de punições administrativas e legais.
 class SISTGESTOR_HMV_V4:
     def __init__(self, root):
         self.root = root
-        self.root.title("MODULO RECEPÇÃO - SETOR DE TÉCNOLOIA DA INFORMAÇÃO - T.I - INSTITUTO IMPAR - SUPORTE: 91983252639 ")
+        self.root.title("MODULO RECEPÇÃO - SETOR DE TECNOLOGIA DA INFORMAÇÃO - T.I - INSTITUTO IMPAR")
         self.root.geometry("1340x840")
 
-        self.logo_bytes = None
         self.campos = {}
 
         base_dir = os.path.join(os.path.expanduser("~"), "Documents", "SISTGESTOR_HMV")
-        if not os.path.exists(base_dir): os.makedirs(base_dir)
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir)
         self.db_path = os.path.join(base_dir, "banco_hmv.db")
         self.pdf_folder = os.path.join(base_dir, "atendimentos_pdf")
-        if not os.path.exists(self.pdf_folder): os.makedirs(self.pdf_folder)
+        if not os.path.exists(self.pdf_folder):
+            os.makedirs(self.pdf_folder)
 
         self.criar_banco()
         self.ajustar_estilo_tabelas()
@@ -378,8 +403,6 @@ class SISTGESTOR_HMV_V4:
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-
-            # 1. Cria a tabela base inicial caso não exista
             cursor.execute('''CREATE TABLE IF NOT EXISTS atendimentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT, rm TEXT, nome TEXT, sus TEXT, 
             rg TEXT, cpf TEXT, nascimento TEXT, sexo TEXT, naturalidade TEXT, 
@@ -387,7 +410,6 @@ class SISTGESTOR_HMV_V4:
             ocupacao TEXT, endereco TEXT, data_registro TIMESTAMP)''')
             conn.commit()
 
-            # 2. Migration: Adiciona as novas colunas que faltavam nos bancos antigos
             cursor.execute("PRAGMA table_info(atendimentos)")
             colunas_existentes = [coluna[1] for coluna in cursor.fetchall()]
 
@@ -398,9 +420,7 @@ class SISTGESTOR_HMV_V4:
                         cursor.execute(f"ALTER TABLE atendimentos ADD COLUMN {nova_coluna} TEXT")
                         conn.commit()
                     except sqlite3.OperationalError:
-                        # Se já existir no arquivo DB físico mas não na lista pragma, ignora
                         pass
-
             conn.close()
         except Exception as e:
             print(f"Erro ao inicializar ou atualizar banco: {e}")
@@ -418,22 +438,21 @@ class SISTGESTOR_HMV_V4:
         header = ctk.CTkFrame(master=self.root, height=60, corner_radius=0, fg_color=("#1e3d59", "#0f172a"))
         header.pack(fill="x", side="top")
 
-        ctk.CTkLabel(header, text="🏥 URGÊNCIA/EMERGÊNCIA", font=("Segoe UI", 15, "bold"),
-                     text_color="white").pack(side="left", padx=20, pady=15)
+        ctk.CTkLabel(header, text="🏥 URGÊNCIA/EMERGÊNCIA", font=("Segoe UI", 15, "bold"), text_color="white").pack(
+            side="left", padx=20, pady=15)
 
         self.btn_admin_modal = ctk.CTkButton(header, text="📊 PAINEL GERAL ADM", font=("Segoe UI", 12, "bold"),
                                              fg_color="#6366f1", hover_color="#4f46e5", height=32,
                                              command=self.solicitar_acesso_adm)
         self.btn_admin_modal.pack(side="right", padx=15, pady=15)
 
-        # No seu header:
-        self.btn_sobre = ctk.CTkButton(header, text="ℹ️ SOBRE", font=("Segoe UI", 12, "bold"),
-                                       fg_color="#334155", hover_color="#475569", width=100, height=32,
+        self.btn_sobre = ctk.CTkButton(header, text="ℹ️ SOBRE", font=("Segoe UI", 12, "bold"), fg_color="#334155",
+                                       hover_color="#475569", width=100, height=32,
                                        command=lambda: ModalSobre(self.root))
         self.btn_sobre.pack(side="right", padx=5, pady=15)
 
-        ctk.CTkLabel(header, text="Vigia de Nazaré - PA/ COD01 ", font=("Segoe UI", 12, "italic"), text_color="#ecf0f1").pack(
-            side="right", padx=20, pady=15)
+        ctk.CTkLabel(header, text="Vigia de Nazaré - PA / COD01", font=("Segoe UI", 12, "italic"),
+                     text_color="#ecf0f1").pack(side="right", padx=20, pady=15)
 
         main_body = ctk.CTkFrame(master=self.root, fg_color="transparent")
         main_body.pack(fill="both", expand=True, padx=15, pady=15)
@@ -446,7 +465,6 @@ class SISTGESTOR_HMV_V4:
 
         grid_frame = ctk.CTkFrame(left_column, fg_color="transparent")
         grid_frame.pack(fill="both", expand=True, padx=15, pady=5)
-        for i in range(4): grid_frame.columnconfigure(i, weight=1)
 
         def add_input(label, chave, row, col, span=1, r_only=False, combo=None, placeholder=""):
             lbl = ctk.CTkLabel(grid_frame, text=label, font=("Segoe UI", 10, "bold"), text_color="gray")
@@ -463,22 +481,17 @@ class SISTGESTOR_HMV_V4:
 
         add_input("RM", "rm", 0, 0, 1, r_only=True)
         add_input("NOME DO PACIENTE", "nome", 0, 1, 3, placeholder="Nome Completo")
-
         add_input("CARTÃO SUS", "sus", 2, 0, 1, placeholder="000 0000...")
         add_input("RG", "rg", 2, 1, 1, placeholder="Nº Identidade")
         add_input("CPF", "cpf", 2, 2, 2, placeholder="000.000.000-00")
-
         add_input("NASCIMENTO", "nasc", 4, 0, 1, placeholder="DD/MM/AAAA")
         add_input("SEXO", "sexo", 4, 1, 1, combo=["MASCULINO", "FEMININO"])
         add_input("ESTADO CIVIL", "est_civil", 4, 2, 1, combo=["SOL", "CAS", "DIV", "VIU", "UNIÃO"])
         add_input("COR/RAÇA", "cor", 4, 3, 1, combo=["BRA", "PAR", "PRE", "AMA", "IND"])
-
         add_input("NATURALIDADE", "naturalidade", 6, 0, 2, placeholder="Cidade de Origem")
         add_input("PROFISSÃO/OCUPAÇÃO", "ocupacao", 6, 2, 2, placeholder="Trabalho atual")
-
         add_input("MÃE", "mae", 8, 0, 2, placeholder="Nome da Mãe")
         add_input("PAI", "pai", 8, 2, 2, placeholder="Nome do Pai")
-
         add_input("ENDEREÇO RESIDENCIAL", "end", 10, 0, 3, placeholder="Rua, Número e Bairro")
         add_input("TELEFONE", "tel", 10, 3, 1, placeholder="(91) 90000-0000")
 
@@ -582,10 +595,12 @@ class SISTGESTOR_HMV_V4:
             d['data_atendimento'] = horario_atual
 
             path = self.gerar_pdf_completo(d)
-            if path and os.path.exists(path): os.startfile(path)
+            if path and os.path.exists(path):
+                os.startfile(path)
 
             for k, w in self.campos.items():
-                if k != 'rm' and isinstance(w, ctk.CTkEntry): w.delete(0, 'end')
+                if k != 'rm' and isinstance(w, ctk.CTkEntry):
+                    w.delete(0, 'end')
 
             self.reset_rm()
             self.pesquisar_paciente()
@@ -596,79 +611,102 @@ class SISTGESTOR_HMV_V4:
 
     def abrir_modal_detalhes(self):
         item_selecionado = self.tabela.selection()
-        if not item_selecionado: return
+        if not item_selecionado:
+            return
 
         valores = self.tabela.item(item_selecionado)['values']
-
-        # Correção definitiva: Trata o RM puramente como texto sem tentar converter int()
-        rm_linha = str(valores[0]).strip()
-        nome_linha = str(valores[1]).strip()
-        cpf_linha = str(valores[2]).strip()
+        rm_bruto = str(valores[0]).strip()
+        rm_com_zeros = rm_bruto.zfill(5)
+        rm_inteiro = str(int(rm_bruto)) if rm_bruto.isdigit() else rm_bruto
 
         try:
             conn = sqlite3.connect(self.db_path)
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-
             cursor.execute('''SELECT *, (SELECT COUNT(*) FROM atendimentos WHERE rm = t.rm) as total_entradas 
                               FROM atendimentos t
-                              WHERE (nome = ? AND cpf = ?) OR rm = ? 
-                              ORDER BY id DESC LIMIT 1''', (nome_linha, cpf_linha, rm_linha))
-            p = cursor.fetchone()
+                              WHERE rm = ? OR rm = ? OR rm = ?
+                              ORDER BY id DESC LIMIT 1''', (rm_bruto, rm_com_zeros, rm_inteiro))
+            linha = cursor.fetchone()
             conn.close()
 
-            if p:
-                def obtener(row, chave):
-                    try:
-                        # Proteção contra erros de índice se o banco estiver corrompido
-                        return row[chave] if row[chave] is not None else "---"
-                    except (IndexError, KeyError):
-                        return "---"
-
-                dados = {
-                    'rm': obtener(p, 'rm'), 'nome': obtener(p, 'nome'), 'sus': obtener(p, 'sus'),
-                    'rg': obtener(p, 'rg'), 'cpf': obtener(p, 'cpf'), 'nascimento': obtener(p, 'nascimento'),
-                    'sexo': obtener(p, 'sexo'), 'naturalidade': obtener(p, 'naturalidade'),
-                    'est_civil': obtener(p, 'est_civil'),
-                    'cor': obtener(p, 'cor'), 'telefone': obtener(p, 'telefone'), 'mae': obtener(p, 'mae'),
-                    'pai': obtener(p, 'pai'), 'ocupacao': obtener(p, 'ocupacao'), 'endereco': obtener(p, 'endereco'),
-                    'total_entradas': p['total_entradas']
-                }
-                ModalDetalhesPaciente(dados, self.root, self.processo_nova_entrada_retorno)
+            if linha:
+                dados_paciente = dict(linha)
+                ModalDetalhesPaciente(
+                    dados_paciente,
+                    self.root,
+                    self.processo_nova_entrada_retorno,
+                    self.processo_reimpressao_ficha
+                )
+            else:
+                messagebox.showwarning("Aviso", f"Não foi possível resgatar o histórico para o RM: {rm_bruto}")
         except Exception as e:
-            messagebox.showerror("Erro", f"Erro ao renderizar dados do paciente: {e}")
+            messagebox.showerror("Erro ao renderizar dados", f"Falha de leitura no banco: {e}")
 
     def processo_nova_entrada_retorno(self, dados_paciente):
         try:
-            horario_atual = datetime.now().strftime('%d/%m/%Y %H:%M')
+            for k, w in self.campos.items():
+                if k != 'rm' and isinstance(w, ctk.CTkEntry):
+                    w.delete(0, 'end')
 
+            self.campos['nome'].insert(0, str(dados_paciente.get('nome', '')))
+            self.campos['sus'].insert(0, str(dados_paciente.get('sus', '')))
+            self.campos['rg'].insert(0, str(dados_paciente.get('rg', '')))
+            self.campos['cpf'].insert(0, str(dados_paciente.get('cpf', '')))
+            self.campos['nasc'].insert(0, str(dados_paciente.get('nascimento', '')))
+            self.campos['naturalidade'].insert(0, str(dados_paciente.get('naturalidade', '')))
+            self.campos['mae'].insert(0, str(dados_paciente.get('mae', '')))
+            self.campos['pai'].insert(0, str(dados_paciente.get('pai', '')))
+            self.campos['end'].insert(0, str(dados_paciente.get('endereco', '')))
+            self.campos['tel'].insert(0, str(dados_paciente.get('telefone', '')))
+            self.campos['ocupacao'].insert(0, str(dados_paciente.get('ocupacao', '')))
+
+            if dados_paciente.get('sexo') in ["MASCULINO", "FEMININO"]:
+                self.campos['sexo'].set(dados_paciente.get('sexo'))
+            if dados_paciente.get('est_civil') in ["SOL", "CAS", "DIV", "VIU", "UNIÃO"]:
+                self.campos['est_civil'].set(dados_paciente.get('est_civil'))
+            if dados_paciente.get('cor') in ["BRA", "PAR", "PRE", "AMA", "IND"]:
+                self.campos['cor'].set(dados_paciente.get('cor'))
+
+            self.campos['rm'].configure(state="normal")
+            self.campos['rm'].delete(0, 'end')
+            self.campos['rm'].insert(0, str(dados_paciente.get('rm', '')))
+            self.campos['rm'].configure(state="readonly")
+
+            messagebox.showinfo("Retorno",
+                                "Dados carregados! Modifique o necessário e clique em Imprimir para gerar o retorno.")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Falha ao carregar dados para retorno: {e}")
+
+    def processo_reimpressao_ficha(self, dados_paciente):
+        try:
             conn = sqlite3.connect(self.db_path)
-            c = conn.cursor()
-            c.execute('''INSERT INTO atendimentos (rm, nome, sus, rg, cpf, nascimento, sexo, naturalidade, est_civil, cor, mae, pai, ocupacao, endereco, telefone, data_registro)
-                         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
-                      (dados_paciente['rm'], dados_paciente['nome'], dados_paciente['sus'], dados_paciente['rg'],
-                       dados_paciente['cpf'],
-                       dados_paciente['nascimento'], dados_paciente['sexo'], dados_paciente['naturalidade'],
-                       dados_paciente['est_civil'], dados_paciente['cor'], dados_paciente['mae'], dados_paciente['pai'],
-                       dados_paciente['ocupacao'], dados_paciente['endereco'], dados_paciente['telefone'],
-                       horario_atual))
-            id_novo_atendimento = c.lastrowid
-            conn.commit()
+            cursor = conn.cursor()
+            cursor.execute('''SELECT id, data_registro FROM atendimentos 
+                              WHERE rm = ? ORDER BY id DESC LIMIT 1''', (dados_paciente['rm'],))
+            resultado = cursor.fetchone()
             conn.close()
 
-            dados_pdf = dados_paciente.copy()
-            dados_pdf['id_atendimento'] = f"{id_novo_atendimento:06d}"
-            dados_pdf['data_atendimento'] = horario_atual
+            if resultado:
+                id_atendimento, data_atendimento = resultado
+                dados_pdf = dados_paciente.copy()
+                dados_pdf['id_atendimento'] = f"{id_atendimento:06d}"
+                dados_pdf['data_atendimento'] = data_atendimento
 
-            path = self.gerar_pdf_completo(dados_pdf)
-            if path and os.path.exists(path): os.startfile(path)
+                dados_pdf['nasc'] = dados_paciente.get('nascimento')
+                dados_pdf['end'] = dados_paciente.get('endereco')
+                dados_pdf['tel'] = dados_paciente.get('telefone')
 
-            self.pesquisar_paciente()
-            messagebox.showinfo("Re-Admissão",
-                                f"Novo atendimento gerado com sucesso!\nNº Entrada: {id_novo_atendimento:06d}")
-
+                path = self.gerar_pdf_completo(dados_pdf)
+                if path and os.path.exists(path):
+                    os.startfile(path)
+                    messagebox.showinfo("Reimpressão",
+                                        f"Segunda via da Ficha Nº {id_atendimento:06d} enviada para o leitor de PDF!")
+            else:
+                messagebox.showwarning("Erro",
+                                       "Não foi encontrado nenhum atendimento ativo no histórico para gerar a segunda via.")
         except Exception as e:
-            messagebox.showerror("Erro", f"Erro ao criar registro de retorno: {e}")
+            messagebox.showerror("Erro", f"Falha ao gerar segunda via da ficha: {e}")
 
     def gerar_pdf_completo(self, d):
         nome_arquivo = f"Atend_{d['id_atendimento']}_RM_{d['rm']}.pdf"
@@ -676,108 +714,137 @@ class SISTGESTOR_HMV_V4:
 
         c = canvas.Canvas(path, pagesize=A4)
 
-        # --- CABEÇALHO INSTITUCIONAL REDESENHADO (LADO ESQUERDO) ---
-        c.setFont("Helvetica-Bold", 8.5)
+        # --- CABEÇALHO INSTITUCIONAL ---
+        c.setFont("Helvetica-Bold", 10)
         c.drawString(40, 815, "HOSPITAL MUNICIPAL DE VIGIA DE NAZARE")
-        c.setFont("Helvetica", 6.5)
-        c.drawString(40, 805, "AVENIDA: BARÃO DE GUAJARA, SN - CASTANHEIRA - VIGIA/PA")
-        c.drawString(40, 796, "CNPJ: 05.351.606/0001-95 ")
+        c.setFont("Helvetica", 7.5)
+        c.drawString(40, 804, "AVENIDA: BARÃO DE GUAJARÁ, S/N - CASTANHEIRA - VIGIA/PA")
+        c.drawString(40, 794, "CNPJ: 05.351.606/0001-95")
 
-        # --- INSERÇÃO DA LOGO LOCAL EXTENDIDA (LADO DIREITO - ALINHADO) ---
-        # Certifique-se de que a imagem combinada Prefeitura/HMRV esteja salva como 'logo.jpg'
-        base_dir = os.path.join(os.path.expanduser("~"), "Documents", "SISTGESTOR_HMV")
-        caminho_logo = os.path.join(base_dir, "logo.jpg")
-
+        # Inserção das marcas consolidadas via caminho isolado (funciona em desenvolvimento e no .exe)
+        caminho_logo = caminho_recurso("logo.jpg")
         if os.path.exists(caminho_logo):
-            try:
-                # X=365 posiciona o início do bloco de logos estendido logo após o texto institucional
-                # Y=793 com altura=32 mantém a proporção horizontal idêntica ao modelo real
-                c.drawImage(caminho_logo, 365, 793, width=190, height=32, mask='auto', preserveAspectRatio=True)
-            except Exception as e:
-                print(f"Erro ao renderizar a imagem logo.jpg: {e}")
-        else:
-            print(f"Aviso: O arquivo {caminho_logo} não foi encontrado.")
+            c.drawImage(caminho_logo, 380, 792, width=175, height=32, mask='auto')
 
-        # Linha divisória logo abaixo do bloco de identificação e das logos
-        c.line(40, 788, 555, 788)
+        c.setLineWidth(1)
+        c.line(40, 785, 555, 785)
 
-        # --- DADOS DA ADMISSÃO ATUALIZADOS ---
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(40, 773, f"PRONTUÁRIO: {d['rm']}")
-        c.drawString(170, 773, f"Nº ATENDIMENTO: {d['id_atendimento']}")
-        c.drawString(300, 773, f"DATA/HORA: {d['data_atendimento']}")
-        c.drawString(470, 773, f"SEXO: {d.get('sexo', '')[:1]}")
+        # --- DADOS DE IDENTIFICAÇÃO ---
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(40, 770, f"PRONTUÁRIO: {d['rm']}")
+        c.drawString(170, 770, f"Nº ATENDIMENTO: {d['id_atendimento']}")
+        c.drawString(320, 770, f"DATA/HORA: {d['data_atendimento']}")
+        c.drawString(485, 770, f"SEXO: {d['sexo'][0] if d['sexo'] else 'M'}")
 
-        # ... (restante do código do ReportLab permanece igual para triagem e prescrição)
-        c.drawString(40, 756, f"PACIENTE: {d['nome']}")
-        c.drawString(470, 756, f"EST. CIVIL: {d.get('est_civil', '')}")
-        c.drawString(40, 741, f"CPF: {d.get('cpf', '')}")
-        c.drawString(170, 741, f"RG: {d.get('rg', '')}")
-        c.drawString(300, 741, f"SUS: {d.get('sus', '')}")
-        c.drawString(470, 741, f"NASC.: {d.get('nascimento', '')}")
+        c.drawString(40, 752, f"PACIENTE: {d['nome']}")
+        c.drawString(485, 752, f"EST. CIVIL: {d['est_civil']}")
 
-        c.drawString(40, 726, f"NATURALIDADE: {d.get('naturalidade', '')}")
-        c.drawString(300, 726, f"RAÇA/COR: {d.get('cor', '')}")
-        c.drawString(470, 726, f"FONE: {d.get('telefone', '')}")
+        c.drawString(40, 735, f"CPF: {d['cpf']}")
+        c.drawString(180, 735, f"RG: {d['rg']}")
+        c.drawString(320, 735, f"SUS: {d['sus']}")
 
-        c.drawString(40, 711, f"MÃE: {d.get('mae', '')}")
-        c.drawString(300, 711, f"PAI: {d.get('pai', '')}")
+        data_orig = d.get('nasc', d.get('nascimento', '---'))
+        idade_final = calcular_idade(data_orig)
+        c.drawString(485, 735, f"IDADE: {idade_final}")
 
-        c.drawString(40, 696, f"ENDEREÇO: {d.get('endereco', '')}")
-        c.drawString(300, 696, f"OCUPAÇÃO: {d.get('ocupacao', '')}")
+        c.drawString(40, 718, f"NATURALIDADE: {d['naturalidade']}")
+        c.drawString(320, 718, f"RAÇA/COR: {d['cor']}")
+        c.drawString(485, 701, f"FONE: {d['tel'] if 'tel' in d else d.get('telefone', '---')}")
 
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(40, 666, "CARÁTER DO ATENDIMENTO:  [  ] URGÊNCIA   [  ] EMERGÊNCIA   [  ] ELETIVO")
-        c.line(40, 661, 555, 661)
+        c.drawString(40, 701, f"MÃE: {d['mae']}")
+        c.drawString(320, 701, f"PAI: {d['pai']}")
+        c.drawString(485, 718, f"NASCI: {d['nasc']}")
 
+        c.drawString(40, 684, f"ENDEREÇO: {d['end'] if 'end' in d else d.get('endereco', '---')}")
+        c.drawString(320, 684, f"OCUPAÇÃO: {d['ocupacao']}")
+
+        c.drawString(40, 665, "CARÁTER DO ATENDIMENTO:    [  ] URGÊNCIA    [  ] EMERGÊNCIA    [  ] ELETIVO")
+
+        c.setLineWidth(1)
+        c.line(40, 655, 555, 655)
+
+        # --- SEÇÃO 1: CLASSIFICAÇÃO DE RISCO / TRIAGEM ---
         c.setFillColorRGB(0.9, 0.9, 0.9)
-        c.rect(40, 643, 515, 12, fill=1)
+        c.rect(40, 638, 515, 14, fill=True, stroke=False)
         c.setFillColorRGB(0, 0, 0)
-        c.drawCentredString(297, 646, "CLASSIFICAÇÃO DE RISCO / TRIAGEM")
-        c.setFont("Helvetica", 7)
-        c.drawString(45, 628,
-                     "PA: ________ X ________  FC: ________  GLICEMIA: ________  PESO: ________  TEMP: ________  SpO2: ________")
-        c.drawString(45, 613,
-                     "ALERGIAS: _________________________________________________________________________________")
-        c.drawString(45, 598,
-                     "QUEIXAS PRINCIPAIS: ________________________________________________________________________")
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawCentredString(297, 641, "CLASSIFICAÇÃO DE RISCO / TRIAGEM")
+        c.rect(40, 638, 515, 14, fill=False, stroke=True)
 
+        c.setFont("Helvetica", 7.5)
+        c.drawString(40, 622,
+                     "HORA;MIN: ______:______  PA: ________ X ________   FC: ________  /GLICEMIA: ________  /PESO: ________  /TEMP: ________  /SpO2: ________")
+        c.drawString(40, 607,
+                     "HORA/MIN: ______:______  PA: ________ X ________   FC: _________ /GLICEMIA: ________  /PESO: ________  /TEMP: _______  /SpO2: ________")
+        c.drawString(40, 589,
+                     "DIABETES: [            ]           /HIPERTENSÃO: [           ]          /ASMA: [           ]          /OUTROS: ________________________________________________")
+        c.drawString(40, 572,
+                     "ALERGIAS: _________________________________________________________________________________________________________________ ")
+        c.drawString(40, 553,
+                     "QUEIXAS PRINCIPAIS: _______________________________________________________________________________________________________ ")
+        c.drawString(40, 537,
+                     "___________________________________________________________________________________________________________________________ ")
+
+        # --- SEÇÃO 2: ATENDIMENTO MÉDICO / EXAME CLÍNICO ---
         c.setFillColorRGB(0.9, 0.9, 0.9)
-        c.rect(40, 578, 515, 12, fill=1)
+        c.rect(40, 518, 515, 14, fill=True, stroke=False)
         c.setFillColorRGB(0, 0, 0)
-        c.drawCentredString(297, 581, "ATENDIMENTO MÉDICO / EXAME CLÍNICO")
-        c.rect(40, 433, 515, 140)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawCentredString(297, 521, "ATENDIMENTO MÉDICO / EXAME CLÍNICO")
+        c.rect(40, 518, 515, 14, fill=False, stroke=True)
 
+        c.setLineWidth(1)
+        c.rect(40, 443, 515, 70, fill=False, stroke=True)
+
+        # --- SEÇÃO 3: PRESCRIÇÃO MÉDICA / CONDUTA INTERNA ---
         c.setFillColorRGB(0.9, 0.9, 0.9)
-        c.rect(40, 413, 515, 12, fill=1)
+        c.rect(40, 419, 515, 14, fill=True, stroke=False)
         c.setFillColorRGB(0, 0, 0)
-        c.drawCentredString(297, 416, "PRESCRIÇÃO MÉDICA / CONDUTA INTERNA")
-        for i in range(8):
-            y = 393 - (i * 18)
-            c.line(40, y, 480, y)
-            c.drawString(485, y + 2, "HORA: ______")
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawCentredString(297, 422, "PRESCRIÇÃO MÉDICA / CONDUTA INTERNA")
+        c.rect(40, 419, 515, 14, fill=False, stroke=True)
 
-        c.setFont("Helvetica-Bold", 7)
-        c.drawString(45, 243,
-                     "HIPÓTESE DIAGNÓSTICA: _________________________________________________  CID: __________")
-        c.drawString(45, 228,
-                     "OBSERVAÇÕES: _______________________________________________________________________________")
-        c.drawString(45, 213, "TIPO DE ALTA: [ ] MELHORADA [ ] INTERNAÇÃO [ ] ÓBITO [ ] EVASÃO [ ] TRANSFERÊNCIA")
-        c.drawString(45, 198,
-                     "PROCEDIMENTOS EXECUTADOS: _________________________________________________________________")
+        y_linha = 400
+        for _ in range(8):
+            c.setLineWidth(0.5)
+            c.line(40, y_linha, 490, y_linha)
+            c.setFont("Helvetica", 7)
+            c.drawString(495, y_linha + 2, "HORA: _________")
+            y_linha -= 16
 
-        c.line(50, 60, 180, 60)
-        c.drawCentredString(115, 52, "ASSINATURA PACIENTE")
-        c.line(230, 60, 360, 60)
-        c.drawCentredString(295, 52, "ENFERMAGEM")
-        c.line(410, 60, 540, 60)
-        c.drawCentredString(475, 52, "MÉDICO")
+        c.setFont("Helvetica", 7.5)
+        c.drawString(40, 265,
+                     "HIPÓTESE DIAGNÓSTICA: _________________________________________________________________________________  CID: ______________")
+        c.drawString(40, 250,
+                     "OBSERVAÇÕES: ____________________________________________________________________________________________________________")
+        c.drawString(40, 235,
+                     "___________________________________________________________________________________________________________________________")
+        c.drawString(40, 220,
+                     "___________________________________________________________________________________________________________________________")
+
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawString(40, 195,
+                     "TIPO DE ALTA:   [  ] MELHORADA   [  ] INTERNAÇÃO   [  ] ÓBITO   [  ] EVASÃO   [  ] TRANSFERÊNCIA")
+        c.drawString(40, 180, "PROCEDIMENTOS EXECUTADOS:")
+
+        # --- ASSINATURAS ---
+        c.setLineWidth(0.7)
+        c.line(50, 75, 190, 75)
+        c.setFont("Helvetica-Bold", 7.5)
+        c.drawCentredString(120, 65, "ASSINATURA PACIENTE")
+
+        c.line(245, 75, 385, 75)
+        c.drawCentredString(315, 65, "ENFERMAGEM")
+
+        c.line(430, 75, 545, 75)
+        c.drawCentredString(487, 65, "MÉDICO")
 
         c.save()
         return path
 
 
+# --- INICIALIZAÇÃO SEGURA DO PROJETO ---
 if __name__ == "__main__":
-    root = ctk.CTk()
-    app = SISTGESTOR_HMV_V4(root)
-    root.mainloop()
+    app = ctk.CTk()
+    SISTGESTOR_HMV_V4(app)
+    app.mainloop()
