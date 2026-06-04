@@ -576,16 +576,58 @@ class SISTGESTOR_HMV_V4:
             d = {k: (v.get().upper() if isinstance(v, (ctk.CTkEntry, ctk.CTkComboBox)) else v.get()) for k, v in
                  self.campos.items()}
 
-            if not d['nome'].strip():
+            nome_limpo = d['nome'].strip()
+            if not nome_limpo:
                 return messagebox.showwarning("Validação", "Campo 'Nome do Paciente' não pode ficar em branco!")
 
-            horario_atual = datetime.now().strftime('%d/%m/%Y %H:%M')
-
+            # --- LOGICA ANTIDUPLICIDADE INTELIGENTE ---
             conn = sqlite3.connect(self.db_path)
             c = conn.cursor()
+
+            # 1. Verifica duplicidade por nome completo exato
+            c.execute("SELECT rm FROM atendimentos WHERE nome = ? LIMIT 1", (nome_limpo,))
+            resultado_nome = c.fetchone()
+
+            if resultado_nome:
+                conn.close()
+                return messagebox.showerror(
+                    "Paciente Já Cadastrado",
+                    f"Atenção! O paciente '{nome_limpo}' já possui o prontuário RM: {resultado_nome[0]}.\n\n"
+                    "Para evitar duplicar o RM, use o campo de busca à direita, clique no nome do paciente e selecione 'REAPROVEITAR REGISTRO (GERAR RETORNO)'."
+                )
+
+            # 2. Verifica duplicidade secundária por CPF (se preenchido)
+            cpf_limpo = d['cpf'].strip()
+            if cpf_limpo and cpf_limpo not in ("", "000.000.000-00", "---"):
+                c.execute("SELECT rm, nome FROM atendimentos WHERE cpf = ? LIMIT 1", (cpf_limpo,))
+                resultado_cpf = c.fetchone()
+                if resultado_cpf:
+                    conn.close()
+                    return messagebox.showerror(
+                        "CPF Já Vinculado",
+                        f"O CPF '{cpf_limpo}' já está cadastrado para o paciente: '{resultado_cpf[1]}' (RM: {resultado_cpf[0]}).\n\n"
+                        "Por favor, use o prontuário existente."
+                    )
+
+            # 3. Verifica duplicidade secundária por Cartão SUS (se preenchido)
+            sus_limpo = d['sus'].strip()
+            if sus_limpo and sus_limpo not in ("", "---"):
+                c.execute("SELECT rm, nome FROM atendimentos WHERE sus = ? LIMIT 1", (sus_limpo,))
+                resultado_sus = c.fetchone()
+                if resultado_sus:
+                    conn.close()
+                    return messagebox.showerror(
+                        "Cartão SUS Já Vinculado",
+                        f"O Cartão SUS '{sus_limpo}' já está cadastrado para o paciente: '{resultado_sus[1]}' (RM: {resultado_sus[0]}).\n\n"
+                        "Por favor, use o prontuário existente."
+                    )
+
+            # Se passar por todas as travas, realiza a inserção normal
+            horario_atual = datetime.now().strftime('%d/%m/%Y %H:%M')
+
             c.execute('''INSERT INTO atendimentos (rm, nome, sus, rg, cpf, nascimento, sexo, naturalidade, est_civil, cor, mae, pai, ocupacao, endereco, telefone, data_registro)
                          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
-                      (d['rm'], d['nome'], d['sus'], d['rg'], d['cpf'], d['nasc'], d['sexo'], d['naturalidade'],
+                      (d['rm'], nome_limpo, d['sus'], d['rg'], d['cpf'], d['nasc'], d['sexo'], d['naturalidade'],
                        d['est_civil'], d['cor'], d['mae'], d['pai'], d['ocupacao'], d['end'], d['tel'], horario_atual))
             id_atendimento = c.lastrowid
             conn.commit()
@@ -614,19 +656,32 @@ class SISTGESTOR_HMV_V4:
         if not item_selecionado:
             return
 
+        # Captura o valor bruto da linha selecionada na Treeview
         valores = self.tabela.item(item_selecionado)['values']
         rm_bruto = str(valores[0]).strip()
-        rm_com_zeros = rm_bruto.zfill(5)
-        rm_inteiro = str(int(rm_bruto)) if rm_bruto.isdigit() else rm_bruto
+
+        # Tratamento de Zeros à Esquerda:
+        # Se for um RM numérico (ex: "135" ou "00135"), garante que tenha 5 dígitos ("00135").
+        # Se for um RM misto/texto (ex: "RM260527..."), mantém intacto sem quebrar.
+        if rm_bruto.isdigit():
+            rm_final = rm_bruto.zfill(5)
+        else:
+            rm_final = rm_bruto
 
         try:
             conn = sqlite3.connect(self.db_path)
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute('''SELECT *, (SELECT COUNT(*) FROM atendimentos WHERE rm = t.rm) as total_entradas 
-                              FROM atendimentos t
-                              WHERE rm = ? OR rm = ? OR rm = ?
-                              ORDER BY id DESC LIMIT 1''', (rm_bruto, rm_com_zeros, rm_inteiro))
+
+            # Busca estrita e segura utilizando o RM normalizado
+            cursor.execute('''
+                SELECT *, 
+                       (SELECT COUNT(*) FROM atendimentos WHERE rm = t.rm) as total_entradas 
+                FROM atendimentos t
+                WHERE rm = ? 
+                ORDER BY id DESC LIMIT 1
+            ''', (rm_final,))
+
             linha = cursor.fetchone()
             conn.close()
 
@@ -639,44 +694,111 @@ class SISTGESTOR_HMV_V4:
                     self.processo_reimpressao_ficha
                 )
             else:
-                messagebox.showwarning("Aviso", f"Não foi possível resgatar o histórico para o RM: {rm_bruto}")
+                messagebox.showwarning("Aviso", f"Não foi possível resgatar o histórico exato para o RM: {rm_final}")
         except Exception as e:
-            messagebox.showerror("Erro ao renderizar dados", f"Falha de leitura no banco: {e}")
-
-    def processo_nova_entrada_retorno(self, dados_paciente):
+            messagebox.showerror("Erro ao renderizar dados", f"Falha no carregamento controlado: {e}")
+    def processo_nova_entrada_retorno(self, dados_antigos):
+        """ Método de Callback para gerar um novo atendimento a partir de dados históricos (Retorno) """
         try:
+            # Limpa o formulário antes de injetar os dados para reuso
             for k, w in self.campos.items():
                 if k != 'rm' and isinstance(w, ctk.CTkEntry):
                     w.delete(0, 'end')
 
-            self.campos['nome'].insert(0, str(dados_paciente.get('nome', '')))
-            self.campos['sus'].insert(0, str(dados_paciente.get('sus', '')))
-            self.campos['rg'].insert(0, str(dados_paciente.get('rg', '')))
-            self.campos['cpf'].insert(0, str(dados_paciente.get('cpf', '')))
-            self.campos['nasc'].insert(0, str(dados_paciente.get('nascimento', '')))
-            self.campos['naturalidade'].insert(0, str(dados_paciente.get('naturalidade', '')))
-            self.campos['mae'].insert(0, str(dados_paciente.get('mae', '')))
-            self.campos['pai'].insert(0, str(dados_paciente.get('pai', '')))
-            self.campos['end'].insert(0, str(dados_paciente.get('endereco', '')))
-            self.campos['tel'].insert(0, str(dados_paciente.get('telefone', '')))
-            self.campos['ocupacao'].insert(0, str(dados_paciente.get('ocupacao', '')))
+            # Preenche o formulário com o acervo do paciente
+            mapeamento = {
+                'nome': dados_antigos.get('nome', ''),
+                'sus': dados_antigos.get('sus', ''),
+                'rg': dados_antigos.get('rg', ''),
+                'cpf': dados_antigos.get('cpf', ''),
+                'nasc': dados_antigos.get('nascimento', ''),
+                'naturalidade': dados_antigos.get('naturalidade', ''),
+                'ocupacao': dados_antigos.get('ocupacao', ''),
+                'mae': dados_antigos.get('mae', ''),
+                'pai': dados_antigos.get('pai', ''),
+                'end': dados_antigos.get('endereco', ''),
+                'tel': dados_antigos.get('telefone', '')
+            }
 
-            if dados_paciente.get('sexo') in ["MASCULINO", "FEMININO"]:
-                self.campos['sexo'].set(dados_paciente.get('sexo'))
-            if dados_paciente.get('est_civil') in ["SOL", "CAS", "DIV", "VIU", "UNIÃO"]:
-                self.campos['est_civil'].set(dados_paciente.get('est_civil'))
-            if dados_paciente.get('cor') in ["BRA", "PAR", "PRE", "AMA", "IND"]:
-                self.campos['cor'].set(dados_paciente.get('cor'))
+            for chave, valor in mapeamento.items():
+                if chave in self.campos and isinstance(self.campos[chave], ctk.CTkEntry):
+                    self.campos[chave].insert(0, str(valor) if valor and valor != "None" else "")
 
+            if 'sexo' in self.campos and dados_antigos.get('sexo') in ["MASCULINO", "FEMININO"]:
+                self.campos['sexo'].set(dados_antigos.get('sexo'))
+            if 'est_civil' in self.campos and dados_antigos.get('est_civil'):
+                self.campos['est_civil'].set(dados_antigos.get('est_civil'))
+            if 'cor' in self.campos and dados_antigos.get('cor'):
+                self.campos['cor'].set(dados_antigos.get('cor'))
+
+            # Força o reaproveitamento do RM original do histórico do paciente
             self.campos['rm'].configure(state="normal")
             self.campos['rm'].delete(0, 'end')
-            self.campos['rm'].insert(0, str(dados_paciente.get('rm', '')))
+            self.campos['rm'].insert(0, str(dados_antigos.get('rm')).zfill(5))
             self.campos['rm'].configure(state="readonly")
 
-            messagebox.showinfo("Retorno",
-                                "Dados carregados! Modifique o necessário e clique em Imprimir para gerar o retorno.")
+            # Altera a ação do botão salvador para focar na execução exclusiva do retorno
+            self.btn_salvar.configure(
+                text="💾 CONFIRMAR RETORNO (IMPRIMIR)",
+                fg_color="#0284c7", hover_color="#0369a1",
+                command=lambda: self.executar_insercao_retorno(str(dados_antigos.get('rm')).zfill(5))
+            )
+            messagebox.showinfo("Retorno Carregado",
+                                f"Prontuário RM {str(dados_antigos.get('rm')).zfill(5)} pronto para reuso. Clique em 'CONFIRMAR RETORNO' para concluir.")
+
         except Exception as e:
-            messagebox.showerror("Erro", f"Falha ao carregar dados para retorno: {e}")
+            messagebox.showerror("Erro de Retorno", f"Falha ao carregar dados antigos: {e}")
+
+    def executar_insercao_retorno(self, rm_antigo):
+        """ Insere o novo atendimento pulando as validações de bloqueio de duplicidade """
+        try:
+            d = {k: (v.get().upper() if isinstance(v, (ctk.CTkEntry, ctk.CTkComboBox)) else v.get()) for k, v in
+                 self.campos.items()}
+
+            nome_limpo = d['nome'].strip()
+            if not nome_limpo:
+                return messagebox.showwarning("Validação", "Campo 'Nome do Paciente' não pode ficar em branco!")
+
+            horario_atual = datetime.now().strftime('%d/%m/%Y %H:%M')
+
+            # Salva direto no banco associando ao RM antigo (Sem passar pelas travas de bloqueio)
+            conn = sqlite3.connect(self.db_path)
+            c = conn.cursor()
+            c.execute('''INSERT INTO atendimentos (rm, nome, sus, rg, cpf, nascimento, sexo, naturalidade, est_civil, cor, mae, pai, ocupacao, endereco, telefone, data_registro)
+                         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+                      (rm_antigo, nome_limpo, d['sus'], d['rg'], d['cpf'], d['nasc'], d['sexo'], d['naturalidade'],
+                       d['est_civil'], d['cor'], d['mae'], d['pai'], d['ocupacao'], d['end'], d['tel'], horario_atual))
+            id_atendimento = c.lastrowid
+            conn.commit()
+            conn.close()
+
+            d['id_atendimento'] = f"{id_atendimento:06d}"
+            d['data_atendimento'] = horario_atual
+            d['rm'] = rm_antigo
+
+            # Gera o PDF com base nos dados capturados
+            path = self.gerar_pdf_completo(d)
+            if path and os.path.exists(path):
+                os.startfile(path)
+
+            # Limpa os campos após o sucesso
+            for k, w in self.campos.items():
+                if k != 'rm' and isinstance(w, ctk.CTkEntry):
+                    w.delete(0, 'end')
+
+            # Restaura o botão para o modo padrão (Novo cadastro)
+            self.btn_salvar.configure(
+                text="💾 IMPRIMIR E ENVIAR PARA A TRIAGEM",
+                fg_color="#22c55e", hover_color="#16a34a",
+                command=self.processo_novo_cadastro
+            )
+
+            self.reset_rm()
+            self.pesquisar_paciente()
+            messagebox.showinfo("Sucesso", "Nova entrada (Retorno) registrada com sucesso para este prontuário!")
+
+        except Exception as e:
+            messagebox.showerror("Erro no Retorno", f"Falha interna ao gravar retorno: {e}")
 
     def processo_reimpressao_ficha(self, dados_paciente):
         try:
