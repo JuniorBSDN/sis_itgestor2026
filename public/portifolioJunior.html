@@ -55,32 +55,42 @@
 </head>
 
 <!-- Top Navigation Bar -->
+<!-- Top Navigation Bar -->
 <nav class="sticky top-0 z-50 glass border-b border-teal-100 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
+            <!-- Lado Esquerdo: Logo e Título -->
             <div class="flex items-center gap-3">
                 <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 to-teal-400 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-brand-500/20">
                     <i class="fa-solid fa-hospital-user"></i>
                 </div>
                 <div>
-    <span class="text-sm font-bold tracking-wider text-brand-700 uppercase block leading-none font-display flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-brand-500 inline-block"></span>
-        SisIT - Gestão de TI
-    </span>
-    <span class="text-[10px] font-semibold tracking-wide text-slate-500 block mt-1 uppercase">
-        Ecossistema Digital de Saúde de Alta Disponibilidade
-    </span>
-</div>
+                    <span class="text-sm font-bold tracking-wider text-brand-700 uppercase block leading-none font-display flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-brand-500 inline-block"></span>
+                        SisIT - Gestão de T.I
+                    </span>
+                    <span class="text-[10px] font-semibold tracking-wide text-slate-500 block mt-1 uppercase max-w-[180px] sm:max-w-none truncate sm:whitespace-normal">
+                        Ecossistema Digital de Saúde - portifólio de JOSE AIRTON B S JUNIOR
+                    </span>
+                </div>
             </div>
+
+            <!-- Links Centrais (Apenas Desktop) -->
             <div class="hidden md:flex items-center gap-6">
                 <a href="#inicio" class="text-slate-600 hover:text-brand-600 font-medium text-sm transition-colors">Início</a>
                 <a href="#metricas" class="text-slate-600 hover:text-brand-600 font-medium text-sm transition-colors">Métricas</a>
                 <a href="#modulos" class="text-slate-600 hover:text-brand-600 font-medium text-sm transition-colors">Módulos</a>
                 <a href="#simulador" class="text-slate-600 hover:text-brand-600 font-medium text-sm transition-colors">Simulador</a>
-                <a href="https://wa.me/5591983252639?text=Ol%C3%A1%20Junior%2C%20vi%20o%20seu%20Portf%C3%B3lio%20de%20Sucesso%20do%20Hospital%20de%20Vigia%20e%20gostaria%20de%20conversar%20sobre%20a%20implanta%C3%A7%C3%A3o%20dessas%20solu%C3%A7%C3%B5es%20na%20Prefeitura."
+            </div>
+
+            <!-- Botão do WhatsApp (Visível no Mobile e Desktop) -->
+            <div class="flex items-center">
+                <a href="https://wa.me/5591983252639?text=Ol%C3%A1%20Junior%2C%20vi%20o%20seu%20Portf%C3%B3lio%20comercial%20do%20SisIT%20v.1%20e%20gostaria%20de%20conversar%20sobre%20a%20implanta%C3%A7%C3%A3o%20dessas%20solu%C3%A7%C3%B5es."
                    target="_blank"
-                   class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all shadow-md hover:shadow-lg">
-                    <i class="fa-brands fa-whatsapp text-base"></i> Fale com o T.I
+                   class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shadow-md hover:shadow-lg">
+                    <i class="fa-brands fa-whatsapp text-base"></i>
+                    <span class="hidden xs:inline">Fale com o desenvolvedor</span>
+                    <span class="xs:hidden">Contato</span>
                 </a>
             </div>
         </div>
