@@ -1,3 +1,4 @@
+
 import os
 import sys
 import sqlite3
@@ -8,6 +9,13 @@ import customtkinter as ctk
 from tkinter import ttk, messagebox
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+import threading
+import time
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
 
 # --- CONFIGURAÇÃO GLOBAL DE APARÊNCIA ---
 ctk.set_appearance_mode("System")
@@ -69,7 +77,7 @@ class ModalLoginAdmin(ctk.CTkToplevel):
         self.btn_entrar.pack(pady=10)
 
     def verificar(self):
-        if self.input_senha.get() == "11111000001":
+        if self.input_senha.get() == "SUA SENHA AQUI":
             self.destroy()
             self.on_success()
         else:
@@ -358,9 +366,9 @@ class ModalSobre(ctk.CTkToplevel):
 🏥 MODULO RECEPÇÃO
 Desenvolvido para o Hospital Municipal de Vigia de Nazaré - PA.
 
-👨‍💻 DESENVOLVEDOR:
+👨‍💻 DESENVOLVEDOR: JOSE AIRTON B. S. JUNIOR
 Setor de Tecnologia da Informação (T.I.)
-Suporte Técnico: (91) 98325-2639
+Fone/ZAP: (91) 98325-2639
 
 📖 TUTORIAL RÁPIDO:
 1. Preencha os campos do paciente.
@@ -382,7 +390,7 @@ O uso indevido é passível de punições administrativas e legais.
 class SISTGESTOR_HMV_V4:
     def __init__(self, root):
         self.root = root
-        self.root.title("MODULO RECEPÇÃO - SETOR DE TECNOLOGIA DA INFORMAÇÃO - T.I - INSTITUTO IMPAR")
+        self.root.title("MODULO RECEPÇÃO - HOSPITAL MUNICIPAL DE VIGIA DE NAZARÉ - PA - SUPORTE - 91 983252639 ")
         self.root.geometry("1340x840")
 
         self.campos = {}
@@ -479,6 +487,7 @@ class SISTGESTOR_HMV_V4:
             w.grid(row=row + 1, column=col, columnspan=span, padx=5, pady=(0, 5), sticky="ew")
             self.campos[chave] = w
 
+        # --- CONSTRUÇÃO DOS CAMPOS DE CADASTRO ---
         add_input("RM", "rm", 0, 0, 1, r_only=True)
         add_input("NOME DO PACIENTE", "nome", 0, 1, 3, placeholder="Nome Completo")
         add_input("CARTÃO SUS", "sus", 2, 0, 1, placeholder="000 0000...")
@@ -500,6 +509,7 @@ class SISTGESTOR_HMV_V4:
                                         height=42, command=self.processo_novo_cadastro)
         self.btn_salvar.pack(fill="x", padx=20, pady=15)
 
+        # --- COLUNA DA DIREITA (BUSCA E TABELA) ---
         right_column = ctk.CTkFrame(master=main_body, corner_radius=12)
         right_column.pack(side="right", fill="both", expand=True)
 
@@ -531,10 +541,16 @@ class SISTGESTOR_HMV_V4:
         self.tabela.column("Retornos", width=90, anchor="center")
 
         self.tabela.pack(fill="both", expand=True)
+
+        # O clique agora chama a sua versão corrigida por ID único
         self.tabela.bind("<<TreeviewSelect>>", lambda event: self.abrir_modal_detalhes())
 
+        # --- FINAL ABSOLUTO DA FUNÇÃO (O LUGAR CERTO) ---
         self.reset_rm()
         self.pesquisar_paciente()
+
+        # --- ATIVAÇÃO DO BACKUP AUTOMÁTICO ---
+        self.iniciar_agendador_backup()
 
     def solicitar_acesso_adm(self):
         ModalLoginAdmin(self.root, self.abrir_painel_adm)
@@ -556,12 +572,24 @@ class SISTGESTOR_HMV_V4:
         self.campos['rm'].configure(state="readonly")
 
     def pesquisar_paciente(self):
-        termo = self.input_busca.get()
+        termo = self.input_busca.get().strip()
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute('''SELECT rm, nome, cpf, MAX(data_registro), COUNT(id) FROM atendimentos 
-                          WHERE nome LIKE ? OR rm LIKE ? OR cpf LIKE ?
-                          GROUP BY rm ORDER BY id DESC''', (f'%{termo}%', f'%{termo}%', f'%{termo}%'))
+
+        # Agrupamos por NOME, CPF e SUS para separar na tabela pessoas com o mesmo nome
+        # E puxamos o t.id (ID único do registro) para ser a nossa chave de busca absoluta
+        cursor.execute('''
+            SELECT t.rm, t.nome, t.cpf, t.data_registro, r.total_retornos, t.id
+            FROM atendimentos t
+            JOIN (
+                SELECT nome, cpf, sus, MAX(id) as max_id, COUNT(id) as total_retornos 
+                FROM atendimentos 
+                GROUP BY nome, cpf, sus
+            ) r ON t.id = r.max_id
+            WHERE t.nome LIKE ? OR t.rm LIKE ? OR t.cpf LIKE ?
+            ORDER BY t.id DESC
+        ''', (f'%{termo}%', f'%{termo}%', f'%{termo}%'))
+
         dados = cursor.fetchall()
         conn.close()
 
@@ -569,7 +597,8 @@ class SISTGESTOR_HMV_V4:
             self.tabela.delete(item)
 
         for row in dados:
-            self.tabela.insert('', 'end', values=row)
+            # O row[5] é o ID único do banco. Nós injetamos ele no 'iid' (ID interno da linha)
+            self.tabela.insert('', 'end', iid=str(row[5]), values=(row[0], row[1], row[2], row[3], row[4]))
 
     def processo_novo_cadastro(self):
         try:
@@ -656,45 +685,45 @@ class SISTGESTOR_HMV_V4:
         if not item_selecionado:
             return
 
-        # Captura o valor bruto da linha selecionada na Treeview
-        valores = self.tabela.item(item_selecionado)['values']
-        rm_bruto = str(valores[0]).strip()
-
-        # Tratamento de Zeros à Esquerda:
-        # Se for um RM numérico (ex: "135" ou "00135"), garante que tenha 5 dígitos ("00135").
-        # Se for um RM misto/texto (ex: "RM260527..."), mantém intacto sem quebrar.
-        if rm_bruto.isdigit():
-            rm_final = rm_bruto.zfill(5)
-        else:
-            rm_final = rm_bruto
+        # Captura o ID real do banco que guardamos no iid da linha
+        id_registro_real = item_selecionado[0]
 
         try:
             conn = sqlite3.connect(self.db_path)
-            conn.row_factory = sqlite3.Row
+            conn.row_factory = sqlite3.Row  # Mantém a compatibilidade se seu modal usa dicionário
             cursor = conn.cursor()
 
-            # Busca estrita e segura utilizando o RM normalizado
-            cursor.execute('''
-                SELECT *, 
-                       (SELECT COUNT(*) FROM atendimentos WHERE rm = t.rm) as total_entradas 
-                FROM atendimentos t
-                WHERE rm = ? 
-                ORDER BY id DESC LIMIT 1
-            ''', (rm_final,))
+            # BUSCA INFALÍVEL: Busca exatamente a linha da pessoa clicada pelo ID único
+            cursor.execute("SELECT * FROM atendimentos WHERE id = ?", (id_registro_real,))
+            linha_base = cursor.fetchone()
 
-            linha = cursor.fetchone()
+            if not linha_base:
+                conn.close()
+                return messagebox.showwarning("Aviso", "Não foi possível localizar o registro selecionado.")
+
+            dados_paciente = dict(linha_base)
+
+            # Recalcula o total de entradas para esta pessoa específica (mesmo nome + mesmos documentos)
+            cursor.execute('''
+                SELECT COUNT(*) FROM atendimentos 
+                WHERE nome = ? AND (
+                    (cpf = ? AND cpf NOT IN ('', '000.000.000-00', '---')) OR 
+                    (sus = ? AND sus NOT IN ('', '---')) OR 
+                    (nascimento = ?)
+                )
+            ''', (dados_paciente['nome'], dados_paciente['cpf'], dados_paciente['sus'], dados_paciente['nascimento']))
+
+            dados_paciente['total_entradas'] = cursor.fetchone()[0] or 1
             conn.close()
 
-            if linha:
-                dados_paciente = dict(linha)
-                ModalDetalhesPaciente(
-                    dados_paciente,
-                    self.root,
-                    self.processo_nova_entrada_retorno,
-                    self.processo_reimpressao_ficha
-                )
-            else:
-                messagebox.showwarning("Aviso", f"Não foi possível resgatar o histórico exato para o RM: {rm_final}")
+            # Abre o seu modal original de produção passand os dados exatos e sem duplicidade
+            ModalDetalhesPaciente(
+                dados_paciente,
+                self.root,
+                self.processo_nova_entrada_retorno,
+                self.processo_reimpressao_ficha
+            )
+
         except Exception as e:
             messagebox.showerror("Erro ao renderizar dados", f"Falha no carregamento controlado: {e}")
     def processo_nova_entrada_retorno(self, dados_antigos):
@@ -963,6 +992,97 @@ class SISTGESTOR_HMV_V4:
 
         c.save()
         return path
+
+    def iniciar_agendador_backup(self):
+        """Inicializa a Thread em segundo plano para monitorar o horário do backup"""
+
+        def loop_agendamento():
+            time.sleep(10)  # Aguarda a inicialização completa do app
+            while True:
+                agora = datetime.now()
+                # Monitora a virada da meia-noite (00:00)
+                if agora.hour == 0 and agora.minute == 0:
+                    self.executar_backup_email_tradicional()
+                    time.sleep(60)  # Evita múltiplos disparos no mesmo minuto
+                time.sleep(30)  # Checa o relógio a cada 30 segundos
+
+        threading.Thread(target=loop_agendamento, daemon=True).start()
+
+    def executar_backup_email_tradicional(self):
+        """Gera uma cópia estática do banco e envia por e-mail via SMTP tradicional"""
+        if not os.path.exists(self.db_path):
+            return
+
+        # --- CONFIGURAÇÃO DO SEU PROVEDOR DE E-MAIL ---
+        SMTP_SERVER = "smtp.gmail.com"  # Para Outlook use: smtp.office365.com
+        SMTP_PORT = 587  # Porta padrão para criptografia STARTTLS
+        EMAIL_REMETENTE = "juniordomundo@gmail.com"
+        EMAIL_DESTINATARIO = "juniordomundo@gmail.com"
+
+        # IMPORTANTE: Se usar Gmail, esta senha deve ser uma "Senha de App" gerada
+        # nas configurações de segurança da sua Conta Google, e não a sua senha padrão.
+        EMAIL_SENHA = "SENHA DO APP"
+
+        backup_temp = self.db_path + ".bak"
+
+        try:
+            # 1. Cópia segura do SQLite em tempo de execução (Hot Backup)
+            conn_origem = sqlite3.connect(self.db_path)
+            conn_backup = sqlite3.connect(backup_temp)
+            conn_origem.backup(conn_backup)
+            conn_backup.close()
+            conn_origem.close()
+
+            # 2. Montagem da estrutura do E-mail (MIME)
+            data_str = datetime.now().strftime('%d/%m/%Y')
+            msg = MIMEMultipart()
+            msg['From'] = EMAIL_REMETENTE
+            msg['To'] = EMAIL_DESTINATARIO
+            msg['Subject'] = f"📦 BACKUP AUTOMÁTICO HMV - {data_str}"
+
+            corpo_mensagem = f"""
+            Prezado Administrador de T.I.,
+
+            O backup automatizado do banco de dados do SISTGESTOR_HMV foi concluído.
+
+            📌 Arquivo: banco_hmv.db
+            📅 Data do Disparo: {data_str} às 00:00
+            Status da Operação: Sucesso (Arquivo Anexo)
+
+            Este é um e-mail automático do sistema.
+            """
+            msg.attach(MIMEText(corpo_mensagem, 'plain'))
+
+            # 3. Preparação do anexo binário (.db)
+            nome_anexo = f"Backup_HMV_{datetime.now().strftime('%d_%m_%Y')}.db"
+            with open(backup_temp, "rb") as anexo_arquivo:
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(anexo_arquivo.read())
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', f"attachment; filename= {nome_anexo}")
+                msg.attach(part)
+
+            # 4. Conexão Autenticada com o Servidor SMTP
+            servidor = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            servidor.starttls()  # Ativa a camada de segurança obrigatoria
+            servidor.login(EMAIL_REMETENTE, EMAIL_SENHA)
+            servidor.sendmail(EMAIL_REMETENTE, EMAIL_DESTINATARIO, msg.as_string())
+            servidor.quit()
+
+        except Exception as e:
+            # Grava logs locais caso o hospital fique sem internet na hora do envio
+            with open("erro_backup.log", "a") as log:
+                log.write(f"[{datetime.now()}] Falha SMTP tradicional: {e}\n")
+
+        finally:
+            # Garante a limpeza do arquivo temporário para não ocupar espaço redundante
+            if os.path.exists(backup_temp):
+                try:
+                    os.remove(backup_temp)
+                except:
+                    pass
+
+
 
 
 # --- INICIALIZAÇÃO SEGURA DO PROJETO ---
