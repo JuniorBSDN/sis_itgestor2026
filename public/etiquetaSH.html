@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Etiquetas - Service Health</title>
+    <style>
+        /* Estilos da Interface de Controle */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e4e6eb;
+            padding-bottom: 10px;
+        }
+
+        header h1 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 22px;
+        }
+
+        header p {
+            margin: 5px 0 0 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        #control-panel {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #344054;
+        }
+
+        .form-group input {
+            padding: 8px 12px;
+            border: 1px solid #d0d5dd;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 130px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            padding: 9px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-generate {
+            background-color: #0056b3;
+            color: white;
+        }
+
+        .btn-print {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* --- GRID FORMATADO EM 3 COLUNAS --- */
+        #labels-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Força exatamente 3 colunas */
+            gap: 12px;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- DESIGN AJUSTADO DA ETIQUETA --- */
+        .label-card {
+            border: 1.5px solid #0f172a;
+            background-color: #ffffff;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            height: 95px;
+            page-break-inside: avoid;
+        }
+
+        /* Lado Esquerdo: Imagem do Logo */
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48%;
+            height: 100%;
+        }
+
+        .logo-img {
+            max-width: 100%;
+            max-height: 75px;
+            object-fit: contain;
+        }
+
+        /* Lado Direito: Patrimônio bem colado no Código de Barras */
+        .barcode-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 50%;
+        }
+
+        .text-patrimonio {
+            font-weight: 900;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: #0f172a;
+            text-transform: uppercase;
+            margin-bottom: -2px; /* Margem negativa aproxima o texto do código de barras */
+            padding: 0;
+            line-height: 1;
+        }
+
+        .barcode-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .barcode-container svg {
+            width: 135px;
+            height: auto;
+            display: block;
+        }
+
+        /* --- REGRAS EXCLUSIVAS PARA IMPRESSÃO REAL (Ctrl + P) --- */
+        @media print {
+            .no-print, header, #control-panel {
+                display: none !important;
+            }
+            body {
+                background: none;
+                padding: 0;
+                margin: 0;
+            }
+            #labels-container {
+                box-shadow: none;
+                padding: 0;
+                background: none;
+                gap: 5px;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <header class="no-print">
+            <h1>Automação de Etiquetas - Service Health</h1>
+            <p>Layout otimizado em 3 colunas com aproximação do texto de PATRIMÔNIO.</p>
+        </header>
+
+        <div id="control-panel" class="no-print">
+            <div class="form-group">
+                <label for="start-number">Número Inicial:</label>
+                <input type="number" id="start-number" value="32" min="1">
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantidade:</label>
+                <input type="number" id="quantity" value="12" min="1">
+            </div>
+            <div class="actions">
+                <button class="btn-generate" onclick="generateLabels()">Gerar Lote</button>
+                <button class="btn-print" onclick="window.print()">Imprimir</button>
+            </div>
+        </div>
+
+        <div id="labels-container"></div>
+    </div>
+
+    <script>
+        function generateLabels() {
+            const startNumInput = document.getElementById('start-number');
+            const qtyInput = document.getElementById('quantity');
+            const container = document.getElementById('labels-container');
+
+            const startNum = parseInt(startNumInput.value) || 1;
+            const qty = parseInt(qtyInput.value) || 1;
+
+            container.innerHTML = '';
+
+            for (let i = 0; i < qty; i++) {
+                const currentNumber = startNum + i;
+                const formattedNumber = String(currentNumber).padStart(4, '0');
+
+                const labelCard = document.createElement('div');
+                labelCard.className = 'label-card';
+
+                labelCard.innerHTML = `
+                    <div class="logo-section">
+                        <img class="logo-img" src="https://i.imgur.com/xP1gNeQ.png" alt="Service Health Logo">
+                    </div>
+
+                    <div class="barcode-section">
+                        <div class="text-patrimonio">PATRIMÔNIO</div>
+                        <div class="barcode-container">
+                            <svg id="barcode-${formattedNumber}"></svg>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(labelCard);
+
+                JsBarcode(`#barcode-${formattedNumber}`, formattedNumber, {
+                    format: "CODE128",
+                    width: 1.6,
+                    height: 35,
+                    displayValue: true,
+                    fontSize: 12,
+                    font: "Arial",
+                    textMargin: 2,
+                    background: "transparent",
+                    lineColor: "#0f172a"
+                });
+            }
+        }
+
+        window.onload = generateLabels;
+    </script>
+</body>
+</html>
