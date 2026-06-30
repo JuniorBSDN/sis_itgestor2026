@@ -1,96 +1,134 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo | HMV</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Aguardando o T.I</title>
     <style>
-        :root { --primary: #0056b3; --bg: #f8fafc; --text: #1e293b; --border: #e2e8f0; }
-        /* IMPORTANTE: Removido o display:none para a página carregar visível */
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); margin-bottom: 20px; padding-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border: 1px solid var(--border); text-align: left; }
-        th { background: #f1f5f9; font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
-        .btn { padding: 8px 15px; border-radius: 8px; color: white; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
-        .btn-pdf { background: var(--primary); font-size: 13px; }
-        @media print { .no-print { display: none !important; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #060709;
+            color: #c5c6c7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            /* Animação do Relâmpago */
+            animation: lightning 8s infinite ease-in-out;
+        }
+
+        /* Animação que simula flashes de raios */
+        @keyframes lightning {
+            0%, 94%, 98%, 100% { background-color: #060709; }
+            95% { background-color: #1a1c23; }
+            96% { background-color: #4a5169; }
+            97% { background-color: #060709; }
+            99% { background-color: #3b4254; }
+        }
+
+        /* Efeito de Chuva Forte */
+        .rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .drop {
+            position: absolute;
+            background: linear-gradient(transparent, rgba(255, 255, 255, 0.4));
+            width: 1.5px; /* Gotas levemente mais grossas */
+            height: 120px; /* Gotas mais longas para parecerem mais rápidas */
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-150px) translateX(50px); /* Leve inclinação para o vento */
+            }
+            100% {
+                transform: translateY(100vh) translateX(-50px);
+            }
+        }
+
+        /* Conteúdo Principal */
+        .container {
+            text-align: center;
+            z-index: 2;
+            padding: 35px;
+            background: rgba(6, 7, 9, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            max-width: 90%;
+            width: 550px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #a6b8bb;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            animation: pulse 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <div>
-            <h1 style="color: var(--primary); margin:0;">HelpDesk - Lista de Presença</h1>
-            <small>HMV - Treinamentos Concluídos</small>
-        </div>
-        <div class="no-print">
-            <button class="btn" style="background: #28a745;" onclick="window.print()">
-                <i class="fas fa-print"></i> Imprimir Lista
-            </button>
-            <button class="btn" style="background: #6c757d; margin-left:10px;" onclick="window.location.href='/'">Sair</button>
-        </div>
-    </header>
+    <div class="rain" id="rainContainer"></div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Profissional</th>
-                <th>CPF</th>
-                <th>E-MAIL</th>
-                <th>CONCLUSÃO</th>
-                <th class="no-print" style="text-align:center;">CERTIFICADO</th>
-            </tr>
-        </thead>
-        <tbody id="lista-corpo">
-            <tr><td colspan="5" style="text-align:center; padding: 20px;">Buscando registros no servidor...</td></tr>
-        </tbody>
-    </table>
-</div>
+    <div class="container">
+        <h1>Temporariamente desativado<br>LIGUE P/ Suporte 91983252639</h1>
+    </div>
 
-<script>
-    async function carregarDados() {
-        const corpo = document.getElementById('lista-corpo');
-        
-        try {
-            // Tenta buscar os dados na sua rota do index.py
-            const res = await fetch('https://sisitgestor2026.vercel.app/api/listar');
-            
-            if (!res.ok) throw new Error('Falha na resposta do servidor');
+    <script>
+        const rainContainer = document.getElementById('rainContainer');
+        const dropCount = 300; // Tempestade: aumentado de 100 para 300 gotas
 
-            const dados = await res.json();
-            
-            if (dados.length === 0) {
-                corpo.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
-                return;
+        function createRain() {
+            for (let i = 0; i < dropCount; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop');
+
+                // Posição horizontal distribuída
+                drop.style.left = Math.random() * 120 + 'vw'; // Margem maior por causa da inclinação do vento
+
+                // Velocidade bem mais rápida (entre 0.3s e 0.6s para cruzar a tela)
+                const duration = Math.random() * 0.3 + 0.3;
+                const delay = Math.random() * 2;
+
+                drop.style.animationDuration = duration + 's';
+                drop.style.animationDelay = '-' + delay + 's';
+
+                // Opacidade variada para efeito de profundidade na tempestade
+                drop.style.opacity = Math.random() * 0.6;
+                drop.style.height = (Math.random() * 60 + 80) + 'px';
+
+                rainContainer.appendChild(drop);
             }
-
-            corpo.innerHTML = dados.map(p => `
-                <tr>
-                    <td><strong>${p.nome}</strong></td>
-                    <td>${p.cpf}</td>
-                    <td>${p.email}</td>
-                    <td>${p.data_conclusao}</td>
-                    <td class="no-print" style="text-align:center;">
-                        <a href="/api/certificado_download?cpf=${p.cpf}&nome=${encodeURIComponent(p.nome)}" class="btn btn-pdf">
-                            <i class="fas fa-file-pdf"></i> Gerar PDF
-                        </a>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (e) {
-            console.error(e);
-            corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; font-weight:bold; padding: 20px;">Erro ao conectar com a API. Verifique se o servidor está rodando.</td></tr>`;
         }
-    }
 
-    // Chama a função assim que a página termina de carregar
-    window.onload = carregarDados;
-</script>
-
+        createRain();
+    </script>
 </body>
 </html>
