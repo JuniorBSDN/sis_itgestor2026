@@ -1,249 +1,134 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor-HVN | Painel SQL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>Aguardando o T.I</title>
     <style>
-        :root {
-            --hvn-primary: #2563eb; --hvn-secondary: #64748b; --hvn-success: #10b981;
-            --hvn-warning: #f59e0b; --hvn-danger: #ef4444; --hvn-bg: #f8fafc;
-            --sidebar: #0f172a; --white: #ffffff; --border: #e2e8f0;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--hvn-bg); color: #1e293b; min-height: 100vh; display: flex; }
+        body {
+            background-color: #060709;
+            color: #c5c6c7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            /* Animação do Relâmpago */
+            animation: lightning 8s infinite ease-in-out;
+        }
 
-        .sidebar { width: 260px; background: var(--sidebar); color: white; padding: 2rem; position: fixed; height: 100vh; }
-        .logo-area { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #1e293b; }
+        /* Animação que simula flashes de raios */
+        @keyframes lightning {
+            0%, 94%, 98%, 100% { background-color: #060709; }
+            95% { background-color: #1a1c23; }
+            96% { background-color: #4a5169; }
+            97% { background-color: #060709; }
+            99% { background-color: #3b4254; }
+        }
 
-        .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 2.5rem; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        /* Efeito de Chuva Forte */
+        .rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
 
-        .card { background: var(--white); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 1rem 1.5rem; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--hvn-secondary); border-bottom: 1px solid var(--border); }
-        td { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; vertical-align: middle; }
+        .drop {
+            position: absolute;
+            background: linear-gradient(transparent, rgba(255, 255, 255, 0.4));
+            width: 1.5px; /* Gotas levemente mais grossas */
+            height: 120px; /* Gotas mais longas para parecerem mais rápidas */
+            animation: fall linear infinite;
+        }
 
-        .action-group { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-action { width: 35px; height: 35px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; background: white; }
-        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 3px 5px rgba(0,0,0,0.1); }
-        .btn-edit { color: var(--hvn-warning); }
-        .btn-qr { color: var(--hvn-primary); }
-        .btn-delete { color: var(--hvn-danger); }
+        @keyframes fall {
+            0% {
+                transform: translateY(-150px) translateX(50px); /* Leve inclinação para o vento */
+            }
+            100% {
+                transform: translateY(100vh) translateX(-50px);
+            }
+        }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 2rem; border-radius: 20px; width: 100%; max-width: 500px; position: relative; }
-        
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--hvn-secondary); }
-        input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+        /* Conteúdo Principal */
+        .container {
+            text-align: center;
+            z-index: 2;
+            padding: 35px;
+            background: rgba(6, 7, 9, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            max-width: 90%;
+            width: 550px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+        }
 
-        .btn-main { padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; background: var(--hvn-primary); color: white; }
-        #qrcode-box { display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 20px; }
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #a6b8bb;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            animation: pulse 4s infinite ease-in-out;
+        }
 
-        @media print { .no-print { display: none !important; } .modal { position: absolute; display: block; background: white; inset: 0; } }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
-<aside class="sidebar no-print">
-    <div class="logo-area">
-        <h3>GESTOR <span style="color:var(--hvn-primary)">HVN</span></h3>
-        <p style="font-size: 0.7rem; color: #64748b; margin-top: 5px;">Sistema SQL Ativo</p>
+    <div class="rain" id="rainContainer"></div>
+
+    <div class="container">
+        <h1>Temporariamente desativado<br>LIGUE P/ Suporte 91983252639</h1>
     </div>
-</aside>
 
-<main class="main-content">
-    <header class="no-print">
-        <div>
-            <h1>Equipe Hospitalar</h1>
-            <p id="counter" style="color:var(--hvn-secondary)">Sincronizando banco de dados...</p>
-        </div>
-        <button class="btn-main" onclick="abrirModalCadastro()"><i class="fas fa-plus"></i> Novo Colaborador</button>
-    </header>
+    <script>
+        const rainContainer = document.getElementById('rainContainer');
+        const dropCount = 300; // Tempestade: aumentado de 100 para 300 gotas
 
-    <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>CPF (Login)</th>
-                    <th>Telefone</th>
-                    <th>Função</th>
-                    <th>Turno</th>
-                    <th style="text-align: right;">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="lista-corpo">
-                <tr><td colspan="6" style="text-align:center; padding:2rem;">Buscando informações no servidor...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</main>
+        function createRain() {
+            for (let i = 0; i < dropCount; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop');
 
-<div id="modalForm" class="modal no-print">
-    <div class="modal-content">
-        <h2 id="modal-titulo" style="margin-bottom:15px">Cadastrar</h2>
-        <div class="form-group">
-            <label>CPF (Apenas números - Login do RAT)</label>
-            <input type="text" id="f-cpf" placeholder="Ex: 12345678901" maxlength="11">
-        </div>
-        <div class="form-group">
-            <label>Nome Completo</label>
-            <input type="text" id="f-nome" placeholder="Nome do colaborador">
-        </div>
-        <div class="form-group">
-            <label>Telefone</label>
-            <input type="text" id="f-tel" placeholder="(00) 00000-0000">
-        </div>
-        <div class="form-group">
-            <label>Função</label>
-            <select id="f-funcao">
-                <option value="Técnico(a)">Técnico(a)</option>
-                <option value="Médico(a)">Médico(a)</option>
-                <option value="Enfermagem">Enfermagem</option>
-                <option value="Administrativo">Administrativo</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Turno</label>
-            <select id="f-turno">
-                <option value="12x36 Diurno">12x36 Diurno</option>
-                <option value="12x36 Noturno">12x36 Noturno</option>
-                <option value="Comercial (8h)">Comercial (8h)</option>
-            </select>
-        </div>
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="btn-main" style="flex:1" onclick="salvar()">Confirmar</button>
-            <button class="btn-main" style="flex:1; background:var(--hvn-secondary)" onclick="fecharModais()">Sair</button>
-        </div>
-    </div>
-</div>
+                // Posição horizontal distribuída
+                drop.style.left = Math.random() * 120 + 'vw'; // Margem maior por causa da inclinação do vento
 
-<div id="modalQR" class="modal">
-    <div class="modal-content" style="max-width: 350px;">
-        <h2 style="text-align:center">Cartão de Acesso</h2>
-        <div id="qrcode-box">
-            <h4 id="qr-nome-display" style="color:var(--hvn-primary)">---</h4>
-            <div id="canvas-qrcode"></div>
-            <p style="font-size: 0.7rem; color: #64748b; text-align: center;">Acesso único por CPF</p>
-        </div>
-        <button class="btn-main no-print" style="width: 100%;" onclick="window.print()">Imprimir</button>
-        <button class="btn-main no-print" style="width: 100%; margin-top: 10px; background:var(--hvn-secondary)" onclick="fecharModais()">Fechar</button>
-    </div>
-</div>
+                // Velocidade bem mais rápida (entre 0.3s e 0.6s para cruzar a tela)
+                const duration = Math.random() * 0.3 + 0.3;
+                const delay = Math.random() * 2;
 
-<script>
-    const API_URL = '/api/funcionarios';
-    let funcionariosCache = [];
+                drop.style.animationDuration = duration + 's';
+                drop.style.animationDelay = '-' + delay + 's';
 
-    async function buscarFuncionarios() {
-        try {
-            // O "?t=" força o navegador a não usar o cache antigo
-            const response = await fetch(`${API_URL}?t=${Date.now()}`);
-            if (!response.ok) throw new Error("Falha na rede");
-            funcionariosCache = await response.json();
-            renderizar();
-        } catch (error) {
-            console.error("Erro:", error);
-            document.getElementById('lista-corpo').innerHTML = `<tr><td colspan="6" style="text-align:center; color:red">Erro ao conectar com o servidor SQL.</td></tr>`;
-        }
-    }
+                // Opacidade variada para efeito de profundidade na tempestade
+                drop.style.opacity = Math.random() * 0.6;
+                drop.style.height = (Math.random() * 60 + 80) + 'px';
 
-    function renderizar() {
-        const corpo = document.getElementById('lista-corpo');
-        document.getElementById('counter').innerText = `${funcionariosCache.length} colaboradores no banco SQL.`;
-
-        if (funcionariosCache.length === 0) {
-            corpo.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem;">Nenhum registro encontrado no banco.</td></tr>`;
-            return;
-        }
-
-        corpo.innerHTML = funcionariosCache.map(f => `
-            <tr>
-                <td><strong>${f.nome}</strong></td>
-                <td>${f.cpf}</td>
-                <td>${f.tel}</td>
-                <td>${f.funcao}</td>
-                <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:0.8rem;">${f.turno}</span></td>
-                <td>
-                    <div class="action-group no-print">
-                        <div class="btn-action btn-qr" onclick="abrirQR('${f.nome}', '${f.cpf}')"><i class="fas fa-qrcode"></i></div>
-                        <div class="btn-action btn-edit" onclick="abrirEditar('${f.cpf}')"><i class="fas fa-user-edit"></i></div>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    async function salvar() {
-        const cpf = document.getElementById('f-cpf').value.replace(/\D/g, '');
-        const nome = document.getElementById('f-nome').value;
-        const tel = document.getElementById('f-tel').value;
-        const funcao = document.getElementById('f-funcao').value;
-        const turno = document.getElementById('f-turno').value;
-
-        if(cpf.length < 11 || !nome) return alert("CPF e Nome são obrigatórios!");
-
-        const dados = { id: cpf, nome, tel, funcao, turno };
-
-        try {
-            const res = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dados)
-            });
-
-            if (res.ok) {
-                fecharModais();
-                buscarFuncionarios();
-            } else {
-                alert("Erro ao salvar. Verifique o servidor.");
+                rainContainer.appendChild(drop);
             }
-        } catch (e) {
-            alert("Erro de conexão.");
         }
-    }
 
-    function abrirModalCadastro() {
-        document.getElementById('modal-titulo').innerText = "Novo Colaborador";
-        document.getElementById('f-cpf').disabled = false;
-        document.getElementById('f-cpf').value = "";
-        document.getElementById('f-nome').value = "";
-        document.getElementById('f-tel').value = "";
-        document.getElementById('modalForm').style.display = 'flex';
-    }
-
-    function abrirEditar(cpf) {
-        const f = funcionariosCache.find(x => x.cpf === cpf);
-        if (!f) return;
-        document.getElementById('modal-titulo').innerText = "Editar Dados";
-        document.getElementById('f-cpf').value = f.cpf;
-        document.getElementById('f-cpf').disabled = true;
-        document.getElementById('f-nome').value = f.nome;
-        document.getElementById('f-tel').value = f.tel;
-        document.getElementById('f-funcao').value = f.funcao;
-        document.getElementById('f-turno').value = f.turno;
-        document.getElementById('modalForm').style.display = 'flex';
-    }
-
-    function abrirQR(nome, cpf) {
-        document.getElementById('qr-nome-display').innerText = nome;
-        const container = document.getElementById('canvas-qrcode');
-        container.innerHTML = "";
-        new QRCode(container, { text: String(cpf), width: 180, height: 180 });
-        document.getElementById('modalQR').style.display = 'flex';
-    }
-
-    function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
-    window.onclick = (e) => { if(e.target.className == 'modal') fecharModais(); }
-
-    // Início imediato
-    buscarFuncionarios();
-</script>
+        createRain();
+    </script>
 </body>
 </html>
