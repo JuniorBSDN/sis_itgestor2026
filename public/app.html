@@ -1,207 +1,134 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canal de Melhoria Hospitalar</title>
+    <title>Aguardando o T.I</title>
     <style>
-        :root {
-            --primary: #38bdf8; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7);
-            --border: rgba(255, 255, 255, 0.1); --text: #f1f5f9;
-            --warning: #fbbf24;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+
         body {
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            color: var(--text); font-family: 'Inter', sans-serif;
-            margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            background-color: #060709;
+            color: #c5c6c7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            /* Animação do Relâmpago */
+            animation: lightning 8s infinite ease-in-out;
         }
-        .glass-container {
-            width: 100%; max-width: 450px; background: var(--card);
-            backdrop-filter: blur(15px); border: 1px solid var(--border);
-            border-radius: 24px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+
+        /* Animação que simula flashes de raios */
+        @keyframes lightning {
+            0%, 94%, 98%, 100% { background-color: #060709; }
+            95% { background-color: #1a1c23; }
+            96% { background-color: #4a5169; }
+            97% { background-color: #060709; }
+            99% { background-color: #3b4254; }
         }
-        /* Modal Style */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
+
+        /* Efeito de Chuva Forte */
+        .rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
         }
-        .modal-content {
-            background: #1e293b; padding: 30px; border-radius: 20px;
-            max-width: 400px; text-align: center; border: 1px solid var(--border);
+
+        .drop {
+            position: absolute;
+            background: linear-gradient(transparent, rgba(255, 255, 255, 0.4));
+            width: 1.5px; /* Gotas levemente mais grossas */
+            height: 120px; /* Gotas mais longas para parecerem mais rápidas */
+            animation: fall linear infinite;
         }
-        /* Form Style */
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-size: 0.8rem; opacity: 0.8; }
-        input, select, textarea {
-            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
-            background: rgba(0,0,0,0.2); color: #fff; font-size: 1rem;
-            outline: none;
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-150px) translateX(50px); /* Leve inclinação para o vento */
+            }
+            100% {
+                transform: translateY(100vh) translateX(-50px);
+            }
         }
-        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-        .anon-box {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 20px;
+
+        /* Conteúdo Principal */
+        .container {
+            text-align: center;
+            z-index: 2;
+            padding: 35px;
+            background: rgba(6, 7, 9, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            max-width: 90%;
+            width: 550px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
         }
-        button {
-            width: 100%; padding: 15px; border-radius: 12px; border: none;
-            background: var(--primary); color: #0f172a; font-weight: bold; cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #a6b8bb;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            animation: pulse 4s infinite ease-in-out;
         }
-        button:active { transform: scale(0.98); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-warning { background: var(--warning); }
-        .hidden { display: none; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
-<div id="modalCarta" class="modal-overlay">
-    <div class="modal-content">
-        <h2 style="color: var(--primary); margin-bottom: 15px;">Carta ao Colaborador</h2>
-        <p style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1; margin-bottom: 20px;">
-            Este canal foi criado para . Relate falhas, tipos de abusos, falta de insumos, problemas de infraestrutura.
-            Garantimos o anonimato e o foco na <strong>melhoria contínua</strong>, sem punições. Somos gratos por sua contribuição.
-        </p>
-        <button onclick="irParaAviso()">LI E CONCORDO</button>
+    <div class="rain" id="rainContainer"></div>
+
+    <div class="container">
+        <h1>Temporariamente desativado<br>LIGUE P/ Suporte 91983252639</h1>
     </div>
-</div>
 
-<div id="modalAvisoLegal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <h2 style="color: var(--warning); margin-bottom: 15px;">Uso Responsável</h2>
-        <p style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1; text-align: left; margin-bottom: 20px;">
-            1. A <strong>boa-fé</strong> é essencial. Relate apenas fatos reais.<br><br>
-            2. Informações falsas para prejudicar colegas podem sofrer <strong>medidas disciplinares</strong>.<br><br>
-            3. Este é um espaço de construção, não de difamação.
-        </p>
-        <button class="btn-warning" onclick="aceitarTudo()">COMPREENDO E PROSSEGUIR</button>
-    </div>
-</div>
+    <script>
+        const rainContainer = document.getElementById('rainContainer');
+        const dropCount = 300; // Tempestade: aumentado de 100 para 300 gotas
 
-<div class="glass-container">
-    <header style="text-align: center; margin-bottom: 25px;">
-        <h1 style="margin:0; font-size: 1.4rem; color: var(--primary);">Relato de Melhoria</h1>
-        <p style="font-size: 0.8rem; opacity: 0.6;">Sua contribuição é fundamental.</p>
-    </header>
+        function createRain() {
+            for (let i = 0; i < dropCount; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop');
 
-    <form id="formRelato">
-        <div class="anon-box">
-            <span style="font-size: 0.9rem;">Relatar como Anônimo</span>
-            <input type="checkbox" id="is_anonimo" checked onchange="toggleIdentidade()" style="width: 20px; height: 20px; cursor: pointer;">
-        </div>
+                // Posição horizontal distribuída
+                drop.style.left = Math.random() * 120 + 'vw'; // Margem maior por causa da inclinação do vento
 
-        <div id="camposUser" class="hidden">
-            <div class="input-group">
-                <input type="text" id="nome" placeholder="Seu Nome Completo">
-            </div>
-            <div class="input-group">
-                <input type="text" id="cargo" placeholder="Seu Cargo/Função">
-            </div>
-        </div>
+                // Velocidade bem mais rápida (entre 0.3s e 0.6s para cruzar a tela)
+                const duration = Math.random() * 0.3 + 0.3;
+                const delay = Math.random() * 2;
 
-        <div class="input-group">
-            <label>Setor do Ocorrido</label>
-            <select id="setor" required>
-                <option value="">Selecione o setor...</option>
-                <option value="UTI">UTI</option>
-                <option value="Emergência">Emergência</option>
-                <option value="Copa/Cozinha">Copa/Cozinha</option>
-                <option value="Manutenção">Infraestrutura</option>
-                <option value="Administrativo">Administrativo</option>
-                <option value="Enfermaria">Enfermaria</option>
-            </select>
-        </div>
+                drop.style.animationDuration = duration + 's';
+                drop.style.animationDelay = '-' + delay + 's';
 
-        <div class="input-group">
-            <label>Tipo de Relato</label>
-            <select id="tipo" required>
-                <option value="Infraestrutura">Infraestrutura</option>
-                <option value="Insumos">Falta de Insumos</option>
-                <option value="Processo">Processo / Fluxo de Trabalho</option>
-                <option value="Comportamento">Comportamento / Ética</option>
-                <option value="Sugestão">Sugestão de Melhoria</option>
-            </select>
-        </div>
+                // Opacidade variada para efeito de profundidade na tempestade
+                drop.style.opacity = Math.random() * 0.6;
+                drop.style.height = (Math.random() * 60 + 80) + 'px';
 
-        <div class="input-group">
-            <label>Descrição Detalhada</label>
-            <textarea id="descricao" rows="4" required placeholder="Descreva o ocorrido com fatos..."></textarea>
-        </div>
-
-        <button type="submit" id="btnEnviar">ENVIAR RELATO</button>
-    </form>
-</div>
-
-
-
-<script>
-    // Controle de Navegação dos Modais
-    function irParaAviso() {
-        document.getElementById('modalCarta').classList.add('hidden');
-        document.getElementById('modalAvisoLegal').classList.remove('hidden');
-    }
-
-    function aceitarTudo() {
-        document.getElementById('modalAvisoLegal').classList.add('hidden');
-    }
-
-    function toggleIdentidade() {
-        const camposUser = document.getElementById('camposUser');
-        const isAnonimo = document.getElementById('is_anonimo').checked;
-        if (isAnonimo) {
-            camposUser.classList.add('hidden');
-            document.getElementById('nome').required = false;
-            document.getElementById('cargo').required = false;
-        } else {
-            camposUser.classList.remove('hidden');
-            document.getElementById('nome').required = true;
-            document.getElementById('cargo').required = true;
-        }
-    }
-
-    // Lógica de Envio para a API Python/Firebase
-    document.getElementById('formRelato').onsubmit = async (e) => {
-        e.preventDefault();
-
-        const btn = document.getElementById('btnEnviar');
-        const isAnonimo = document.getElementById('is_anonimo').checked;
-
-        // Feedback visual
-        btn.disabled = true;
-        btn.innerText = "ENVIANDO AGUARDE...";
-
-        const payload = {
-            is_anonimo: isAnonimo,
-            nome: isAnonimo ? "Anônimo" : document.getElementById('nome').value,
-            cargo: isAnonimo ? "Não Informado" : document.getElementById('cargo').value,
-            setor: document.getElementById('setor').value,
-            tipo: document.getElementById('tipo').value,
-            descricao: document.getElementById('descricao').value,
-            data_registro: new Date().toLocaleString('pt-BR') // Adiciona data/hora
-        };
-
-        try {
-            // Chamada para a rota que criamos no seu api/index.py
-            const response = await fetch('/api/relatos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                alert("Obrigado pela sua contribuição! O relato foi enviado com sucesso e será analisado pela gestão.");
-                location.reload(); // Reseta o formulário e volta aos modais
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.mensagem || "Erro ao salvar no servidor");
+                rainContainer.appendChild(drop);
             }
-        } catch (error) {
-            alert("Falha ao enviar: " + error.message);
-            btn.disabled = false;
-            btn.innerText = "TENTAR ENVIAR NOVAMENTE";
         }
-    };
-</script>
+
+        createRain();
+    </script>
 </body>
 </html>
