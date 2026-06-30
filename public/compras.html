@@ -1,319 +1,134 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kleber v.1 | Lista de Compras</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
+    <title>Aguardando o T.I</title>
     <style>
-        :root {
-            --bg: #000000;
-            --accents-1: #111111;
-            --accents-2: #333333;
-            --text: #ffffff;
-            --gray: #888888;
-            --blue: #0070f3;
-            --red: #ff4d4d;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px 15px;
+            background-color: #060709;
+            color: #c5c6c7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             justify-content: center;
-        }
-
-        .container { width: 100%; max-width: 500px; }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            position: relative;
+            /* Animação do Relâmpago */
+            animation: lightning 8s infinite ease-in-out;
         }
 
-        .brand { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.05rem; }
-        .version {
-            background: #fff; color: #000;
-            padding: 2px 6px; border-radius: 4px;
-            font-size: 0.6rem; margin-left: 5px;
+        /* Animação que simula flashes de raios */
+        @keyframes lightning {
+            0%, 94%, 98%, 100% { background-color: #060709; }
+            95% { background-color: #1a1c23; }
+            96% { background-color: #4a5169; }
+            97% { background-color: #060709; }
+            99% { background-color: #3b4254; }
         }
 
-        .user-box {
-            margin-bottom: 25px;
-            border-bottom: 1px solid var(--accents-2);
-            padding-bottom: 15px;
-        }
-
-        .user-box label {
-            display: block;
-            font-size: 0.7rem;
-            color: var(--gray);
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-        }
-
-        .input-user {
+        /* Efeito de Chuva Forte */
+        .rain {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            background: transparent;
-            border: none;
-            color: var(--text);
-            font-size: 1rem;
-            outline: none;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
         }
 
-        /* Cor do placeholder personalizada */
-        .input-user::placeholder { color: var(--accents-2); opacity: 1; }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 25px;
-            padding: 15px;
-            background: var(--accents-1);
-            border-radius: 8px;
-            border: 1px solid var(--accents-2);
+        .drop {
+            position: absolute;
+            background: linear-gradient(transparent, rgba(255, 255, 255, 0.4));
+            width: 1.5px; /* Gotas levemente mais grossas */
+            height: 120px; /* Gotas mais longas para parecerem mais rápidas */
+            animation: fall linear infinite;
         }
 
-        input, select {
-            background: var(--bg);
-            border: 1px solid var(--accents-2);
-            border-radius: 6px;
-            padding: 12px;
-            color: white;
-            font-size: 16px;
+        @keyframes fall {
+            0% {
+                transform: translateY(-150px) translateX(50px); /* Leve inclinação para o vento */
+            }
+            100% {
+                transform: translateY(100vh) translateX(-50px);
+            }
         }
 
-        .btn-main {
-            background: var(--text);
-            color: var(--bg);
-            border: none;
-            padding: 14px;
-            border-radius: 6px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .item-card {
-            border-bottom: 1px solid var(--accents-2);
-            padding: 15px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .info b { display: block; font-size: 0.9rem; text-transform: uppercase; }
-        .info span { color: var(--gray); font-size: 0.8rem; }
-
-        .item-actions { display: flex; gap: 15px; }
-        .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--gray); }
-
-        .footer {
-            margin-top: 40px;
+        /* Conteúdo Principal */
+        .container {
             text-align: center;
+            z-index: 2;
+            padding: 35px;
+            background: rgba(6, 7, 9, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            max-width: 90%;
+            width: 550px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
         }
 
-        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--accents-2);
-            color: white;
-            padding: 12px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .btn-danger {
-            margin-top: 30px;
-            background: transparent;
-            color: var(--red);
-            border: 1px solid var(--accents-2);
-            padding: 10px;
-            width: 100%;
-            border-radius: 6px;
-            font-size: 12px;
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 400;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
+            color: #a6b8bb;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            animation: pulse 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <div class="brand">KLEBER <span class="version">V.1</span></div>
-        <div style="color: var(--gray); font-size: 10px;">Crie sua Lista de compras agora!</div>
+    <div class="rain" id="rainContainer"></div>
+
+    <div class="container">
+        <h1>Temporariamente desativado<br>LIGUE P/ Suporte 91983252639</h1>
     </div>
 
-    <div class="user-box">
-        <label>Responsável</label>
-        <input type="text" id="userName" class="input-user" placeholder="DIGITE SEU NOME" oninput="saveUser()">
-    </div>
+    <script>
+        const rainContainer = document.getElementById('rainContainer');
+        const dropCount = 300; // Tempestade: aumentado de 100 para 300 gotas
 
-    <div class="input-group">
-        <input type="hidden" id="editIndex" value="-1">
-        <input type="text" id="pNome" placeholder="Descrição do material" autocomplete="off">
-        <div style="display: flex; gap: 8px;">
-            <input type="number" id="pQtd" placeholder="Qtd" style="flex: 1;">
-            <select id="pMed" style="flex: 1;">
-                <option value="UN">UNIDADE</option>
-                <option value="MT">METROS</option>
-                <option value="CX">CAIXA</option>
-                <option value="PC">PEÇA</option>
-            </select>
-        </div>
-        <button id="btnSubmit" class="btn-main" onclick="handleSubmit()">ADICIONAR ITEM</button>
-    </div>
+        function createRain() {
+            for (let i = 0; i < dropCount; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop');
 
-    <div id="listaContainer"></div>
+                // Posição horizontal distribuída
+                drop.style.left = Math.random() * 120 + 'vw'; // Margem maior por causa da inclinação do vento
 
-    <div class="footer">
-        <div class="btn-row">
-            <button class="btn-outline" onclick="exportPDF()">GERAR PDF</button>
-            <button class="btn-outline" onclick="exportExcel()">EXCEL</button>
-        </div>
-        <button class="btn-danger" onclick="clearList()">Limpar Lista Atual</button>
-    </div>
-</div>
+                // Velocidade bem mais rápida (entre 0.3s e 0.6s para cruzar a tela)
+                const duration = Math.random() * 0.3 + 0.3;
+                const delay = Math.random() * 2;
 
-<script>
-    let db = JSON.parse(localStorage.getItem('kleber_v151')) || [];
-    document.getElementById('userName').value = localStorage.getItem('kleber_user') || '';
+                drop.style.animationDuration = duration + 's';
+                drop.style.animationDelay = '-' + delay + 's';
 
-    render();
+                // Opacidade variada para efeito de profundidade na tempestade
+                drop.style.opacity = Math.random() * 0.6;
+                drop.style.height = (Math.random() * 60 + 80) + 'px';
 
-    function saveUser() {
-        localStorage.setItem('kleber_user', document.getElementById('userName').value);
-    }
-
-    function handleSubmit() {
-        const n = document.getElementById('pNome');
-        const q = document.getElementById('pQtd');
-        const m = document.getElementById('pMed');
-        const index = document.getElementById('editIndex').value;
-
-        if(!n.value || !q.value) return;
-
-        const item = { nome: n.value.toUpperCase(), qtd: q.value, med: m.value };
-
-        if(index === "-1") {
-            db.push(item);
-        } else {
-            db[index] = item;
-            document.getElementById('editIndex').value = "-1";
-            document.getElementById('btnSubmit').innerText = "ADICIONAR ITEM";
-            document.getElementById('btnSubmit').style.background = "#fff";
+                rainContainer.appendChild(drop);
+            }
         }
 
-        n.value = ''; q.value = ''; n.focus();
-        save();
-    }
-
-    function save() {
-        localStorage.setItem('kleber_v151', JSON.stringify(db));
-        render();
-    }
-
-    function edit(i) {
-        const item = db[i];
-        document.getElementById('pNome').value = item.nome;
-        document.getElementById('pQtd').value = item.qtd;
-        document.getElementById('pMed').value = item.med;
-        document.getElementById('editIndex').value = i;
-        document.getElementById('btnSubmit').innerText = "SALVAR ALTERAÇÃO";
-        document.getElementById('btnSubmit').style.background = "#0070f3";
-        document.getElementById('btnSubmit').style.color = "#fff";
-        window.scrollTo(0,0);
-    }
-
-    function remove(i) {
-        if(confirm("Remover este item?")) {
-            db.splice(i, 1);
-            save();
-        }
-    }
-
-    function clearList() {
-        if(db.length === 0) return;
-        if(confirm("Deseja apagar todos os itens desta lista?")) {
-            db = [];
-            save();
-        }
-    }
-
-    function render() {
-        const container = document.getElementById('listaContainer');
-        container.innerHTML = '';
-        db.forEach((it, i) => {
-            container.innerHTML += `
-                <div class="item-card">
-                    <div class="info">
-                        <b>${it.nome}</b>
-                        <span>${it.qtd} ${it.med}</span>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn-icon" onclick="edit(${i})">✎</button>
-                        <button class="btn-icon" style="color:var(--red)" onclick="remove(${i})">✕</button>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    function exportExcel() {
-        if(db.length === 0) return;
-        const user = document.getElementById('userName').value || "Não informado";
-        const ws = XLSX.utils.json_to_sheet(db.map(i => ({ "Responsável": user, "Produto": i.nome, "Qtd": i.qtd, "Medida": i.med })));
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Requisição");
-        XLSX.writeFile(wb, `Lista_Kleber.xlsx`);
-    }
-
-    function exportPDF() {
-        if(db.length === 0) return;
-        const user = document.getElementById('userName').value || "Não informado";
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        const dataAtual = new Date().toLocaleDateString('pt-BR');
-
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.text("HOSPITAL RAIMUNDO VASCONCELOS", 14, 18);
-
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(80);
-        doc.text(`RESPONSÁVEL: ${user.toUpperCase()}`, 14, 25);
-
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(0);
-        doc.text("DOCUMENTO: LISTA DE COMPRAS", 14, 35);
-        doc.text(`DATA: ${dataAtual}`, 14, 40);
-
-        doc.autoTable({
-            head: [['Descrição do Material', 'Quantidade', 'Und']],
-            body: db.map(i => [i.nome, i.qtd, i.med]),
-            startY: 45,
-            theme: 'plain',
-            headStyles: { fontStyle: 'bold', borderBottom: 1, textColor: [0, 0, 0] }
-        });
-
-        doc.save(`Lista_Kleber.pdf`);
-    }
-</script>
-
+        createRain();
+    </script>
 </body>
 </html>
