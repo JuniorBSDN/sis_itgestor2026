@@ -1,322 +1,134 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jamily - Gerador CME</title>
+    <title>Aguardando o T.I</title>
     <style>
-        /* --- VARIÁVEIS DE CORES --- */
-        :root {
-            --bg-body: #f0f4f8;
-            --bg-panel: rgba(255, 255, 255, 0.85);
-            --bg-input: rgba(255, 255, 255, 0.9);
-            --border-panel: rgba(138, 43, 226, 0.2);
-            --text-main: #2d3436;
-            --accent-purple: #8a2be2;
-            --accent-magenta: #ff007f;
-            --shadow: rgba(138, 43, 226, 0.1);
-        }
-
-        body.dark-mode {
-            --bg-body: #020202;
-            --bg-panel: rgba(10, 0, 20, 0.9);
-            --bg-input: rgba(0, 0, 0, 0.5);
-            --border-panel: rgba(157, 0, 255, 0.4);
-            --text-main: #e0e0e0;
-            --accent-purple: #9d00ff;
-            --accent-magenta: #ff00ff;
-            --shadow: rgba(0, 0, 0, 0.8);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #060709;
+            color: #c5c6c7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            transition: background 0.4s ease, color 0.4s ease;
-        }
-
-        /* --- BOTÃO INFO --- */
-        .info-trigger {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 1px solid var(--border-panel);
-            background: var(--bg-panel);
-            color: var(--accent-purple);
-            display: flex;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-weight: bold;
-            font-style: italic;
-            box-shadow: 0 4px 10px var(--shadow);
-            transition: 0.3s;
-        }
-
-        .info-trigger:hover { transform: scale(1.1); border-color: var(--accent-magenta); }
-
-        /* --- MODAL DE INFORMAÇÕES --- */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(5px);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: var(--bg-panel);
-            border: 1px solid var(--border-panel);
-            padding: 25px;
-            border-radius: 15px;
-            max-width: 350px;
-            text-align: center;
-            box-shadow: 0 0 30px var(--accent-purple);
-        }
-
-        .modal-content h3 { color: var(--accent-magenta); margin-top: 0; }
-        .modal-content p { font-size: 14px; line-height: 1.5; }
-        .close-modal {
-            margin-top: 15px;
-            padding: 8px 20px;
-            background: var(--accent-purple);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* --- PAINEL PRINCIPAL --- */
-        .painel-terminal {
-            background: var(--bg-panel);
-            border: 1px solid var(--border-panel);
-            backdrop-filter: blur(15px);
-            padding: 35px;
-            width: 100%;
-            max-width: 440px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px var(--shadow);
             position: relative;
+            /* Animação do Relâmpago */
+            animation: lightning 8s infinite ease-in-out;
         }
 
-        h2 {
+        /* Animação que simula flashes de raios */
+        @keyframes lightning {
+            0%, 94%, 98%, 100% { background-color: #060709; }
+            95% { background-color: #1a1c23; }
+            96% { background-color: #4a5169; }
+            97% { background-color: #060709; }
+            99% { background-color: #3b4254; }
+        }
+
+        /* Efeito de Chuva Forte */
+        .rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .drop {
+            position: absolute;
+            background: linear-gradient(transparent, rgba(255, 255, 255, 0.4));
+            width: 1.5px; /* Gotas levemente mais grossas */
+            height: 120px; /* Gotas mais longas para parecerem mais rápidas */
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-150px) translateX(50px); /* Leve inclinação para o vento */
+            }
+            100% {
+                transform: translateY(100vh) translateX(-50px);
+            }
+        }
+
+        /* Conteúdo Principal */
+        .container {
             text-align: center;
+            z-index: 2;
+            padding: 35px;
+            background: rgba(6, 7, 9, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            max-width: 90%;
+            width: 550px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 400;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            font-size: 22px;
-            margin-bottom: 30px;
-            background: linear-gradient(90deg, var(--accent-purple), var(--accent-magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            border-bottom: 2px solid var(--border-panel);
-            padding-bottom: 15px;
+            color: #a6b8bb;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            animation: pulse 4s infinite ease-in-out;
         }
 
-        .campo { margin-bottom: 15px; }
-        label { display: block; font-size: 10px; text-transform: uppercase; color: var(--accent-purple); margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border-panel); border-radius: 8px; color: var(--text-main); font-size: 14px; box-sizing: border-box; outline: none; }
-        input:focus { border-color: var(--accent-magenta); box-shadow: 0 0 10px var(--accent-magenta); }
-
-        .grid-duplo { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
-
-        .btn-imprimir {
-            width: 100%; padding: 16px; margin-top: 20px;
-            background: linear-gradient(45deg, var(--accent-purple), var(--accent-magenta));
-            color: white; border: none; border-radius: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;
-        }
-
-        .theme-switch { margin-top: 20px; cursor: pointer; font-size: 12px; font-weight: bold; color: var(--accent-purple); text-align: center; }
-
-        /* --- CONFIGURAÇÃO DE IMPRESSÃO (4 COLUNAS) --- */
-        #grade-impressao {
-            display: none;
-        }
-
-        @media print {
-            @page {
-                size: portrait;
-                margin: 5mm;
-            }
-            body { background: white !important; margin: 0; padding: 0; }
-            .painel-terminal, .info-trigger, .modal-overlay { display: none !important; }
-
-            #grade-impressao {
-                display: grid !important;
-                grid-template-columns: repeat(4, 1fr); /* 4 colunas */
-                gap: 2mm;
-                width: 100%;
-            }
-
-            .etiqueta-card {
-                width: 100%;
-                height: 45mm; /* Ajustado para caber bem no layout */
-                background: white;
-                color: black;
-                padding: 5px;
-                border: 0.1mm solid #000;
-                box-sizing: border-box;
-                font-family: Arial, sans-serif;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                page-break-inside: avoid;
-            }
-
-            .etiqueta-topo {
-                text-align: center;
-                font-weight: bold;
-                font-size: 7pt; /* Fonte menor para caber em 4 colunas */
-                border-bottom: 1px solid black;
-                padding-bottom: 2px;
-                margin-bottom: 4px;
-                line-height: 1.1;
-            }
-
-            .linha-dados {
-                font-size: 6.5pt;
-                font-weight: bold;
-                margin: 1px 0;
-                display: block; /* Empilhado para economizar espaço horizontal */
-            }
-
-            .linha-dados span {
-                font-weight: normal;
-                border-bottom: 0.5px dotted #444;
-                display: inline-block;
-                width: 100%;
-            }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <div class="info-trigger" onclick="toggleModal(true)">i</div>
+    <div class="rain" id="rainContainer"></div>
 
-    <div class="modal-overlay" id="infoModal">
-        <div class="modal-content">
-            <h3>SOBRE O APP</h3>
-            <p><strong>Função:</strong> Gerador de etiquetas de identificação para materiais esterilizados (CME).</p>
-            <p><strong>Desenvolvedor:</strong> Jose Airton B. Souza Jr./Fone 91 983252639</p>
-            <button class="close-modal" onclick="toggleModal(false)">Entendido</button>
-        </div>
+    <div class="container">
+        <h1>Temporariamente desativado<br>LIGUE P/ Suporte 91983252639</h1>
     </div>
-
-    <div class="painel-terminal">
-        <h2>Jamily - v1.1</h2>
-
-        <div class="campo">
-            <label>Material:</label>
-            <input type="text" id="material" placeholder="Ex: Kit Cirúrgico">
-        </div>
-
-        <div class="grid-duplo">
-            <div class="campo">
-                <label>Lote:</label>
-                <input type="text" id="lote">
-            </div>
-            <div class="campo">
-                <label>Qtde</label>
-                <input type="number" id="qtd" min="1" value="1">
-            </div>
-        </div>
-
-        <div class="grid-duplo">
-            <div class="campo">
-                <label>Data Esterilização:</label>
-                <input type="date" id="dtEst">
-            </div>
-            <div class="campo">
-                <label>Data Limite:</label>
-                <input type="date" id="dtLim">
-            </div>
-        </div>
-
-        <div class="campo">
-            <label>Responsável (Preparo)</label>
-            <input type="text" id="resp">
-        </div>
-
-        <div class="campo">
-            <label>Método de Esterilização</label>
-            <input type="text" id="metodo" value="AUTOCLAVE">
-        </div>
-
-        <button class="btn-imprimir" onclick="gerarImpressao()">Imprimir Etiquetas</button>
-
-        <div class="theme-switch" onclick="toggleTheme()">
-            <span id="theme-icon">🌙</span> <span id="theme-text">MODO ESCURO</span>
-        </div>
-    </div>
-
-    <div id="grade-impressao"></div>
 
     <script>
-        function toggleModal(show) {
-            document.getElementById('infoModal').style.display = show ? 'flex' : 'none';
-        }
+        const rainContainer = document.getElementById('rainContainer');
+        const dropCount = 300; // Tempestade: aumentado de 100 para 300 gotas
 
-        function formatarDataBR(dataString) {
-            if (!dataString) return "";
-            const [ano, mes, dia] = dataString.split('-');
-            return `${dia}/${mes}/${ano}`;
-        }
+        function createRain() {
+            for (let i = 0; i < dropCount; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop');
 
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('theme-icon');
-            const text = document.getElementById('theme-text');
-            body.classList.toggle('dark-mode');
-            if (body.classList.contains('dark-mode')) {
-                icon.innerText = '☀️'; text.innerText = 'MODO CLARO';
-                localStorage.setItem('theme', 'dark');
-            } else {
-                icon.innerText = '🌙'; text.innerText = 'MODO ESCURO';
-                localStorage.setItem('theme', 'light');
+                // Posição horizontal distribuída
+                drop.style.left = Math.random() * 120 + 'vw'; // Margem maior por causa da inclinação do vento
+
+                // Velocidade bem mais rápida (entre 0.3s e 0.6s para cruzar a tela)
+                const duration = Math.random() * 0.3 + 0.3;
+                const delay = Math.random() * 2;
+
+                drop.style.animationDuration = duration + 's';
+                drop.style.animationDelay = '-' + delay + 's';
+
+                // Opacidade variada para efeito de profundidade na tempestade
+                drop.style.opacity = Math.random() * 0.6;
+                drop.style.height = (Math.random() * 60 + 80) + 'px';
+
+                rainContainer.appendChild(drop);
             }
         }
 
-        if (localStorage.getItem('theme') === 'dark') toggleTheme();
-
-        function gerarImpressao() {
-            const grid = document.getElementById('grade-impressao');
-            const qtd = parseInt(document.getElementById('qtd').value) || 1;
-            const dados = {
-                m: document.getElementById('material').value,
-                l: document.getElementById('lote').value,
-                e: formatarDataBR(document.getElementById('dtEst').value),
-                v: formatarDataBR(document.getElementById('dtLim').value),
-                r: document.getElementById('resp').value,
-                met: document.getElementById('metodo').value
-            };
-            grid.innerHTML = '';
-            for (let i = 0; i < qtd; i++) {
-                grid.innerHTML += `
-                    <div class="etiqueta-card">
-                        <div class="etiqueta-topo">HOSPITAL MUNICIPAL DE VIGIA</div>
-                        <div class="linha-dados">Material: <span>${dados.m}</span></div>
-                        <div class="linha-dados">Lote: <span>${dados.l}</span></div>
-                        <div class="linha-dados">Data Esterilização: <span>${dados.e}</span></div>
-                        <div class="linha-dados">Data Limite de Uso: <span>${dados.v}</span></div>
-                        <div class="linha-dados">Responsável: <span>${dados.r}</span></div>
-                        <div class="linha-dados">Metodo de Esterilização: <span>${dados.met}</span></div>
-                    </div>`;
-            }
-            // Pequeno delay para garantir a renderização antes de abrir o diálogo de impressão
-            setTimeout(() => { window.print(); }, 500);
-        }
+        createRain();
     </script>
 </body>
 </html>
